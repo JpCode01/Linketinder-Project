@@ -18,19 +18,19 @@ class Menu {
         instanciarObjetosEmpresa()
         instanciarObjetosCandidato()
         println("""
-SEJA BEM VINDO AO LINKETINDER, AQUI EMPRESAS PODEM
-ENCONTRAR CANDIDATOS POR MATCH
-""")
+    SEJA BEM VINDO AO LINKETINDER, AQUI EMPRESAS PODEM
+    ENCONTRAR CANDIDATOS POR MATCH
+    """)
 
         while (true) {
             println("""
-1 - CADASTRAR EMPRESA
-2 - CADASTRAR CANDIDATO
-3 - LISTAR CANDIDATOS
-4 - LISTAR EMPRESAS
-QUALQUER TELA - SAIR
-
-ESCOLHA A OPCAO DESEJADA:""")
+        1 - CADASTRAR EMPRESA
+        2 - CADASTRAR CANDIDATO
+        3 - LISTAR CANDIDATOS
+        4 - LISTAR EMPRESAS
+        QUALQUER TELA - SAIR
+        
+        ESCOLHA A OPCAO DESEJADA:""")
             switch (scanner.nextInt()) {
                 case 1:
                     empresas.add(empresaService.cadastrarEmpresa())

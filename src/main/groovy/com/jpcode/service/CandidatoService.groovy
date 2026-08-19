@@ -30,18 +30,18 @@ class CandidatoService {
                 break
             }
             println("""
-Suas competências: ${candidato.competencias}
-
-1 - Digitar nova competência
-Qualquer tecla - Parar 
-""")
+        Suas competências: ${candidato.competencias}
+        
+        1 - Digitar nova competência
+        Qualquer tecla - Parar 
+        """)
             if (scanner.nextInt() == 1) {
                 scanner.nextLine()
                 println("""
-Competencias disponiveis: ${CompetenciasEnum.values()}
-Suas competencias: ${candidato.competencias}
-
-Digite uma competencia: """)
+            Competencias disponiveis: ${CompetenciasEnum.values()}
+            Suas competencias: ${candidato.competencias}
+            
+            Digite uma competencia: """)
                 String competencia = scanner.nextLine()
                 if (!validation.validarCompetencia(competencia.toUpperCase(), candidato.competencias)) {
                     println("Opa, Parece que você digitou alguma competencia errada ou ja existente, tente novamente!")
