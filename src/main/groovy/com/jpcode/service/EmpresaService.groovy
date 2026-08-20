@@ -1,12 +1,14 @@
 package com.jpcode.service
 
 import com.jpcode.enums.CompetenciasEnum
+import com.jpcode.model.Candidato
 import com.jpcode.model.Empresa
-import com.jpcode.validation.Validation
+import com.jpcode.validation.CompetenciaValidation
 
 class EmpresaService {
-    final Validation validation = new Validation()
+    final CompetenciaValidation validation = new CompetenciaValidation()
     final Scanner scanner = new Scanner(System.in)
+
 
     Empresa cadastrarEmpresa() {
         println("Nome Empresa: ")
@@ -55,5 +57,17 @@ class EmpresaService {
             }
         }
         empresa
+    }
+
+    void curtirCandidato(Candidato candidato, Empresa empresa) {
+        empresa.adicionarCandidatoCurtido(candidato)
+    }
+
+    List ListarVagasPorEmpresa(Empresa empresa) {
+        println(empresa.vagas)
+    }
+
+    void ListarCandidatosPorVaga(Empresa empresa) {
+
     }
 }

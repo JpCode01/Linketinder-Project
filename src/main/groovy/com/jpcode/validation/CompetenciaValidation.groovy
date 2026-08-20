@@ -2,7 +2,7 @@ package com.jpcode.validation
 
 import com.jpcode.enums.CompetenciasEnum
 
-class Validation {
+class CompetenciaValidation {
     boolean validarCompetencia(String competenciaString, List competenciaList) {
         try {
             CompetenciasEnum competencia = CompetenciasEnum.valueOf(competenciaString)

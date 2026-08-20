@@ -5,6 +5,7 @@ class Empresa extends Pessoa {
     String cnpj
     String pais
     List vagas = []
+    List candidatosCurtidos = []
 
     Empresa(String nome, String email, String cnpj, String pais, String estado, String cep, String descricao) {
         super(nome, email, estado, cep, descricao)
@@ -32,5 +33,9 @@ class Empresa extends Pessoa {
 
     void adicionarVaga(Vaga vaga) {
         vagas.add(vaga)
+    }
+
+    void adicionarCandidatoCurtido(Candidato candidato) {
+        candidatosCurtidos.add(candidato)
     }
 }

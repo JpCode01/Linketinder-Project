@@ -10,8 +10,9 @@ class Menu {
     private final Scanner scanner = new Scanner(System.in)
     private final CandidatoService candidatoService = new CandidatoService()
     private final EmpresaService empresaService = new EmpresaService()
-    private List empresas = []
-    private List candidatos = []
+    private final MenuEmpresa menuPrincipal = new MenuEmpresa()
+    static List candidatos = []
+    static List empresas = []
 
     void inicio() {
 
@@ -24,30 +25,33 @@ class Menu {
 
         while (true) {
             println("""
-        1 - CADASTRAR EMPRESA
-        2 - CADASTRAR CANDIDATO
-        3 - LISTAR CANDIDATOS
-        4 - LISTAR EMPRESAS
+        1 - ENTRAR COMO EMPRESA
+        2 - ENTRAR COMO CANDIDATO
+
         QUALQUER TELA - SAIR
         
-        ESCOLHA A OPCAO DESEJADA:""")
+//        ESCOLHA A OPCAO DESEJADA:""")
             switch (scanner.nextInt()) {
                 case 1:
-                    empresas.add(empresaService.cadastrarEmpresa())
-                    break
-                case 2:
-                    candidatos.add(candidatoService.cadastrarCandidato())
-                    break
-                case 3:
-                    listarCandidatos()
-                    break
-                case 4:
-                    listarEmpresas()
-                    break
-                default:
-                    return
-
+                    
             }
+//            switch (scanner.nextInt()) {
+//                case 1:
+//                    empresas.add(empresaService.cadastrarEmpresa())
+//                    break
+//                case 2:
+//                    candidatos.add(candidatoService.cadastrarCandidato())
+//                    break
+//                case 3:
+//                    listarCandidatos()
+//                    break
+//                case 4:
+//                    listarEmpresas()
+//                    break
+//                default:
+//                    return
+//
+//            }
         }
 
     }

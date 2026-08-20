@@ -1,7 +1,5 @@
 package com.jpcode.model
 
-import com.jpcode.enums.CompetenciasEnum
-
 class Candidato extends Pessoa {
     String cpf
     int idade

@@ -13,10 +13,15 @@ class VagaService {
         String descricao = scanner.nextLine()
         Vaga vaga = new Vaga(nome, descricao)
         vaga.competencias = empresa.competencias
+        empresa.adicionarVaga(vaga)
     }
 
     void curtir(Candidato candidato, Vaga vaga) {
         vaga.adicionarCandidatoQueCurtiu(candidato)
         candidato.adicionarVagaCurtida(vaga)
+    }
+
+    void listarCandidatosDaVaga(Vaga vaga) {
+        vaga.candidatosQueCurtiram.each { println(it)}
     }
 }
