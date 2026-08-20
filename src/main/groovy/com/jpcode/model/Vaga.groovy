@@ -4,6 +4,7 @@ class Vaga {
     String nome
     String descricao
     List competencias = []
+    int curtidas
 
     Vaga(String nome, String descricao) {
         this.nome = nome
