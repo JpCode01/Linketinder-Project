@@ -1,13 +1,13 @@
 package com.jpcode.view
 
+import com.jpcode.model.Candidato
 import com.jpcode.model.Empresa
+import com.jpcode.model.Vaga
 import com.jpcode.service.EmpresaService
-import com.jpcode.validation.MenuValidation
 
 class MenuEmpresa {
     final Scanner scanner = new Scanner(System.in)
     final EmpresaService empresaService = new EmpresaService()
-    final MenuValidation validation = new MenuValidation();
         
     void inicio() {
         println("""
@@ -27,8 +27,9 @@ class MenuEmpresa {
                     if (Menu.empresas.contains(nome)) {
                         Empresa empresa = Menu.empresas.find(nome)
                         println("""
-                        1 - Ver Vagas Disponiveis
-                        2 - Ver Candidatos por Vaga
+                        1 - Ver Vagas
+                        2 - Ver Candidatos
+                        Qualquer Tecla - Sair
                         """)
                         switch (scanner.nextInt()) {
                             case 1:
@@ -37,8 +38,30 @@ class MenuEmpresa {
                                 empresaService.ListarVagasPorEmpresa(empresa)
                                 println("Digite o nome da vaga: ")
                                 String nomeVaga = scanner.nextLine()
-                                empresaService.ListarCandidatosPorVaga(empresa, nomeVaga)
+                                if (empresa.find {it.vagas.find(nomeVaga)} != null) {
+                                    Vaga vaga = empresa.find {it.vagas.find(nomeVaga)} as Vaga
+                                    List candidatos = empresaService.ListarCandidatosPorVaga(vaga)
+                                    println("Escolha um candidato por id: ")
+                                    int idCandidato = scanner.nextInt()
+                                    try {
+                                        Candidato candidato = candidatos.get(idCandidato)
+                                        println(candidato.competencias)
+                                        println("Deseja curtir o candidato(s/n)? ")
+                                        if (scanner.nextLine().toLowerCase("s")) {
+                                            empresaService.curtirCandidato(candidato, empresa)
+                                        }
+                                    } catch (IndexOutOfBoundsException ex) {
+                                        println("ID inválido!")
+                                    }
+
+                                } else {
+                                    println("A Empresa nao possui essa vaga")
+                                }
+                            default:
+                                return
                         }
+                    } else {
+                        println("Empresa não encontrada!")
                     }
                 }
         }

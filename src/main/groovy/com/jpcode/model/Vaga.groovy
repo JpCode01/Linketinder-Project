@@ -4,7 +4,7 @@ class Vaga {
     String nome
     String descricao
     List competencias = []
-    List candidatosQueCurtiram = []
+    List<Candidato> candidatosQueCurtiram = []
 
     Vaga(String nome, String descricao) {
         this.nome = nome

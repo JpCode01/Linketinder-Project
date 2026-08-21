@@ -3,6 +3,7 @@ package com.jpcode.service
 import com.jpcode.enums.CompetenciasEnum
 import com.jpcode.model.Candidato
 import com.jpcode.model.Empresa
+import com.jpcode.model.Vaga
 import com.jpcode.validation.CompetenciaValidation
 
 class EmpresaService {
@@ -63,11 +64,13 @@ class EmpresaService {
         empresa.adicionarCandidatoCurtido(candidato)
     }
 
-    List ListarVagasPorEmpresa(Empresa empresa) {
+    void ListarVagasPorEmpresa(Empresa empresa) {
         println(empresa.vagas)
     }
 
-    void ListarCandidatosPorVaga(Empresa empresa) {
-
+    void ListarCandidatosPorVaga(Vaga vaga) {
+        println(vaga.candidatosQueCurtiram.eachWithIndex { candidato, index ->
+            println "$index - ${candidato.nome}"
+        })
     }
 }

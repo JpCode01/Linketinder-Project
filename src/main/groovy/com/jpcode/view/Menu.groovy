@@ -10,7 +10,7 @@ class Menu {
     private final Scanner scanner = new Scanner(System.in)
     private final CandidatoService candidatoService = new CandidatoService()
     private final EmpresaService empresaService = new EmpresaService()
-    private final MenuEmpresa menuPrincipal = new MenuEmpresa()
+    private final MenuEmpresa menuEmpresa = new MenuEmpresa()
     static List candidatos = []
     static List empresas = []
 
@@ -30,9 +30,11 @@ class Menu {
 
         QUALQUER TELA - SAIR
         
-//        ESCOLHA A OPCAO DESEJADA:""")
+        ESCOLHA A OPCAO DESEJADA:""")
             switch (scanner.nextInt()) {
                 case 1:
+                    menuEmpresa.inicio()
+                    break
                     
             }
 //            switch (scanner.nextInt()) {
