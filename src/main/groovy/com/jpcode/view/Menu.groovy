@@ -3,14 +3,17 @@ package com.jpcode.view
 import com.jpcode.enums.CompetenciasEnum
 import com.jpcode.model.Candidato
 import com.jpcode.model.Empresa
+import com.jpcode.model.Vaga
 import com.jpcode.service.CandidatoService
 import com.jpcode.service.EmpresaService
+import com.jpcode.service.VagaService
 
 class Menu {
     private final Scanner scanner = new Scanner(System.in)
     private final CandidatoService candidatoService = new CandidatoService()
     private final EmpresaService empresaService = new EmpresaService()
     private final MenuEmpresa menuEmpresa = new MenuEmpresa()
+    private final VagaService vagaService = new VagaService()
     static List candidatos = []
     static List empresas = []
 

@@ -4,10 +4,12 @@ import com.jpcode.model.Candidato
 import com.jpcode.model.Empresa
 import com.jpcode.model.Vaga
 import com.jpcode.service.EmpresaService
+import com.jpcode.service.VagaService
 
 class MenuEmpresa {
     final Scanner scanner = new Scanner(System.in)
     final EmpresaService empresaService = new EmpresaService()
+    final VagaService vagaService = new VagaService()
         
     void inicio() {
         println("""
@@ -28,7 +30,8 @@ class MenuEmpresa {
                         Empresa empresa = Menu.empresas.find(nome)
                         println("""
                         1 - Ver Vagas
-                        2 - Ver Candidatos
+                        2 - Ver Candidatos em vagas
+                        3 - Criar Vaga
                         Qualquer Tecla - Sair
                         """)
                         switch (scanner.nextInt()) {
@@ -53,10 +56,12 @@ class MenuEmpresa {
                                     } catch (IndexOutOfBoundsException ex) {
                                         println("ID inválido!")
                                     }
-
                                 } else {
                                     println("A Empresa nao possui essa vaga")
                                 }
+                                break
+                            case 3:
+                                vagaService.criarVaga(empresa)
                             default:
                                 return
                         }
