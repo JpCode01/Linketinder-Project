@@ -3,7 +3,7 @@ package com.jpcode.model
 class Candidato extends Pessoa {
     String cpf
     int idade
-    List vagasCurtidas = []
+    List<Vaga> vagasCurtidas = []
 
 
     Candidato(String nome, String email, String cpf, int idade, String estado, String cep, String descricao) {

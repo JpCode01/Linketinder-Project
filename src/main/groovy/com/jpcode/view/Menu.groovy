@@ -15,7 +15,7 @@ class Menu {
     private final MenuEmpresa menuEmpresa = new MenuEmpresa()
     private final VagaService vagaService = new VagaService()
     static List candidatos = []
-    static List empresas = []
+    static List<Empresa> empresas = []
 
     void inicio() {
 
@@ -38,7 +38,6 @@ class Menu {
                 case 1:
                     menuEmpresa.inicio()
                     break
-                    
             }
 //            switch (scanner.nextInt()) {
 //                case 1:

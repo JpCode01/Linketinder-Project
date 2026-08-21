@@ -26,8 +26,8 @@ class MenuEmpresa {
                 while (true) {
                     println("Digite o nome da empresa: ")
                     nome = scanner.nextLine()
-                    if (Menu.empresas.contains(nome)) {
-                        Empresa empresa = Menu.empresas.find(nome)
+                    if (Menu.empresas.find {it.nome}) {
+                        Empresa empresa = Menu.empresas.find {it.nome}
                         println("""
                         1 - Ver Vagas
                         2 - Ver Candidatos em vagas
@@ -37,6 +37,7 @@ class MenuEmpresa {
                         switch (scanner.nextInt()) {
                             case 1:
                                 empresaService.ListarVagasPorEmpresa(empresa)
+                                break
                             case 2:
                                 empresaService.ListarVagasPorEmpresa(empresa)
                                 println("Digite o nome da vaga: ")
@@ -54,7 +55,7 @@ class MenuEmpresa {
                                             empresaService.curtirCandidato(candidato, empresa)
                                         }
                                     } catch (IndexOutOfBoundsException ex) {
-                                        println("ID inválido!")
+                                        println("ID invalido!")
                                     }
                                 } else {
                                     println("A Empresa nao possui essa vaga")
@@ -62,6 +63,7 @@ class MenuEmpresa {
                                 break
                             case 3:
                                 vagaService.criarVaga(empresa)
+                                break
                             default:
                                 return
                         }
