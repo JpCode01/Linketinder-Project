@@ -23,16 +23,17 @@ class MenuEmpresa {
             case 2:
                 scanner.nextLine()
                 String nome
+                println("Digite o nome da empresa: ")
+                nome = scanner.nextLine()
                 while (true) {
-                    println("Digite o nome da empresa: ")
-                    nome = scanner.nextLine()
-                    if (Menu.empresas.find {it.nome}) {
+                    if (Menu.empresas.find {it.nome == nome}) {
                         Empresa empresa = Menu.empresas.find {it.nome}
+                        println(empresa)
                         println("""
                         1 - Ver Vagas
                         2 - Ver Candidatos em vagas
                         3 - Criar Vaga
-                        Qualquer Tecla - Sair
+                        4 - Sair
                         """)
                         switch (scanner.nextInt()) {
                             case 1:
@@ -42,8 +43,8 @@ class MenuEmpresa {
                                 empresaService.ListarVagasPorEmpresa(empresa)
                                 println("Digite o nome da vaga: ")
                                 String nomeVaga = scanner.nextLine()
-                                if (empresa.find {it.vagas.find(nomeVaga)} != null) {
-                                    Vaga vaga = empresa.find {it.vagas.find(nomeVaga)} as Vaga
+                                if (empresa.find {it.vagas.find()} != null) {
+                                    Vaga vaga = empresa.find {it.vagas.find {it.nome == nomeVaga}} as Vaga
                                     List candidatos = empresaService.ListarCandidatosPorVaga(vaga)
                                     println("Escolha um candidato por id: ")
                                     int idCandidato = scanner.nextInt()
@@ -64,13 +65,14 @@ class MenuEmpresa {
                             case 3:
                                 vagaService.criarVaga(empresa)
                                 break
-                            default:
+                            case 4:
                                 return
                         }
                     } else {
                         println("Empresa não encontrada!")
                     }
                 }
+                break
         }
     }
 }
