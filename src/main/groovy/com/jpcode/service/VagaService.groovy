@@ -14,6 +14,7 @@ class VagaService {
         Vaga vaga = new Vaga(nome, descricao)
         vaga.competencias = empresa.competencias
         empresa.adicionarVaga(vaga)
+        return vaga
     }
 
     void curtir(Candidato candidato, Vaga vaga) {
@@ -24,4 +25,12 @@ class VagaService {
     void listarCandidatosDaVaga(Vaga vaga) {
         vaga.candidatosQueCurtiram.each { println(it)}
     }
+
+    List<Vaga> listarVagas(List<Vaga> vagas) {
+        vagas.eachWithIndex { vaga, index ->
+            println "$index - ${vaga.nome}"
+        }
+        return vagas
+
+    } 
 }

@@ -4,18 +4,14 @@ import com.jpcode.enums.CompetenciasEnum
 import com.jpcode.model.Candidato
 import com.jpcode.model.Empresa
 import com.jpcode.model.Vaga
-import com.jpcode.service.CandidatoService
-import com.jpcode.service.EmpresaService
-import com.jpcode.service.VagaService
 
 class Menu {
     private final Scanner scanner = new Scanner(System.in)
-    private final CandidatoService candidatoService = new CandidatoService()
-    private final EmpresaService empresaService = new EmpresaService()
     private final MenuEmpresa menuEmpresa = new MenuEmpresa()
-    private final VagaService vagaService = new VagaService()
-    static List candidatos = []
+    private final MenuCandidato menuCandidato = new MenuCandidato()
+    static List<Candidato> candidatos = []
     static List<Empresa> empresas = []
+    static List<Vaga> vagasGerais = []
 
     void inicio() {
 
@@ -31,13 +27,18 @@ class Menu {
         1 - ENTRAR COMO EMPRESA
         2 - ENTRAR COMO CANDIDATO
 
-        QUALQUER TELA - SAIR
+        3 - SAIR
         
         ESCOLHA A OPCAO DESEJADA:""")
             switch (scanner.nextInt()) {
                 case 1:
                     menuEmpresa.inicio()
                     break
+                case 2:
+                    menuCandidato.inicio()
+                    break
+                case 3:
+                    return
             }
 //            switch (scanner.nextInt()) {
 //                case 1:
