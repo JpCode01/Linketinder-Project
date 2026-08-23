@@ -64,7 +64,7 @@ class MenuCandidato {
                                     println(vaga.competencias)
                                     println("Deseja curtir a vaga(s/n)? ")
                                     
-                                    if  (scanner.nextLine().toLowerCase()) {
+                                    if(scanner.nextLine().toLowerCase() == "s") {
                                         vagaService.curtir(candidato, vaga)
                                     } else {
                                         println("Opção invalida")

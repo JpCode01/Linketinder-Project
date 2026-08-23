@@ -69,8 +69,8 @@ class EmpresaService {
     }
 
     void ListarCandidatosPorVaga(Vaga vaga) {
-        println(vaga.candidatosQueCurtiram.eachWithIndex { candidato, index ->
+        vaga.candidatosQueCurtiram.eachWithIndex { candidato, index ->
             println "$index - Candidato anônimo ${index + 1}"
-        })
+        }
     }
 }

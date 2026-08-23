@@ -39,24 +39,30 @@
                                     empresaService.ListarVagasPorEmpresa(empresa)
                                     break
                                 case 2:
+                                    scanner.nextLine()
                                     empresaService.ListarVagasPorEmpresa(empresa)
                                     println("Digite o nome da vaga: ")
                                     String nomeVaga = scanner.nextLine()
-                                    if (empresa.find {it.vagas.find()} != null) {
-                                        Vaga vaga = empresa.find {it.vagas.find {it.nome == nomeVaga}} as Vaga
-                                        List candidatos = empresaService.ListarCandidatosPorVaga(vaga)
-                                        println("Escolha um candidato por id: ")
-                                        int idCandidato = scanner.nextInt()
-                                        scanner.nextLine()
-                                        try {
-                                            Candidato candidato = candidatos.get(idCandidato)
-                                            println(candidato.competencias)
-                                            println("Deseja curtir o candidato(s/n)? ")
-                                            if (scanner.nextLine().toLowerCase("s")) {
-                                                empresaService.curtirCandidato(candidato, empresa)
+                                    if (empresa.vagas.find {it.nome == nomeVaga} ) {
+                                        Vaga vaga = empresa.vagas.find {it.nome == nomeVaga}
+                                        List candidatos = vaga.candidatosQueCurtiram
+                                        if (candidatos != null) {
+                                            empresaService.ListarCandidatosPorVaga(vaga)
+                                            println("Escolha um candidato por id: ")
+                                            int idCandidato = scanner.nextInt()
+                                            scanner.nextLine()
+                                            try {
+                                                Candidato candidato = candidatos.get(idCandidato)
+                                                println(candidato.competencias)
+                                                println("Deseja curtir o candidato(s/n)? ")
+                                                if (scanner.nextLine().toLowerCase() == "s") {
+                                                    empresaService.curtirCandidato(candidato, empresa)
+                                                }
+                                            } catch (IndexOutOfBoundsException ex) {
+                                                println("ID invalido!")
                                             }
-                                        } catch (IndexOutOfBoundsException ex) {
-                                            println("ID invalido!")
+                                        } else {
+                                            println("Nenhum candidato curtiu a sua vaga até o momento, por favor aguarde!")
                                         }
                                     } else {
                                         println("A Empresa nao possui essa vaga")
