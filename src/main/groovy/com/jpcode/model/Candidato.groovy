@@ -1,10 +1,9 @@
 package com.jpcode.model
 
-import com.jpcode.enums.CompetenciasEnum
-
 class Candidato extends Pessoa {
     String cpf
     int idade
+    List<Vaga> vagasCurtidas = []
 
 
     Candidato(String nome, String email, String cpf, int idade, String estado, String cep, String descricao) {
@@ -29,5 +28,9 @@ class Candidato extends Pessoa {
             CEP: ${cep}
             Competencia: ${competencias}
         """;
+    }
+
+    void adicionarVagaCurtida(Vaga vaga) {
+        vagasCurtidas.add(vaga)
     }
 }

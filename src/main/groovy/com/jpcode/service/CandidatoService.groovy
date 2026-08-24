@@ -2,10 +2,10 @@ package com.jpcode.service
 
 import com.jpcode.enums.CompetenciasEnum
 import com.jpcode.model.Candidato
-import com.jpcode.validation.Validation
+import com.jpcode.validation.CompetenciaValidation
 
 class CandidatoService {
-    final Validation validation = new Validation()
+    final CompetenciaValidation validation = new CompetenciaValidation()
     final Scanner scanner = new Scanner(System.in)
 
     Candidato cadastrarCandidato() {
@@ -56,6 +56,4 @@ class CandidatoService {
         }
         candidato
     }
-
-
 }
