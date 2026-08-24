@@ -2,6 +2,7 @@
     
     import com.jpcode.model.Candidato
     import com.jpcode.model.Empresa
+    import com.jpcode.model.Match
     import com.jpcode.model.Vaga
     import com.jpcode.service.EmpresaService
     import com.jpcode.service.VagaService
@@ -57,6 +58,8 @@
                                                 println("Deseja curtir o candidato(s/n)? ")
                                                 if (scanner.nextLine().toLowerCase() == "s") {
                                                     empresaService.curtirCandidato(candidato, empresa)
+                                                    Match match = new Match(empresa, candidato, vaga)
+                                                    println(match)
                                                 }
                                             } catch (IndexOutOfBoundsException ex) {
                                                 println("ID invalido!")
