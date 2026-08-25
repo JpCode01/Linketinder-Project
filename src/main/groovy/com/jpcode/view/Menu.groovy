@@ -26,8 +26,10 @@ class Menu {
             println("""
         1 - ENTRAR COMO EMPRESA
         2 - ENTRAR COMO CANDIDATO
-
-        3 - SAIR
+        3 - LISTAR CANDIDATOS 
+        4 - LISTAR EMPRESAS
+        
+        5 - SAIR
         
         ESCOLHA A OPCAO DESEJADA:""")
             switch (scanner.nextInt()) {
@@ -38,25 +40,14 @@ class Menu {
                     menuCandidato.inicio()
                     break
                 case 3:
+                    listarCandidatos()
+                    break
+                case 4:
+                    listarEmpresas()
+                    break
+                case 5:
                     return
             }
-//            switch (scanner.nextInt()) {
-//                case 1:
-//                    empresas.add(empresaService.cadastrarEmpresa())
-//                    break
-//                case 2:
-//                    candidatos.add(candidatoService.cadastrarCandidato())
-//                    break
-//                case 3:
-//                    listarCandidatos()
-//                    break
-//                case 4:
-//                    listarEmpresas()
-//                    break
-//                default:
-//                    return
-//
-//            }
         }
 
     }

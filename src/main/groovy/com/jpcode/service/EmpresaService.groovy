@@ -7,59 +7,47 @@ import com.jpcode.model.Vaga
 import com.jpcode.validation.CompetenciaValidation
 
 class EmpresaService {
-    final CompetenciaValidation validation = new CompetenciaValidation()
-    final Scanner scanner = new Scanner(System.in)
+    final CompetenciaValidation validation
 
-
-    Empresa cadastrarEmpresa() {
-        println("Nome Empresa: ")
-        String nomeEmpresa = scanner.nextLine()
-        println("Email: ")
-        String emailEmpresa = scanner.nextLine()
-        println("Cnpj: ")
-        String cnpj = scanner.nextLine()
-        println("Pais: ")
-        String pais = scanner.nextLine()
-        println("Estado: ")
-        String estado = scanner.nextLine()
-        println("Cep: ")
-        String cep = scanner.nextLine()
-        println("Descricao: ")
-        String descricao = scanner.nextLine()
-        Empresa empresa = new Empresa(nomeEmpresa, emailEmpresa, cnpj, pais, estado, cep, descricao)
-        while (true) {
-            if (empresa.competencias.size() == CompetenciasEnum.values().length) {
-                println("A empresa ja busca por todas as competencias Disponiveis")
-                break
-            }
-            println("""
-        Competencias esperadas pela empresa: ${empresa.competencias}
-        
-        1 - Digitar nova competencia
-        Qualquer tecla - Parar 
-        """)
-            if (scanner.nextInt() == 1) {
-                scanner.nextLine()
-                println("""
-        Competencias disponiveis: ${CompetenciasEnum.values()}
-        Competencias esperadas pela empresa: ${empresa.competencias}
-        
-        Digite uma competencia: """)
-                String competencia = scanner.nextLine()
-                if (!validation.validarCompetencia(competencia.toUpperCase(), empresa.competencias)) {
-                    println("Opa, Parece que você digitou alguma competencia errada ou ja existente, tente novamente!")
-                } else {
-                    empresa.adicionarCompetencia(CompetenciasEnum.valueOf(competencia.toUpperCase()))
-                    println("Empresa cadastrado com sucesso!")
-                    break
-                }
-            } else {
-                break
-            }
-        }
-        empresa
+    EmpresaService(CompetenciaValidation validation) {
+        this.validation = validation
     }
 
+    Empresa cadastrarEmpresa(
+            String nome,
+            String email,
+            String cnpj,
+            String pais,
+            String estado,
+            String cep,
+            String descricao,
+            List<String> competencias
+    ) {
+        Empresa empresa = new Empresa(
+                nome,
+                email,
+                cnpj,
+                pais,
+                estado,
+                cep,
+                descricao
+        )
+
+        competencias.each { competencia ->
+            String competenciaNormalizada = competencia.toUpperCase()
+
+            if (validation.validarCompetencia(
+                    competenciaNormalizada,
+                    empresa.competencias
+            )) {
+                empresa.adicionarCompetencia(
+                        CompetenciasEnum.valueOf(competenciaNormalizada)
+                )
+            }
+        }
+
+        return empresa
+    }
     void curtirCandidato(Candidato candidato, Empresa empresa) {
         empresa.adicionarCandidatoCurtido(candidato)
     }
