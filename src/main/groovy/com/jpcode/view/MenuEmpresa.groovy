@@ -57,7 +57,7 @@
                         verVagasCandidatos(empresa)
                         break
                     case 3:
-                        Menu.vagasGerais.add(vagaService.criarVaga(empresa))
+                        criarVaga(empresa)
                         break
                     case 4:
                         return
@@ -165,5 +165,23 @@
             }
 
             return competencias
+        }
+
+        private void criarVaga(Empresa empresa) {
+            scanner.nextLine()
+
+            println("Digite o nome da vaga:")
+            String nome = scanner.nextLine()
+
+            println("Digite a descrição da vaga:")
+            String descricao = scanner.nextLine()
+
+            Vaga vaga = vagaService.criarVaga(
+                    empresa,
+                    nome,
+                    descricao
+            )
+
+            Menu.vagasGerais.add(vaga)
         }
     }
