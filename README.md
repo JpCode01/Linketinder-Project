@@ -148,3 +148,7 @@ As opções disponíveis permitem consultar os dados cadastrados e executar as f
 
 
 O menu pode variar conforme o perfil que está utilizando a aplicação, apresentando apenas as operações disponíveis para cada tipo de usuário.
+
+## Autor
+
+Desenvolvido por João Pedro Vaz durante o Acelera ZG.
