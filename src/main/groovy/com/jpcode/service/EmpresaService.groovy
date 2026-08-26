@@ -52,8 +52,8 @@ class EmpresaService {
         empresa.adicionarCandidatoCurtido(candidato)
     }
 
-    void ListarVagasPorEmpresa(Empresa empresa) {
-        println(empresa.vagas)
+    List<Vaga> ListarVagasPorEmpresa(Empresa empresa) {
+        empresa.vagas
     }
 
     void ListarCandidatosPorVaga(Vaga vaga) {

@@ -9,6 +9,8 @@ class Vaga {
     Vaga(String nome, String descricao) {
         this.nome = nome
         this.descricao = descricao
+        competencias = []
+        candidatosQueCurtiram = []
     }
 
     void adicionarCandidatoQueCurtiu(Candidato candidato) {

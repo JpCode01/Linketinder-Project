@@ -51,7 +51,7 @@
                 """)
                 switch (scanner.nextInt()) {
                     case 1:
-                        empresaService.ListarVagasPorEmpresa(empresa)
+                        println(empresaService.ListarVagasPorEmpresa(empresa))
                         break
                     case 2:
                         verVagasCandidatos(empresa)
@@ -67,7 +67,7 @@
 
         private verVagasCandidatos(Empresa empresa) {
             scanner.nextLine()
-            empresaService.ListarVagasPorEmpresa(empresa)
+            println(empresaService.ListarVagasPorEmpresa(empresa))
             println("Digite o nome da vaga: ")
             String nomeVaga = scanner.nextLine()
             if (empresa.vagas.find {it.nome == nomeVaga} ) {

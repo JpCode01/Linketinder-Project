@@ -32,10 +32,14 @@ class Empresa extends Pessoa {
     }
 
     void adicionarVaga(Vaga vaga) {
-        vagas.add(vaga)
+        if (vaga && !vagas.contains(vaga)) {
+            vagas.add(vaga)
+        }
     }
 
     void adicionarCandidatoCurtido(Candidato candidato) {
-        candidatosCurtidos.add(candidato)
+        if (candidato && !candidatosCurtidos.contains(candidato)) {
+            candidatosCurtidos.add(candidato)
+        }
     }
 }

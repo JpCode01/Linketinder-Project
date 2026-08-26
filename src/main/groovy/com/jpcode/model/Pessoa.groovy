@@ -19,7 +19,7 @@ class Pessoa implements PessoaInterface {
     }
 
     String adicionarCompetencia(CompetenciasEnum competencia) {
-        competencias.add(competencia.toString().toLowerCase())
+        competencias.add(competencia)
         competencias.last()
     }
 }
