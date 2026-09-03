@@ -1,5 +1,6 @@
 import { Pessoa } from "./Pessoa"
 import { Competencia } from "./Competencia"
+import { Vaga } from "./Vaga"
 
 interface ICandidato {
     cpf: string
@@ -9,6 +10,7 @@ interface ICandidato {
 export class Candidato extends Pessoa implements ICandidato {
 
     private competencias: Competencia[]
+    private vagasCurtidas: Vaga[]
 
     constructor(private _cpf: string, 
                 private _idade: number,
@@ -20,6 +22,7 @@ export class Candidato extends Pessoa implements ICandidato {
     ) {
         super(_nome, _email, _estado, _cep, _descricao)
         this.competencias = []
+        this.vagasCurtidas = []
     }
 
     get cpf(): string {
@@ -34,7 +37,20 @@ export class Candidato extends Pessoa implements ICandidato {
         return this.competencias
     }
 
+    set addCompetencia(competencia: Competencia) {
+        if (competencia != null) {
+            this.competencias.push(competencia)
+        } else {
+            throw "Competência não pode ser nula"
+        }
+    }
 
-
+    set addVaga(vaga: Vaga) {
+        if (vaga != null) {
+            this.vagasCurtidas.push(vaga)
+        } else {
+            throw "Vaga não pode ser nula"
+        }
+    }
 
 }
