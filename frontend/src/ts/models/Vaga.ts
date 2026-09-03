@@ -35,7 +35,7 @@ export class Vaga implements IVaga {
         return this.empresa
     }
 
-    set addCandidatoQueCurtiu(candidato: Candidato) {
+    addCandidatoQueCurtiu(candidato: Candidato) {
         if (Candidato != null) {
             this.candidatosQueCurtiram.push(candidato)
         } else {
@@ -43,7 +43,7 @@ export class Vaga implements IVaga {
         }
     }
 
-    set addCompetencia(competencia: Competencia) {
+    addCompetencia(competencia: Competencia) {
         if (competencia != null) {
             this.competencias.push(competencia)
         } else {

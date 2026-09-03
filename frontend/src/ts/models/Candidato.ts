@@ -37,7 +37,7 @@ export class Candidato extends Pessoa implements ICandidato {
         return this.competencias
     }
 
-    set addCompetencia(competencia: Competencia) {
+    addCompetencia(competencia: Competencia) {
         if (competencia != null) {
             this.competencias.push(competencia)
         } else {
@@ -45,7 +45,7 @@ export class Candidato extends Pessoa implements ICandidato {
         }
     }
 
-    set addVaga(vaga: Vaga) {
+    addVaga(vaga: Vaga) {
         if (vaga != null) {
             this.vagasCurtidas.push(vaga)
         } else {

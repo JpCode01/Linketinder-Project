@@ -42,7 +42,7 @@ export class Empresa extends Pessoa implements IEmpresa {
         return this.vagas
     }
 
-    set addCandidatoCurtido(candidato: Candidato) {
+    addCandidatoCurtido(candidato: Candidato) {
         if (candidato != null) {
             this.candidatosCurtidos.push(candidato)
         } else {
@@ -50,7 +50,7 @@ export class Empresa extends Pessoa implements IEmpresa {
         }
     }
 
-    set addVaga(vaga: Vaga) {
+    addVaga(vaga: Vaga) {
         if (vaga != null) {
             this.vagas.push(vaga)
         } else {
