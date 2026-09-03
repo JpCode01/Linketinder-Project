@@ -12,7 +12,7 @@ function limpar() {
 
 function html() {
     return gulp
-        .src("./src/index.html")
+        .src("./src/html/*.html")
         .pipe(gulp.dest("./dist"));
 }
 

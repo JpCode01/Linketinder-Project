@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Linketinder | Empresa</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="brand-logo">
+        <span>Link</span><strong>etinder</strong>
+    </div>
+
+    <nav>
+        <a href="./empresa.html" class="active">Dashboard</a>
+        <a href="#">Minhas vagas</a>
+        <a href="#">Candidatos</a>
+    </nav>
+
+    <div class="user-menu">
+
+        <div class="avatar company-avatar">
+            LP
+        </div>
+
+        <span>Linketinder Corp.</span>
+
+    </div>
+
+</header>
+
+
+<main class="page-container">
+
+
+    <section class="profile-header company-profile">
+
+        <div class="profile-avatar large company-avatar">
+            LP
+        </div>
+
+        <div class="profile-info">
+
+            <span class="profile-type company">
+                EMPRESA
+            </span>
+
+            <h1>Linketinder Corp.</h1>
+
+            <p>
+                Tecnologia • São Paulo, SP
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <section class="dashboard-grid">
+
+
+        <!-- CRIAR VAGA -->
+
+        <article class="dashboard-card create-job">
+
+            <div class="card-header">
+
+                <div>
+                    <span class="section-label">
+                        OPORTUNIDADE
+                    </span>
+
+                    <h2>Criar nova vaga</h2>
+                </div>
+
+                <span class="plus-icon">+</span>
+
+            </div>
+
+
+            <form>
+
+                <div class="input-group">
+
+                    <label for="job-title">
+                        Título da vaga
+                    </label>
+
+                    <input
+                        type="text"
+                        id="job-title"
+                        placeholder="Ex: Desenvolvedor Java"
+                    >
+
+                </div>
+
+
+                <div class="input-row">
+
+                    <div class="input-group">
+
+                        <label for="job-type">
+                            Tipo
+                        </label>
+
+                        <select id="job-type">
+
+                            <option>CLT</option>
+                            <option>PJ</option>
+                            <option>Estágio</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label for="job-location">
+                            Localização
+                        </label>
+
+                        <input
+                            type="text"
+                            id="job-location"
+                            placeholder="São Paulo"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label for="job-description">
+                        Descrição
+                    </label>
+
+                    <textarea
+                        id="job-description"
+                        rows="4"
+                        placeholder="Descreva a oportunidade..."
+                    ></textarea>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                >
+                    Publicar vaga
+                </button>
+
+            </form>
+
+        </article>
+
+
+        <!-- GRÁFICO -->
+
+        <article class="dashboard-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <span class="section-label">
+                        TALENTOS
+                    </span>
+
+                    <h2>Candidatos por competência</h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="chart">
+
+                <div class="chart-row">
+
+                    <span>Java</span>
+
+                    <div class="bar-container">
+                        <div
+                            class="bar"
+                            style="width: 90%"
+                        ></div>
+                    </div>
+
+                    <strong>18</strong>
+
+                </div>
+
+
+                <div class="chart-row">
+
+                    <span>Python</span>
+
+                    <div class="bar-container">
+                        <div
+                            class="bar"
+                            style="width: 65%"
+                        ></div>
+                    </div>
+
+                    <strong>13</strong>
+
+                </div>
+
+
+                <div class="chart-row">
+
+                    <span>SQL</span>
+
+                    <div class="bar-container">
+                        <div
+                            class="bar"
+                            style="width: 80%"
+                        ></div>
+                    </div>
+
+                    <strong>16</strong>
+
+                </div>
+
+
+                <div class="chart-row">
+
+                    <span>React</span>
+
+                    <div class="bar-container">
+                        <div
+                            class="bar"
+                            style="width: 45%"
+                        ></div>
+                    </div>
+
+                    <strong>9</strong>
+
+                </div>
+
+
+                <div class="chart-row">
+
+                    <span>Docker</span>
+
+                    <div class="bar-container">
+                        <div
+                            class="bar"
+                            style="width: 55%"
+                        ></div>
+                    </div>
+
+                    <strong>11</strong>
+
+                </div>
+
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <!-- MINHAS VAGAS -->
+
+    <section class="section">
+
+        <div class="content-header">
+
+            <div>
+
+                <span class="section-label">
+                    MINHAS VAGAS
+                </span>
+
+                <h2>Vagas cadastradas</h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="job-list">
+
+            <article class="company-job-card">
+
+                <div>
+
+                    <span class="job-type">
+                        CLT
+                    </span>
+
+                    <h3>
+                        Desenvolvedor Backend Java
+                    </h3>
+
+                    <p>
+                        São Paulo, SP • Publicada há 3 dias
+                    </p>
+
+                </div>
+
+                <div class="job-stat">
+
+                    <strong>18</strong>
+                    <span>candidatos</span>
+
+                </div>
+
+            </article>
+
+
+            <article class="company-job-card">
+
+                <div>
+
+                    <span class="job-type">
+                        ESTÁGIO
+                    </span>
+
+                    <h3>
+                        Estagiário de Desenvolvimento
+                    </h3>
+
+                    <p>
+                        Campinas, SP • Publicada há 7 dias
+                    </p>
+
+                </div>
+
+                <div class="job-stat">
+
+                    <strong>12</strong>
+                    <span>candidatos</span>
+
+                </div>
+
+            </article>
+
+        </div>
+
+    </section>
+
+
+    <!-- CANDIDATOS -->
+
+    <section class="section">
+
+        <div class="content-header">
+
+            <div>
+
+                <span class="section-label">
+                    TALENTOS
+                </span>
+
+                <h2>Candidatos disponíveis</h2>
+
+            </div>
+
+            <span class="result-count">
+                24 candidatos
+            </span>
+
+        </div>
+
+
+        <div class="candidate-grid">
+
+
+            <article class="candidate-card">
+
+                <div class="candidate-top">
+
+                    <div class="anonymous-avatar">
+                        ?
+                    </div>
+
+                    <span class="anonymous">
+                        PERFIL ANÔNIMO
+                    </span>
+
+                </div>
+
+
+                <h3>
+                    Candidato #001
+                </h3>
+
+
+                <div class="candidate-section">
+
+                    <span>FORMAÇÃO</span>
+
+                    <p>
+                        Engenharia de Software
+                    </p>
+
+                </div>
+
+
+                <div class="candidate-section">
+
+                    <span>COMPETÊNCIAS</span>
+
+                    <div class="skills">
+
+                        <span class="skill">
+                            Java
+                        </span>
+
+                        <span class="skill">
+                            Spring Boot
+                        </span>
+
+                        <span class="skill">
+                            PostgreSQL
+                        </span>
+
+                        <span class="skill">
+                            Docker
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="candidate-footer">
+
+                    <button class="btn btn-outline">
+                        Ver perfil
+                    </button>
+
+                    <button class="btn-like">
+                        ♥
+                    </button>
+
+                </div>
+
+            </article>
+
+
+            <article class="candidate-card">
+
+                <div class="candidate-top">
+
+                    <div class="anonymous-avatar">
+                        ?
+                    </div>
+
+                    <span class="anonymous">
+                        PERFIL ANÔNIMO
+                    </span>
+
+                </div>
+
+
+                <h3>
+                    Candidato #002
+                </h3>
+
+
+                <div class="candidate-section">
+
+                    <span>FORMAÇÃO</span>
+
+                    <p>
+                        Ciência da Computação
+                    </p>
+
+                </div>
+
+
+                <div class="candidate-section">
+
+                    <span>COMPETÊNCIAS</span>
+
+                    <div class="skills">
+
+                        <span class="skill">
+                            Python
+                        </span>
+
+                        <span class="skill">
+                            Django
+                        </span>
+
+                        <span class="skill">
+                            SQL
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="candidate-footer">
+
+                    <button class="btn btn-outline">
+                        Ver perfil
+                    </button>
+
+                    <button class="btn-like">
+                        ♥
+                    </button>
+
+                </div>
+
+            </article>
+
+
+        </div>
+
+    </section>
+
+</main>
+
+</body>
+</html>
