@@ -41,5 +41,22 @@ export class Empresa extends Pessoa implements IEmpresa {
     get getVagas(): Vaga[] {
         return this.vagas
     }
+
+    set addCandidatoCurtido(candidato: Candidato) {
+        if (candidato != null) {
+            this.candidatosCurtidos.push(candidato)
+        } else {
+            throw "Candidato não pode ser nulo"
+        }
+    }
+
+    set addVaga(vaga: Vaga) {
+        if (vaga != null) {
+            this.vagas.push(vaga)
+        } else {
+            throw "Vaga não pode ser nula"
+        }
+    }
+    
 }
 

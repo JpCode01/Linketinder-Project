@@ -34,4 +34,20 @@ export class Vaga implements IVaga {
     get empresa(): Empresa {
         return this.empresa
     }
+
+    set addCandidatoQueCurtiu(candidato: Candidato) {
+        if (Candidato != null) {
+            this.candidatosQueCurtiram.push(candidato)
+        } else {
+            throw "Candidato não pode ser nulo"
+        }
+    }
+
+    set addCompetencia(competencia: Competencia) {
+        if (competencia != null) {
+            this.competencias.push(competencia)
+        } else {
+            throw "Competência não pode ser nula"
+        }
+    }
 }
