@@ -1,6 +1,7 @@
 const path = require("path");
 
 module.exports = {
+
     mode: "development",
 
     entry: "./src/ts/main.ts",
@@ -21,7 +22,7 @@ module.exports = {
 
     output: {
         filename: "bundle.js",
-        path: path.resolve(__dirname, "dist")
+        path: path.resolve(__dirname, "dist/js")
     },
 
     devtool: "source-map"

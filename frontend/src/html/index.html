@@ -1,104 +1,135 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Linketinder | Login</title>
+```
+<title>Linketinder | Login</title>
 
-    <link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/style.css">
+```
+
 </head>
 
 <body class="auth-page">
 
-    <main class="auth-container">
+```
+<main class="auth-container">
 
-        <section class="auth-brand">
-            <div class="brand-logo">
-                <span>Link</span><strong>etinder</strong>
-            </div>
+    <section class="auth-brand">
 
-            <h1>
-                Conectando talentos<br>
-                <span>às melhores oportunidades.</span>
-            </h1>
+        <div class="brand-logo">
+            <span>Link</span><strong>etinder</strong>
+        </div>
+
+        <h1>
+            Conectando talentos<br>
+            <span>às melhores oportunidades.</span>
+        </h1>
+
+        <p>
+            Uma plataforma que aproxima candidatos e empresas
+            através de suas competências.
+        </p>
+
+    </section>
+
+
+    <section class="auth-card">
+
+        <div class="card-header">
+
+            <h2>Bem-vindo ao Linketinder</h2>
 
             <p>
-                Uma plataforma que aproxima candidatos e empresas
-                através de suas competências.
+                Entre para continuar ou crie seu cadastro.
             </p>
-        </section>
+
+        </div>
 
 
-        <section class="auth-card">
+        <form>
 
-            <div class="card-header">
-                <h2>Bem-vindo de volta</h2>
-                <p>Entre na sua conta para continuar.</p>
-            </div>
+            <div class="input-group">
 
-            <form>
+                <label for="nome">Nome</label>
 
-                <div class="input-group">
-                    <label for="email">E-mail</label>
-                    <input
-                        type="email"
-                        id="email"
-                        placeholder="seu@email.com"
-                    >
-                </div>
-
-                <div class="input-group">
-                    <label for="password">Senha</label>
-                    <input
-                        type="password"
-                        id="password"
-                        placeholder="••••••••"
-                    >
-                </div>
-
-                <button
-                    type="button"
-                    class="btn btn-primary"
+                <input
+                    type="text"
+                    id="nome"
+                    placeholder="Digite seu nome"
+                    required
                 >
-                    Entrar
-                </button>
 
-            </form>
-
-
-            <div class="divider">
-                <span>ou</span>
             </div>
 
 
-            <div class="register-section">
+            <div class="input-group">
 
-                <p>Ainda não possui uma conta?</p>
+                <label>Entrar como</label>
 
                 <div class="register-buttons">
 
-                    <a
-                        href="./cadastro.html?tipo=candidato"
+                    <button
+                        type="button"
+                        id="login-candidato"
                         class="btn btn-outline"
                     >
-                        Sou candidato
-                    </a>
+                        Candidato
+                    </button>
 
-                    <a
-                        href="./cadastro.html?tipo=empresa"
+                    <button
+                        type="button"
+                        id="login-empresa"
                         class="btn btn-outline red"
                     >
-                        Sou empresa
-                    </a>
+                        Empresa
+                    </button>
 
                 </div>
 
             </div>
 
-        </section>
+        </form>
 
-    </main>
 
+        <div class="divider">
+            <span>ou</span>
+        </div>
+
+
+        <div class="register-section">
+
+            <p>Ainda não possui uma conta?</p>
+
+            <div class="register-buttons">
+
+                    <button
+                        type="button"
+                        id="cadastrar-candidato"
+                        class="btn btn-outline"
+                    >
+                        Candidato
+                    </button>
+
+                    <button
+                        type="button"
+                        id="cadastrar-empresa"
+                        class="btn btn-outline red"
+                    >
+                        Empresa
+                    </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+```
+<script src="../js/bundle.js"></script>
 </body>
 </html>

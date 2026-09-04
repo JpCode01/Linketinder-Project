@@ -14,6 +14,7 @@ export class Candidato extends Pessoa implements ICandidato {
 
     constructor(private _cpf: string, 
                 private _idade: number,
+                private _formacao: string,
                 _nome: string,
                 _email:string,
                 _estado:string, 
@@ -33,9 +34,15 @@ export class Candidato extends Pessoa implements ICandidato {
         return this.idade
     }
 
+    get formacao(): string {
+        return this.formacao
+    } 
+
+
     get getCompetencias(): Competencia[] {
         return this.competencias
     }
+
 
     addCompetencia(competencia: Competencia) {
         if (competencia != null) {
