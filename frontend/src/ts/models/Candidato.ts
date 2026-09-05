@@ -27,15 +27,15 @@ export class Candidato extends Pessoa implements ICandidato {
     }
 
     get cpf(): string {
-        return this.cpf
+        return this._cpf
     }
 
     get idade(): number {
-        return this.idade
+        return this._idade
     }
 
     get formacao(): string {
-        return this.formacao
+        return this._formacao
     } 
 
 

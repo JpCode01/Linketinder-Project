@@ -27,11 +27,11 @@ export class Empresa extends Pessoa implements IEmpresa {
     }
 
     get cnpj(): string {
-        return this.cnpj
+        return this._cnpj
     }
 
     get pais(): string {
-        return this.pais
+        return this._pais
     }
 
     get getCandidatosCurtidos(): Candidato[] {

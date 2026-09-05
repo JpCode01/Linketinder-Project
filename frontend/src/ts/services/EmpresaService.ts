@@ -16,7 +16,7 @@ export class EmpresaService {
         empresas.push(empresa)
 
         localStorage.setItem(
-            "empreas",
+            "empresas",
             JSON.stringify(empresas)
         )
     }
@@ -35,6 +35,23 @@ export class EmpresaService {
         } else {
             throw "Empresa ou vaga não podem ser nulos"
         }
+    }
+
+    buscarEmpresa(nomeProcurado: string): Empresa | undefined {
+        const empreasSalvas = localStorage.getItem("empresas")
+
+        if (empreasSalvas == null) {
+            return undefined
+        }
+
+        const empresas: Empresa[] = JSON.parse(empreasSalvas)
+
+        empresas.forEach((empresa) =>
+        {
+            Object.setPrototypeOf(empresa, Empresa.prototype)
+        })
+   
+        return empresas.find((n) => n.nome === nomeProcurado)
     }
 
 

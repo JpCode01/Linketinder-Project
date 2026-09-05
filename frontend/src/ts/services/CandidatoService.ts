@@ -38,4 +38,20 @@ export class CandidatoService {
             throw "Candidato ou competência não podem ser nulos"
         }
     }
+
+    buscarCandidato(nomeProcurado: string): Candidato | undefined {
+        const candidatosSalvos = localStorage.getItem("candidatos")
+
+        if (candidatosSalvos === null) {
+            return undefined
+        }
+
+        const candidatos: Candidato[] = JSON.parse(candidatosSalvos)
+
+        candidatos.forEach((candidato) => {
+        Object.setPrototypeOf(candidato, Candidato.prototype)
+        })
+
+        return candidatos.find((n) => n.nome === nomeProcurado)
+    }
 }
