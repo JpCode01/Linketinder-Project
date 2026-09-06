@@ -8,6 +8,16 @@ interface IEmpresa {
     
 }
 
+export interface IEmpresaJSON {
+    _cnpj: string
+    _nome: string
+    _email: string
+    _estado: string
+    _pais: string
+    _cep: string
+    _descricao: string
+}
+
 export class Empresa extends Pessoa implements IEmpresa {
 
     private candidatosCurtidos: Candidato[]

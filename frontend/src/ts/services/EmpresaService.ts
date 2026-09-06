@@ -1,6 +1,8 @@
 import { Candidato } from "../models/Candidato";
-import { Empresa } from "../models/Empresa"
+import { Empresa, IEmpresaJSON } from "../models/Empresa"
 import { Vaga } from "../models/Vaga";
+import { ICandidatoJSON } from "../models/Candidato";
+
 
 export class EmpresaService {
     cadastrar(empresa: Empresa): void {
@@ -44,14 +46,47 @@ export class EmpresaService {
             return undefined
         }
 
-        const empresas: Empresa[] = JSON.parse(empreasSalvas)
+        const empresaJson: IEmpresaJSON[] = JSON.parse(empreasSalvas)
 
-        empresas.forEach((empresa) =>
-        {
-            Object.setPrototypeOf(empresa, Empresa.prototype)
-        })
-   
-        return empresas.find((n) => n.nome === nomeProcurado)
+        const empresaEncontrada = empresaJson.find(
+            empresa => empresa._nome === nomeProcurado
+        )
+
+        if (empresaEncontrada == null) {
+            return undefined
+        }
+
+        return new Empresa(
+            empresaEncontrada._cnpj,
+            empresaEncontrada._pais,
+            empresaEncontrada._nome,
+            empresaEncontrada._email,
+            empresaEncontrada._estado,
+            empresaEncontrada._cep,
+            empresaEncontrada._descricao
+
+        )
+    }
+
+    buscarEmpresaLogada(): Empresa | undefined {
+        const empresaSalva = localStorage.getItem("empresaLogada")
+        if (empresaSalva == null) {
+            return undefined
+        }
+
+        const empresaJson: IEmpresaJSON =
+        JSON.parse(empresaSalva)
+
+        return new Empresa(
+            empresaJson._cnpj,
+            empresaJson._pais,
+            empresaJson._nome,
+            empresaJson._email,
+            empresaJson._estado,
+            empresaJson._cep,
+            empresaJson._descricao
+
+        )
     }
 
 

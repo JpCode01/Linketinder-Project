@@ -22,6 +22,9 @@ export function procurar():void {
 
         if (candidatoEncontrado !== undefined) {
 
+            localStorage.setItem("candidatoLogado",
+                JSON.stringify(candidatoEncontrado))
+
             window.location.href = "./candidato.html"
 
         } else {
@@ -45,9 +48,12 @@ export function procurar():void {
         inputNome.classList.remove("input-error")
         document.getElementById("erro-nome")?.remove()
 
-        const empresaEncontrada = empresaService.buscarEmpresa(inputNome.value)
+        const empresaEncontrada: Empresa | undefined = empresaService.buscarEmpresa(inputNome.value)
 
         if (empresaEncontrada !== undefined) {
+
+            localStorage.setItem("empresaLogada",
+                JSON.stringify(empresaEncontrada))
 
             window.location.href = "./empresa.html"
 

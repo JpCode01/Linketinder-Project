@@ -1,6 +1,7 @@
 import { Candidato } from "../models/Candidato"
 import { Competencia } from "../models/Competencia";
 import { Vaga } from "../models/Vaga"
+import { ICandidatoJSON } from "../models/Candidato"
 
 export class CandidatoService {
     cadastrar(candidato: Candidato): void {
@@ -40,18 +41,55 @@ export class CandidatoService {
     }
 
     buscarCandidato(nomeProcurado: string): Candidato | undefined {
+
+
         const candidatosSalvos = localStorage.getItem("candidatos")
 
-        if (candidatosSalvos === null) {
+        if (candidatosSalvos == null) {
             return undefined
         }
 
-        const candidatos: Candidato[] = JSON.parse(candidatosSalvos)
+        const candidatosJson: ICandidatoJSON[] = JSON.parse(candidatosSalvos)
 
-        candidatos.forEach((candidato) => {
-        Object.setPrototypeOf(candidato, Candidato.prototype)
-        })
+        const candidatoEncontrado = candidatosJson.find(
+        candidato => candidato._nome === nomeProcurado
+        )
 
-        return candidatos.find((n) => n.nome === nomeProcurado)
+        if (candidatoEncontrado == null) {
+            return undefined
+        }
+
+        return new Candidato(
+            candidatoEncontrado._cpf,
+            candidatoEncontrado._idade,
+            candidatoEncontrado._formacao,
+            candidatoEncontrado._nome,
+            candidatoEncontrado._email,
+            candidatoEncontrado._estado,
+            candidatoEncontrado._cep,
+            candidatoEncontrado._descricao
+        )
+    }
+
+    buscarCandidatoLogado(): Candidato | undefined {
+        const candidatoSalvo = localStorage.getItem("candidatoLogado")
+
+        if (candidatoSalvo == null) {
+            return undefined
+        }
+
+        const candidatoJson: ICandidatoJSON =
+            JSON.parse(candidatoSalvo)
+
+        return new Candidato(
+            candidatoJson._cpf,
+            candidatoJson._idade,
+            candidatoJson._formacao,
+            candidatoJson._nome,
+            candidatoJson._email,
+            candidatoJson._estado,
+            candidatoJson._cep,
+            candidatoJson._descricao
+        )
     }
 }

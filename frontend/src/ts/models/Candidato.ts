@@ -2,10 +2,23 @@ import { Pessoa } from "./Pessoa"
 import { Competencia } from "./Competencia"
 import { Vaga } from "./Vaga"
 
-interface ICandidato {
+export interface ICandidato {
     cpf: string
     idade: number
 }
+
+export interface ICandidatoJSON {
+    _cpf: string
+    _idade: number
+    _formacao: string
+    _nome: string
+    _email: string
+    _estado: string
+    _cep: string
+    _descricao: string
+}
+
+
 
 export class Candidato extends Pessoa implements ICandidato {
 

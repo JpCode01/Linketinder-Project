@@ -1,23 +1,29 @@
 import { procurar, abrirCadastro } from "../pages/LoginPage"
 import { cadastrarCandidato, cadastrarEmpresa } from "../pages/CadastroPage"
+import { exibirPageCandidato } from "../pages/CandidatoPage"
 
 export class App {
 
     start(): void {
 
         const paginaAtual = window.location.pathname
+        console.log("Página:", paginaAtual)
 
-        if (paginaAtual.includes("index.html")) {
+        if (paginaAtual.endsWith("/index.html")) {
             procurar()
             abrirCadastro()
         }
 
-        if (paginaAtual.includes("cadastro-candidato.html")) {
+        if (paginaAtual.endsWith("/cadastro-candidato.html")) {
             cadastrarCandidato()
         }
 
-        if (paginaAtual.includes("cadastro-empresa.html")) {
+        if (paginaAtual.endsWith("/cadastro-empresa.html")) {
             cadastrarEmpresa()
+        }
+
+        if (paginaAtual.endsWith("/candidato.html")) {
+            exibirPageCandidato()
         }
     }
 }
