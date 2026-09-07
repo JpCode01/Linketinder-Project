@@ -1,6 +1,6 @@
 import { Pessoa } from "./Pessoa"
 import { Competencia } from "./Competencia"
-import { Vaga } from "./Vaga"
+import { IVagaJSON, Vaga } from "./Vaga"
 
 export interface ICandidato {
     cpf: string
@@ -16,6 +16,7 @@ export interface ICandidatoJSON {
     _estado: string
     _cep: string
     _descricao: string
+    vagasCurtidas: IVagaJSON[]
 }
 
 

@@ -92,4 +92,28 @@ export class CandidatoService {
             candidatoJson._descricao
         )
     }
+
+    verificarCompetenciasEConverter(
+    competenciasRecebidas: string): Competencia[] | null {
+
+        const competencias = competenciasRecebidas
+            .split(",")
+            .map(competencia => competencia.trim().toUpperCase())
+
+        const competenciasConvertidas: Competencia[] = []
+
+        for (const competencia of competencias) {
+
+            if (!(competencia in Competencia)) {
+                return null
+            }
+
+            const competenciaConvertida =
+                Competencia[competencia as keyof typeof Competencia]
+
+            competenciasConvertidas.push(competenciaConvertida)
+        }
+
+        return competenciasConvertidas
+    }
 }

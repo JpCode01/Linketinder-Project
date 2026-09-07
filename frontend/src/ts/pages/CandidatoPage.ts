@@ -1,24 +1,69 @@
 import { Candidato } from "../models/Candidato";
+import { Vaga } from "../models/Vaga";
 import { CandidatoService } from "../services/CandidatoService"
 import { VagaService } from "../services/VagaService"
 
 const candidatoService: CandidatoService = new CandidatoService
+const vagaService: VagaService = new VagaService
 
 export function exibirPageCandidato(): void {
     const candidato = candidatoService.buscarCandidatoLogado()
     if (candidato != null) {
+        exibirDadosCandidato(candidato)
+        exibirVagas()
+    }
+}
 
-        const apelidoAvatar = candidato.nome.split(" ")
+function exibirDadosCandidato(candidato: Candidato): void {
 
-        document.getElementById("profile-avatar")!.innerHTML =
-            apelidoAvatar[0].charAt(0) + apelidoAvatar[1].charAt(0)   
-        document.getElementById("user-avatar")!.innerHTML =
-            apelidoAvatar[0].charAt(0) + apelidoAvatar[1].charAt(0)   
-        document.getElementById("profile-name")!.innerHTML =
-        candidato.nome
-        document.getElementById("user-name")!.innerHTML =
-        candidato.nome
-        document.getElementById("profile-description")!.innerHTML =
-        candidato.descricao
+    const apelidoAvatar = candidato.nome.split(" ")
+
+    document.getElementById("profile-avatar")!.innerHTML =
+        apelidoAvatar[0].charAt(0) + apelidoAvatar[1].charAt(0)   
+    document.getElementById("user-avatar")!.innerHTML =
+        apelidoAvatar[0].charAt(0) + apelidoAvatar[1].charAt(0)   
+    document.getElementById("profile-name")!.innerHTML =
+    candidato.nome
+    document.getElementById("user-name")!.innerHTML =
+    candidato.nome
+    document.getElementById("profile-description")!.innerHTML =
+    candidato.descricao
+}
+
+function exibirVagas(): void {
+    const vagas = vagaService.exibirVagasEConverter()
+
+    if (vagas == null) {
+        return
+    }
+
+    document.getElementById("result-count")!.innerHTML = (vagas.length).toString()
+
+    const listaVagas = document.getElementById("job-grid")
+
+    for (const vaga of vagas) {
+        const card = document.createElement("article")
+        card.classList.add("job-card")
+
+        const tipo = document.createElement("span")
+        tipo.classList.add("job-type")
+        tipo.innerHTML = vaga.tipo
+
+        const nome = document.createElement("h3")
+        nome.innerHTML = vaga.nome
+
+        const descricao = document.createElement("p")
+        descricao.innerHTML = vaga.descricao
+
+        const localizacao = document.createElement("span")
+        localizacao.innerHTML = vaga.localização
+
+        card.appendChild(tipo)
+        card.appendChild(nome)
+        card.appendChild(descricao)
+        card.appendChild(localizacao)
+        if (listaVagas != null) {
+            listaVagas.appendChild(card)
+        }
     }
 }

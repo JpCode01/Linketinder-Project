@@ -1,6 +1,7 @@
 import { Pessoa } from "./Pessoa"
-import { Candidato } from "./Candidato"
+import { Candidato, ICandidatoJSON } from "./Candidato"
 import { Vaga } from "./Vaga"
+import { IVagaJSON } from "../models/Vaga";
 
 interface IEmpresa {
     cnpj: string
@@ -16,6 +17,8 @@ export interface IEmpresaJSON {
     _pais: string
     _cep: string
     _descricao: string
+    candidatosCurtidos: ICandidatoJSON[]
+    vagas: IVagaJSON[]
 }
 
 export class Empresa extends Pessoa implements IEmpresa {
@@ -66,6 +69,14 @@ export class Empresa extends Pessoa implements IEmpresa {
         } else {
             throw "Vaga não pode ser nula"
         }
+    }
+
+    setVagas(vagas: Vaga[]) {
+        this.vagas = vagas
+    }
+
+    setCandidatosCurtidos(candidatos: Candidato[]) {
+        this.candidatosCurtidos = candidatos
     }
     
 }

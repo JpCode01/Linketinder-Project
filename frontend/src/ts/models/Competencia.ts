@@ -1,12 +1,12 @@
 export enum Competencia {
-    JAVA,
-    GROOVY,
-    PYTHON,
-    SPRING,
-    ANGULAR,
-    JAVASCRIPT,
-    DJANGO,
-    FASTAPI,
-    CSS,
-    HTML
+    JAVA = "Java",
+    GROOVY = "Groovy",
+    PYTHON = "Python",
+    SPRING = "Spring",
+    ANGULAR = "Angular",
+    JAVASCRIPT = "JavaScript",
+    DJANGO = "Django",
+    FASTAPI = "FastApi",
+    CSS = "CSS",
+    HTML = "HTML"
 }

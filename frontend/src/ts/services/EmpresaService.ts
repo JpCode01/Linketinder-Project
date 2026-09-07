@@ -1,7 +1,8 @@
 import { Candidato } from "../models/Candidato";
 import { Empresa, IEmpresaJSON } from "../models/Empresa"
-import { Vaga } from "../models/Vaga";
+import { Vaga, IVagaJSON } from "../models/Vaga";
 import { ICandidatoJSON } from "../models/Candidato";
+import { candidatos } from "../data/DadosIniciais";
 
 
 export class EmpresaService {
@@ -32,11 +33,43 @@ export class EmpresaService {
     }
 
     adicionarVaga(empresa: Empresa, vaga: Vaga) {
-        if (empresa != null && vaga != null) {
-            empresa.addVaga(vaga)
-        } else {
+        if (empresa == null || vaga == null) {
             throw "Empresa ou vaga não podem ser nulos"
         }
+        const empresasSalvas = localStorage.getItem("empresas")
+        if (empresasSalvas == null) {
+            throw "Nenhuma empresa cadastrada"
+        }
+
+        const empresasJson: IEmpresaJSON[] = JSON.parse(empresasSalvas)
+
+        const empresaEncontrada = empresasJson.find(
+            empresaJson => empresaJson._cnpj === empresa.cnpj
+        )
+
+        if (empresaEncontrada == null) {
+            throw "Empresa não encontrada"
+        }
+
+        const vagaJson: IVagaJSON = {
+            _nome: vaga.nome,
+            _descricao: vaga.descricao,
+            _empresa: vaga.empresa,
+            _tipo: vaga.tipo,
+            _localizacao: vaga.localização
+        }
+
+        empresaEncontrada.vagas.push(vagaJson)
+
+        localStorage.setItem(
+            "empresas",
+            JSON.stringify(empresasJson)
+        )
+
+        localStorage.setItem(
+            "empresaLogada",
+            JSON.stringify(empresaEncontrada)
+        )
     }
 
     buscarEmpresa(nomeProcurado: string): Empresa | undefined {
@@ -56,7 +89,7 @@ export class EmpresaService {
             return undefined
         }
 
-        return new Empresa(
+        const empresaConvertida: Empresa = new Empresa(
             empresaEncontrada._cnpj,
             empresaEncontrada._pais,
             empresaEncontrada._nome,
@@ -64,8 +97,38 @@ export class EmpresaService {
             empresaEncontrada._estado,
             empresaEncontrada._cep,
             empresaEncontrada._descricao
-
         )
+
+        const vagasConvertidas: Vaga[] =
+        empresaEncontrada.vagas.map(
+            vagaJson => new Vaga(
+                vagaJson._nome,
+                vagaJson._descricao,
+                empresaConvertida.nome,
+                vagaJson._tipo,
+                vagaJson._localizacao
+            )
+        )
+
+           const candidatosConvertidos: Candidato[] =
+            empresaEncontrada.candidatosCurtidos.map(
+                candidatoJson => new Candidato(
+                    candidatoJson._cpf, 
+                    candidatoJson._idade,
+                    candidatoJson._formacao,
+                    candidatoJson._nome,
+                    candidatoJson._email,
+                    candidatoJson._estado,
+                    candidatoJson._cep, 
+                    candidatoJson._descricao
+                )
+            )
+
+        empresaConvertida.setVagas(vagasConvertidas)
+
+        empresaConvertida.setCandidatosCurtidos(candidatosConvertidos)
+
+        return empresaConvertida
     }
 
     buscarEmpresaLogada(): Empresa | undefined {
@@ -77,7 +140,8 @@ export class EmpresaService {
         const empresaJson: IEmpresaJSON =
         JSON.parse(empresaSalva)
 
-        return new Empresa(
+
+        const empresaConvertida: Empresa = new Empresa(
             empresaJson._cnpj,
             empresaJson._pais,
             empresaJson._nome,
@@ -85,9 +149,39 @@ export class EmpresaService {
             empresaJson._estado,
             empresaJson._cep,
             empresaJson._descricao
-
         )
+
+
+        const vagasConvertidas: Vaga[] =
+            empresaJson.vagas.map(
+                vagaJson => new Vaga(
+                    vagaJson._nome,
+                    vagaJson._descricao,
+                    empresaConvertida.nome,
+                    vagaJson._tipo,
+                    vagaJson._localizacao
+                )
+            )
+
+        const candidatosConvertidos: Candidato[] =
+            empresaJson.candidatosCurtidos.map(
+                candidatoJson => new Candidato(
+                    candidatoJson._cpf, 
+                    candidatoJson._idade,
+                    candidatoJson._formacao,
+                    candidatoJson._nome,
+                    candidatoJson._email,
+                    candidatoJson._estado,
+                    candidatoJson._cep, 
+                    candidatoJson._descricao
+                )
+            )
+
+
+        empresaConvertida.setVagas(vagasConvertidas)
+
+        empresaConvertida.setCandidatosCurtidos(candidatosConvertidos)
+
+        return empresaConvertida
     }
-
-
 }
