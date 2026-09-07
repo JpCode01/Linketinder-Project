@@ -1,6 +1,6 @@
 import { Candidato } from "../models/Candidato"
 import { Competencia } from "../models/Competencia";
-import { Vaga } from "../models/Vaga"
+import { Vaga, IVagaJSON } from "../models/Vaga"
 import { ICandidatoJSON } from "../models/Candidato"
 
 export class CandidatoService {
@@ -23,13 +23,56 @@ export class CandidatoService {
 
     }
 
-    curtirVaga(candidato: Candidato, vaga: Vaga): void {
-        if (vaga != null && candidato != null) {
-            candidato.addVaga(vaga)
-        } else {
+    curtirVaga(candidato: Candidato, vaga: Vaga): boolean {
+        if (vaga == null || candidato == null) {
             throw "Candidato ou Vaga não podem ser nulos"
         }
+
+        const candidatosSalvos = localStorage.getItem("candidatos")
+
+        if (candidatosSalvos == null) {
+            throw "Nenhum candidato cadastrado"
+        }
+
+        const candidatosJson: ICandidatoJSON[] = JSON.parse(candidatosSalvos)
+
+        const candidatoEncontrado = candidatosJson.find(
+            candidatoJson => candidatoJson._cpf === candidato.cpf
+        )
+
+        if (candidatoEncontrado == null) {
+            throw "Candidato não encontrado"
+        }
+
+        const vagaJaCurtida = candidatoEncontrado.vagasCurtidas.some(
+        vagaCurtida => vagaCurtida._nome === vaga.nome)
+
+        if (vagaJaCurtida) {
+            return false
+        }
+
+        const vagaJson: IVagaJSON = {
+            _nome: vaga.nome,
+            _descricao: vaga.descricao,
+            _empresa: vaga.empresa,
+            _tipo: vaga.tipo,
+            _localizacao: vaga.localização
+        }
+
         
+
+        candidatoEncontrado.vagasCurtidas.push(vagaJson)
+
+        localStorage.setItem(
+            "candidatos",
+            JSON.stringify(candidatosJson)
+        )
+
+        localStorage.setItem(
+            "candidatoLogado",
+            JSON.stringify(candidatoEncontrado)
+        )
+        return true
     } 
 
     adicionarCompetencia(candidato: Candidato, competencia: Competencia): void {
@@ -59,7 +102,7 @@ export class CandidatoService {
             return undefined
         }
 
-        return new Candidato(
+        const candidatoConvertido: Candidato = new Candidato(
             candidatoEncontrado._cpf,
             candidatoEncontrado._idade,
             candidatoEncontrado._formacao,
@@ -69,6 +112,21 @@ export class CandidatoService {
             candidatoEncontrado._cep,
             candidatoEncontrado._descricao
         )
+
+        const vagasConvertidas: Vaga[] = 
+        candidatoEncontrado.vagasCurtidas.map(
+            vagaJson => new Vaga(
+                vagaJson._nome,
+                vagaJson._descricao,
+                vagaJson._empresa,
+                vagaJson._tipo,
+                vagaJson._localizacao
+            )
+        )
+
+        candidatoConvertido.setVagasCurtidas(vagasConvertidas)
+
+        return candidatoConvertido
     }
 
     buscarCandidatoLogado(): Candidato | undefined {
@@ -81,7 +139,7 @@ export class CandidatoService {
         const candidatoJson: ICandidatoJSON =
             JSON.parse(candidatoSalvo)
 
-        return new Candidato(
+        const candidatoConvertido: Candidato = new Candidato(
             candidatoJson._cpf,
             candidatoJson._idade,
             candidatoJson._formacao,
@@ -91,6 +149,26 @@ export class CandidatoService {
             candidatoJson._cep,
             candidatoJson._descricao
         )
+
+        const vagasConvertidas: Vaga[] = 
+        candidatoJson.vagasCurtidas.map(
+            vagaJSON => new Vaga(
+                vagaJSON._nome,
+                vagaJSON._descricao,
+                vagaJSON._empresa,
+                vagaJSON._tipo,
+                vagaJSON._localizacao
+            ) 
+        )
+
+        candidatoConvertido.setVagasCurtidas(vagasConvertidas)
+
+        console.log("Candidato logado salvo:", candidatoJson)
+        console.log("Vagas curtidas:", candidatoJson.vagasCurtidas)
+
+        return candidatoConvertido
+
+        
     }
 
     verificarCompetenciasEConverter(

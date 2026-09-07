@@ -57,6 +57,10 @@ export class Candidato extends Pessoa implements ICandidato {
         return this.competencias
     }
 
+    get getVagasCurtidas(): Vaga[] {
+        return this.vagasCurtidas
+    }
+
 
     addCompetencia(competencia: Competencia) {
         if (competencia != null) {
@@ -72,6 +76,10 @@ export class Candidato extends Pessoa implements ICandidato {
         } else {
             throw "Vaga não pode ser nula"
         }
+    }
+
+    setVagasCurtidas(vagas: Vaga[]) {
+        this.vagasCurtidas = vagas
     }
 
 }

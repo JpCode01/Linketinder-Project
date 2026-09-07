@@ -1097,4 +1097,12 @@ textarea {
         gap: 15px;
     }
 
+    .btn-success {
+    width: 100%;
+
+    color: white;
+
+    background: #22c55e;
+    }
+
 }

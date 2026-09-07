@@ -10,7 +10,7 @@ export function exibirPageCandidato(): void {
     const candidato = candidatoService.buscarCandidatoLogado()
     if (candidato != null) {
         exibirDadosCandidato(candidato)
-        exibirVagas()
+        exibirVagas(candidato)
     }
 }
 
@@ -30,7 +30,8 @@ function exibirDadosCandidato(candidato: Candidato): void {
     candidato.descricao
 }
 
-function exibirVagas(): void {
+function exibirVagas(candidato: Candidato): void {
+
     const vagas = vagaService.exibirVagasEConverter()
 
     if (vagas == null) {
@@ -42,6 +43,10 @@ function exibirVagas(): void {
     const listaVagas = document.getElementById("job-grid")
 
     for (const vaga of vagas) {
+        const vagaJaCurtida = candidato.getVagasCurtidas.some(
+            vagaCurtida => vagaCurtida.nome === vaga.nome
+        )
+
         const card = document.createElement("article")
         card.classList.add("job-card")
 
@@ -58,6 +63,22 @@ function exibirVagas(): void {
         const localizacao = document.createElement("span")
         localizacao.innerHTML = vaga.localização
 
+        const botao = document.createElement("button")
+
+        botao.classList.add("btn")
+
+        if (vagaJaCurtida) {
+            botao.textContent = "Curtido"
+            botao.classList.add("btn-success")
+        } else {
+            botao.textContent = "Curtir"
+            botao.classList.add("btn-primary")
+        }
+
+        botao.addEventListener("click", () => {
+            curtirVaga(vaga, botao, candidato)
+        })
+
         card.appendChild(tipo)
         card.appendChild(nome)
         card.appendChild(descricao)
@@ -65,5 +86,25 @@ function exibirVagas(): void {
         if (listaVagas != null) {
             listaVagas.appendChild(card)
         }
+        card.appendChild(botao)
+
+
+
     }
 }
+
+function curtirVaga(vaga: Vaga, botao: HTMLButtonElement, candidato: Candidato): void {
+    if (candidato == null) {
+        return
+    }
+
+    const curtido = candidatoService.curtirVaga(candidato, vaga)
+
+    if (curtido) {
+        candidato.addVaga(vaga)
+
+        botao.textContent = "Curtido"
+        botao.classList.remove("btn-primary")
+        botao.classList.add("btn-success")
+    }
+} 
