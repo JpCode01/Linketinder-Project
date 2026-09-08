@@ -71,16 +71,23 @@ export class VagaService {
         const vagasJSON: IVagaJSON[] = JSON.parse(vagasSalvas)
 
         const vagas: Vaga[] = vagasJSON.map(
-            vagaJSON => new Vaga(
-                            vagaJSON._nome,
-            vagaJSON._descricao,
-
-            vagaJSON._empresa,
-            vagaJSON._tipo,
-            vagaJSON._localizacao
+        vagaJSON => {
+            const vaga = new Vaga(
+                vagaJSON._nome,
+                vagaJSON._descricao,
+                vagaJSON._empresa,
+                vagaJSON._tipo,
+                vagaJSON._localizacao
             )
-        )
+
+            vaga.setCompetencias(vagaJSON.competencias)
+
+            return vaga
+        })
+
+    
 
         return vagas
     }
+
 }

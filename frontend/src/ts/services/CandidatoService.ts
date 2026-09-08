@@ -2,6 +2,7 @@ import { Candidato } from "../models/Candidato"
 import { Competencia } from "../models/Competencia";
 import { Vaga, IVagaJSON } from "../models/Vaga"
 import { ICandidatoJSON } from "../models/Candidato"
+import { Empresa, IEmpresaJSON } from "../models/Empresa"
 
 export class CandidatoService {
     cadastrar(candidato: Candidato): void {
@@ -45,18 +46,32 @@ export class CandidatoService {
         }
 
         const vagaJaCurtida = candidatoEncontrado.vagasCurtidas.some(
-        vagaCurtida => vagaCurtida._nome === vaga.nome)
+        vagaCurtida => vagaCurtida._nome === vaga.nome &&
+        vagaCurtida._empresa === vaga.empresa)
 
         if (vagaJaCurtida) {
             return false
         }
+
+        console.log("Vaga recebida:", vaga)
+        console.log("Competências da vaga:", vaga.getCompetencias)
 
         const vagaJson: IVagaJSON = {
             _nome: vaga.nome,
             _descricao: vaga.descricao,
             _empresa: vaga.empresa,
             _tipo: vaga.tipo,
-            _localizacao: vaga.localização
+            _localizacao: vaga.localização,
+            competencias: vaga.getCompetencias,
+            candidatosQueCurtiram: [
+                                        {
+                                            _cpf: candidato.cpf,
+                                            _nome: candidato.nome,
+                                            competencias: candidato.getCompetencias,
+                                            _formacao: candidato.formacao,
+                                            _descricao: candidato.descricao
+                                        }
+            ]
         }
 
         
@@ -68,10 +83,103 @@ export class CandidatoService {
             JSON.stringify(candidatosJson)
         )
 
+
+        const vagasSalvas = localStorage.getItem("vagas")
+
+        if (vagasSalvas == null) {
+            throw "Nenhuma vaga cadastrada"
+        }
+
+        const vagasJson: IVagaJSON[] =
+        JSON.parse(vagasSalvas)
+
+        const vagaEncontrada = vagasJson.find(
+            vagaJson =>
+                vagaJson._nome === vaga.nome &&
+                vagaJson._empresa === vaga.empresa
+        )
+
+        if (vagaEncontrada == null) {
+            throw "Vaga não encontrada"
+        }
+
+        const candidatoJaCurtiu = vagaEncontrada.candidatosQueCurtiram.some(
+            candidatoJson => 
+                candidatoJson._cpf === candidato.cpf
+        )
+
+        if (!candidatoJaCurtiu) {
+            vagaEncontrada.candidatosQueCurtiram.push({
+                _cpf: candidato.cpf,
+                _nome: candidato.nome,
+                competencias: candidato.getCompetencias,
+                _formacao: candidato.formacao,
+                _descricao: candidato.descricao
+            })
+        }
+
+        const empresasSalvas = localStorage.getItem("empresas")
+
+        if (empresasSalvas == null) {
+            throw "Nenhuma empresa cadastrada"
+        }
+
+        const empresaJson: IEmpresaJSON[] = JSON.parse(empresasSalvas)
+        
+        const empresaEncontrada = empresaJson.find(
+            empresaJson => empresaJson._nome === vaga.empresa 
+        )
+
+        if (empresaEncontrada == null) {
+            throw "Empresa da vaga não encontrada"
+        }
+
+        const vagaDaEmpresa = empresaEncontrada.vagas.find(
+        vagaJson =>
+        vagaJson._nome === vaga.nome &&
+        vagaJson._empresa === vaga.empresa
+         )
+
+        if (vagaDaEmpresa == null) {
+            throw "Vaga não encontrada na empresa"
+        }
+
+        const candidatoJaCurtiuNaEmpresa = vagaDaEmpresa.candidatosQueCurtiram.some(
+            candidatoJson =>
+                candidatoJson._cpf === candidato.cpf
+        )
+
+        if (!candidatoJaCurtiuNaEmpresa) {
+            vagaDaEmpresa.candidatosQueCurtiram.push({
+                _cpf: candidato.cpf,
+                _nome: candidato.nome,
+                competencias: candidato.getCompetencias,
+                _formacao: candidato.formacao,
+                _descricao: candidato.descricao
+            })
+        }
+
+        localStorage.setItem(
+            "empresas",
+            JSON.stringify(empresaJson)
+        )
+
+        localStorage.setItem(
+        "empresaLogada",
+        JSON.stringify(empresaEncontrada)
+        )
+
+
+        localStorage.setItem(
+            "vagas",
+            JSON.stringify(vagasJson)
+        )
+
         localStorage.setItem(
             "candidatoLogado",
             JSON.stringify(candidatoEncontrado)
         )
+
         return true
     } 
 
@@ -113,16 +221,24 @@ export class CandidatoService {
             candidatoEncontrado._descricao
         )
 
+        candidatoConvertido.setCompetencias(candidatoEncontrado.competencias)
+
         const vagasConvertidas: Vaga[] = 
-        candidatoEncontrado.vagasCurtidas.map(
-            vagaJson => new Vaga(
-                vagaJson._nome,
-                vagaJson._descricao,
-                vagaJson._empresa,
-                vagaJson._tipo,
-                vagaJson._localizacao
+            candidatoEncontrado.vagasCurtidas.map(
+                vagaJson => {
+                    const vaga = new Vaga(
+                        vagaJson._nome,
+                        vagaJson._descricao,
+                        vagaJson._empresa,
+                        vagaJson._tipo,
+                        vagaJson._localizacao
+                    )
+
+                    vaga.setCompetencias(vagaJson.competencias)
+
+                    return vaga
+                }
             )
-        )
 
         candidatoConvertido.setVagasCurtidas(vagasConvertidas)
 
@@ -150,15 +266,23 @@ export class CandidatoService {
             candidatoJson._descricao
         )
 
+        candidatoConvertido.setCompetencias(candidatoJson.competencias)
+
         const vagasConvertidas: Vaga[] = 
         candidatoJson.vagasCurtidas.map(
-            vagaJSON => new Vaga(
-                vagaJSON._nome,
-                vagaJSON._descricao,
-                vagaJSON._empresa,
-                vagaJSON._tipo,
-                vagaJSON._localizacao
-            ) 
+            vagaJSON => {
+                const vaga = new Vaga(
+                    vagaJSON._nome,
+                    vagaJSON._descricao,
+                    vagaJSON._empresa,
+                    vagaJSON._tipo,
+                    vagaJSON._localizacao
+                )
+
+                vaga.setCompetencias(vagaJSON.competencias)
+
+                return vaga
+            }
         )
 
         candidatoConvertido.setVagasCurtidas(vagasConvertidas)

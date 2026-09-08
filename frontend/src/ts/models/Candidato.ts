@@ -7,6 +7,15 @@ export interface ICandidato {
     idade: number
 }
 
+export interface ICandidatoCurtidaJSON {
+    _cpf: string
+    _nome: string
+    competencias: Competencia[]
+    _formacao: string
+    _descricao: string
+}
+
+
 export interface ICandidatoJSON {
     _cpf: string
     _idade: number
@@ -17,6 +26,7 @@ export interface ICandidatoJSON {
     _cep: string
     _descricao: string
     vagasCurtidas: IVagaJSON[]
+    competencias: Competencia[]
 }
 
 
@@ -80,6 +90,10 @@ export class Candidato extends Pessoa implements ICandidato {
 
     setVagasCurtidas(vagas: Vaga[]) {
         this.vagasCurtidas = vagas
+    }
+
+    setCompetencias(competencias: Competencia[]) {
+        this.competencias = competencias
     }
 
 }

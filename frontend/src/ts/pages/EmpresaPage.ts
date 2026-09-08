@@ -11,6 +11,7 @@ export function exibirPageEmpresa(): void {
         if (empresa != null) {
             exibirDadosEmpresa(empresa)
             exibirVagas(empresa)
+            exibirCandidatos(empresa)
         }
 }
 
@@ -36,16 +37,6 @@ function exibirDadosEmpresa(empresa: Empresa) {
 
 function exibirVagas(empresa: Empresa) {
     const vagas: Vaga[] = empresa.getVagas 
-
-    console.log("VAGAS:", vagas)
-    console.log("QUANTIDADE:", vagas.length)
-
-    for (let vaga of vagas) {
-        console.log("VAGA:", vaga)
-        console.log("NOME:", vaga.nome)
-        console.log("TIPO:", vaga.tipo)
-        console.log("LOCALIZAÇÃO:", vaga.localização)
-    }
 
     const listaVagas = document.getElementById("job-list")!
 
@@ -86,6 +77,99 @@ function exibirVagas(empresa: Empresa) {
         card.appendChild(estatistica)
 
         listaVagas.appendChild(card)
+    }
+}
+
+function exibirCandidatos(empresa: Empresa) {
+    const vagas: Vaga[] = empresa.getVagas
+
+    const candidatosLista = document.getElementById("candidate-grid")
+
+    if (candidatosLista == null) {
+        return
+    }
+
+    candidatosLista.innerHTML = ""
+
+    let count: number = 0;
+
+    for (let vaga of vagas) {
+        count += (vaga.getCandidatosQueCurtiram.length) 
+    }
+
+    document.getElementById("candidate-count")!.innerHTML = count.toString() + " candidatos"
+
+    for (let vaga of vagas) {
+
+        const candidatos = vaga.getCandidatosQueCurtiram
+
+        for (let candidato of candidatos) {
+
+            const card = document.createElement("article")
+            card.classList.add("candidate-card")
+
+            card.innerHTML = `
+                <div class="candidate-top">
+
+                    <span class="anonymous">
+                        PERFIL ANÔNIMO
+                    </span>
+
+                </div>
+
+                <h3>
+                    ${candidato.nome}
+                </h3>
+
+                <div class="candidate-section">
+
+                    <span>FORMAÇÃO</span>
+
+                    <p>
+                        ${candidato.formacao}
+                    </p>
+
+                </div>
+
+                <div class="candidate-section">
+
+                    <span>COMPETÊNCIAS</span>
+
+                    <div class="skills">
+
+                        ${candidato.getCompetencias.map(
+                            competencia => `
+                                <span class="skill">
+                                    ${competencia}
+                                </span>
+                            `
+                        ).join("")}
+
+                    </div>
+
+                </div>
+
+                <div class="candidate-section">
+
+                    <span>VAGA</span>
+
+                    <p>
+                        ${vaga.nome}
+                    </p>
+
+                </div>
+
+                <div class="candidate-footer">
+
+                    <button class="btn-like">
+                        ♥
+                    </button>
+
+                </div>
+            `
+
+            candidatosLista.appendChild(card)
+        }
     }
 }
 
@@ -143,3 +227,4 @@ export function criarVaga(): void {
         }
     }
 }
+

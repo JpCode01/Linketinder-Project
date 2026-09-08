@@ -1,4 +1,4 @@
-import { Candidato } from "./Candidato"
+import { Candidato, ICandidatoCurtidaJSON } from "./Candidato"
 import { Empresa } from "./Empresa"
 import { Competencia } from "./Competencia"
 
@@ -17,6 +17,8 @@ export interface IVagaJSON {
     _empresa: string
     _tipo: string
     _localizacao: string
+    competencias: Competencia[]
+    candidatosQueCurtiram: ICandidatoCurtidaJSON[]
 }
 
 export class Vaga implements IVaga {
@@ -54,6 +56,14 @@ export class Vaga implements IVaga {
         return this._localizacao
     }
 
+    get getCompetencias(): Competencia[] {
+        return this.competencias
+    }
+
+    get getCandidatosQueCurtiram(): Candidato[] {
+        return this.candidatosQueCurtiram
+    }
+
     addCandidatoQueCurtiu(candidato: Candidato) {
         if (candidato != null) {
             this.candidatosQueCurtiram.push(candidato)
@@ -68,5 +78,13 @@ export class Vaga implements IVaga {
         } else {
             throw "Competência não pode ser nula"
         }
+    }
+
+    setCompetencias(competencias: Competencia[]) {
+        this.competencias = competencias
+    }
+
+    setCandidatosQueCurtiram(candidatos: Candidato[]) {
+        this.candidatosQueCurtiram = candidatos
     }
 }

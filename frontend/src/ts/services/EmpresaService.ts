@@ -56,7 +56,9 @@ export class EmpresaService {
             _descricao: vaga.descricao,
             _empresa: vaga.empresa,
             _tipo: vaga.tipo,
-            _localizacao: vaga.localização
+            _localizacao: vaga.localização,
+            competencias: vaga.getCompetencias,
+            candidatosQueCurtiram: []
         }
 
         empresaEncontrada.vagas.push(vagaJson)
@@ -100,33 +102,47 @@ export class EmpresaService {
         )
 
         const vagasConvertidas: Vaga[] =
-        empresaEncontrada.vagas.map(
-            vagaJson => new Vaga(
-                vagaJson._nome,
-                vagaJson._descricao,
-                empresaConvertida.nome,
-                vagaJson._tipo,
-                vagaJson._localizacao
-            )
-        )
+            empresaEncontrada.vagas.map(
+                vagaJson => {
+                    const vaga = new Vaga(
+                        vagaJson._nome,
+                        vagaJson._descricao,
+                        empresaConvertida.nome,
+                        vagaJson._tipo,
+                        vagaJson._localizacao
+                    )
 
-           const candidatosConvertidos: Candidato[] =
-            empresaEncontrada.candidatosCurtidos.map(
-                candidatoJson => new Candidato(
-                    candidatoJson._cpf, 
-                    candidatoJson._idade,
-                    candidatoJson._formacao,
-                    candidatoJson._nome,
-                    candidatoJson._email,
-                    candidatoJson._estado,
-                    candidatoJson._cep, 
-                    candidatoJson._descricao
-                )
-            )
+                    vaga.setCompetencias(vagaJson.competencias)
+
+                    const candidatosConvertidos: Candidato[] =
+                        vagaJson.candidatosQueCurtiram.map(
+                            candidatoJson => {
+                                const candidato = new Candidato(
+                                    candidatoJson._cpf,
+                                    0,
+                                    candidatoJson._formacao,
+                                    candidatoJson._nome,
+                                    "",
+                                    "",
+                                    "",
+                                    candidatoJson._descricao
+                                )
+
+                                candidato.setCompetencias(
+                                    candidatoJson.competencias
+                                )
+
+                                return candidato
+                            }
+                        )
+
+            vaga.setCandidatosQueCurtiram(candidatosConvertidos)
+
+            return vaga
+        }
+    )
 
         empresaConvertida.setVagas(vagasConvertidas)
-
-        empresaConvertida.setCandidatosCurtidos(candidatosConvertidos)
 
         return empresaConvertida
     }
@@ -153,28 +169,64 @@ export class EmpresaService {
 
 
         const vagasConvertidas: Vaga[] =
-            empresaJson.vagas.map(
-                vagaJson => new Vaga(
+        empresaJson.vagas.map(
+            vagaJson => {
+                const vaga = new Vaga(
                     vagaJson._nome,
                     vagaJson._descricao,
                     empresaConvertida.nome,
                     vagaJson._tipo,
                     vagaJson._localizacao
                 )
-            )
+
+                vaga.setCompetencias(vagaJson.competencias)
+
+                const candidatosDaVaga: Candidato[] =
+                    vagaJson.candidatosQueCurtiram.map(
+                        candidatoJson => {
+                            const candidato = new Candidato(
+                                candidatoJson._cpf,
+                                0,
+                                candidatoJson._formacao,
+                                candidatoJson._nome,
+                                "",
+                                "",
+                                "",
+                                candidatoJson._descricao
+                            )
+
+                            candidato.setCompetencias(
+                                candidatoJson.competencias
+                            )
+
+                            return candidato
+                        }
+                    )
+
+                vaga.setCandidatosQueCurtiram(candidatosDaVaga)
+
+                return vaga
+            }
+        )
 
         const candidatosConvertidos: Candidato[] =
             empresaJson.candidatosCurtidos.map(
-                candidatoJson => new Candidato(
-                    candidatoJson._cpf, 
-                    candidatoJson._idade,
-                    candidatoJson._formacao,
-                    candidatoJson._nome,
-                    candidatoJson._email,
-                    candidatoJson._estado,
-                    candidatoJson._cep, 
-                    candidatoJson._descricao
-                )
+                candidatoJson => {
+                    const candidato = new Candidato(
+                        candidatoJson._cpf, 
+                        candidatoJson._idade,
+                        candidatoJson._formacao,
+                        candidatoJson._nome,
+                        candidatoJson._email,
+                        candidatoJson._estado,
+                        candidatoJson._cep, 
+                        candidatoJson._descricao
+                    )
+
+                    candidato.setCompetencias(candidatoJson.competencias)
+
+                    return candidato
+                }
             )
 
 
