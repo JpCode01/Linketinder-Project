@@ -5,11 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-
 <title>Linketinder | Candidato</title>
 
 <link rel="stylesheet" href="../css/style.css">
-
 
 </head>
 
@@ -17,7 +15,8 @@
 
 <header class="navbar">
 
-    <div class="brand-logo">
+
+<div class="brand-logo">
     <span>Link</span><strong>etinder</strong>
 </div>
 
@@ -35,6 +34,7 @@
         Nome do candidato
     </span>
 </div>
+
 
 </header>
 
@@ -97,16 +97,45 @@
 <section class="job-grid" id="job-grid">
 
     <!--
-        As vagas serão adicionadas dinamicamente
-        pelo TypeScript.
+        As vagas disponíveis serão adicionadas
+        dinamicamente pelo TypeScript.
     -->
 
+</section>
 
+
+<section class="content-header">
+
+    <div>
+        <span class="section-label">
+            MINHAS CURTIDAS
+        </span>
+
+        <h2>
+            Vagas curtidas
+        </h2>
+    </div>
+
+    <span class="result-count" id="liked-result-count">
+        0 vagas curtidas
+    </span>
+
+</section>
+
+
+<section class="job-grid" id="liked-job-grid">
+
+    <!--
+        As vagas curtidas serão adicionadas
+        dinamicamente pelo TypeScript.
+    -->
 
 </section>
 
 
 </main>
+
 <script src="../js/bundle.js"></script>
+
 </body>
 </html>

@@ -65,7 +65,7 @@ function exibirVagas(empresa: Empresa) {
         estatistica.classList.add("job-stat")
 
         const candidatos = document.createElement("strong")
-        candidatos.innerHTML = "?"
+        candidatos.innerHTML = (vaga.getCandidatosQueCurtiram.length).toString()
 
         const textoCandidatos = document.createElement("span")
         textoCandidatos.innerHTML = "candidatos"

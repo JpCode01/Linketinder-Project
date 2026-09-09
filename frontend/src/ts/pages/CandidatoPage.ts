@@ -11,7 +11,57 @@ export function exibirPageCandidato(): void {
     if (candidato != null) {
         exibirDadosCandidato(candidato)
         exibirVagas(candidato)
+        exibirVagasCurtidas(candidato)
     }
+}
+
+function exibirVagasCurtidas(candidato: Candidato): void {
+    const vagasCurtidas = candidato.getVagasCurtidas
+
+    const contador = document.getElementById("liked-result-count")
+    const listaVagas = document.getElementById("liked-job-grid")
+
+    if (listaVagas == null) {
+        return
+    }
+
+    listaVagas.innerHTML =  ""
+
+    if (contador != null) {
+        contador.innerHTML = 
+        vagasCurtidas.length.toString() + " vagas curtidas"
+    }
+
+    for (const vaga of vagasCurtidas) {
+
+        const card = document.createElement("article")
+        card.classList.add("job-card")
+
+        const tipo = document.createElement("span")
+        tipo.classList.add("job-type")
+        tipo.innerHTML = vaga.tipo
+
+        const nome = document.createElement("h3")
+        nome.innerHTML = vaga.nome
+
+        const descricao = document.createElement("p")
+        descricao.innerHTML = vaga.descricao
+
+        const localizacao = document.createElement("span")
+        localizacao.innerHTML = vaga.localização
+
+        const botao = document.createElement("button")
+        botao.classList.add("btn", "btn-success")
+        botao.textContent = "Curtido"
+
+        card.appendChild(tipo)
+        card.appendChild(nome)
+        card.appendChild(descricao)
+        card.appendChild(localizacao)
+        card.appendChild(botao)
+
+        listaVagas.appendChild(card)
+        }
 }
 
 function exibirDadosCandidato(candidato: Candidato): void {

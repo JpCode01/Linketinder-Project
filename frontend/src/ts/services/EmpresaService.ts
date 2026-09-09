@@ -9,9 +9,6 @@ export class EmpresaService {
     cadastrar(empresa: Empresa): void {
         const empresasSalvas = localStorage.getItem("empresas")
         
-
-        // Pega as empresas do LocalStorage e cadastra novamente
-
         const empresas: Empresa[] =
             empresasSalvas ? JSON.parse(empresasSalvas)
             : []
@@ -80,7 +77,9 @@ export class EmpresaService {
         if (empresa == null || vaga == null) {
             throw "Empresa ou vaga não podem ser nulos"
         }
+
         const empresasSalvas = localStorage.getItem("empresas")
+        
         if (empresasSalvas == null) {
             throw "Nenhuma empresa cadastrada"
         }

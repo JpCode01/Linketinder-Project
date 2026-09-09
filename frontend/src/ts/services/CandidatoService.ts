@@ -7,9 +7,6 @@ import { Empresa, IEmpresaJSON } from "../models/Empresa"
 export class CandidatoService {
     cadastrar(candidato: Candidato): void {
         const candidatosSalvos = localStorage.getItem("candidatos")
-        
-
-        // Pega os candidatos do LocalStorage e cadastra novamente
 
         const candidatos: Candidato[] =
             candidatosSalvos ? JSON.parse(candidatosSalvos)
@@ -284,8 +281,7 @@ export class CandidatoService {
         
     }
 
-    verificarCompetenciasEConverter(
-    competenciasRecebidas: string): Competencia[] | null {
+    verificarCompetenciasEConverter(competenciasRecebidas: string): Competencia[] | null {
 
         const competencias = competenciasRecebidas
             .split(",")
