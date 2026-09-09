@@ -94,7 +94,7 @@ function exibirVagas(candidato: Candidato): void {
 }
 
 function curtirVaga(vaga: Vaga, botao: HTMLButtonElement, candidato: Candidato): void {
-    if (candidato == null) {
+    if (candidato == null || vaga == null) {
         return
     }
 

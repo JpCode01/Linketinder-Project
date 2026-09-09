@@ -1,5 +1,5 @@
 import { Pessoa } from "./Pessoa"
-import { Candidato, ICandidatoJSON } from "./Candidato"
+import { Candidato, ICandidatoCurtidaJSON } from "./Candidato"
 import { Vaga } from "./Vaga"
 import { IVagaJSON } from "../models/Vaga";
 
@@ -17,7 +17,7 @@ export interface IEmpresaJSON {
     _pais: string
     _cep: string
     _descricao: string
-    candidatosCurtidos: ICandidatoJSON[]
+    candidatosCurtidos: ICandidatoCurtidaJSON[]
     vagas: IVagaJSON[]
 }
 

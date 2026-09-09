@@ -1,3 +1,4 @@
+import { Candidato } from "../models/Candidato";
 import { Empresa } from "../models/Empresa";
 import { Vaga } from "../models/Vaga";
 import { EmpresaService} from "../services/EmpresaService"
@@ -80,7 +81,9 @@ function exibirVagas(empresa: Empresa) {
     }
 }
 
+
 function exibirCandidatos(empresa: Empresa) {
+
     const vagas: Vaga[] = empresa.getVagas
 
     const candidatosLista = document.getElementById("candidate-grid")
@@ -91,87 +94,118 @@ function exibirCandidatos(empresa: Empresa) {
 
     candidatosLista.innerHTML = ""
 
-    let count: number = 0;
+    let count: number = 0
 
     for (let vaga of vagas) {
-        count += (vaga.getCandidatosQueCurtiram.length) 
+        count += vaga.getCandidatosQueCurtiram.length
     }
 
-    document.getElementById("candidate-count")!.innerHTML = count.toString() + " candidatos"
+    document.getElementById("candidate-count")!.innerHTML =
+        count.toString() + " candidatos"
 
-    for (let vaga of vagas) {
+    for (const vaga of vagas) {
 
         const candidatos = vaga.getCandidatosQueCurtiram
 
-        for (let candidato of candidatos) {
+        for (const candidato of candidatos) {
+            const candidatoJaCurtido = empresa.getCandidatosCurtidos.some(
+                candidatoCurtido => candidatoCurtido.cpf === candidato.cpf
+            )
 
             const card = document.createElement("article")
             card.classList.add("candidate-card")
 
-            card.innerHTML = `
-                <div class="candidate-top">
+            const topo = document.createElement("div")
+            topo.classList.add("candidate-top")
 
-                    <span class="anonymous">
-                        PERFIL ANÔNIMO
-                    </span>
+            const perfilAnonimo = document.createElement("span")
+            perfilAnonimo.classList.add("anonymous")
+            perfilAnonimo.innerHTML = "PERFIL ANÔNIMO"
 
-                </div>
+            topo.appendChild(perfilAnonimo)
 
-                <h3>
-                    ${candidato.nome}
-                </h3>
+            const nome = document.createElement("h3")
+            nome.innerHTML = candidato.nome
 
-                <div class="candidate-section">
+            const secaoFormacao = document.createElement("div")
+            secaoFormacao.classList.add("candidate-section")
 
-                    <span>FORMAÇÃO</span>
+            const tituloFormacao = document.createElement("span")
+            tituloFormacao.innerHTML = "FORMAÇÃO"
 
-                    <p>
-                        ${candidato.formacao}
-                    </p>
+            const formacao = document.createElement("p")
+            formacao.innerHTML = candidato.formacao
 
-                </div>
+            secaoFormacao.appendChild(tituloFormacao)
+            secaoFormacao.appendChild(formacao)
 
-                <div class="candidate-section">
+            const secaoCompetencias = document.createElement("div")
+            secaoCompetencias.classList.add("candidate-section")
 
-                    <span>COMPETÊNCIAS</span>
+            const tituloCompetencias = document.createElement("span")
+            tituloCompetencias.innerHTML = "COMPETÊNCIAS"
 
-                    <div class="skills">
+            const listaCompetencias = document.createElement("div")
+            listaCompetencias.classList.add("skills")
 
-                        ${candidato.getCompetencias.map(
-                            competencia => `
-                                <span class="skill">
-                                    ${competencia}
-                                </span>
-                            `
-                        ).join("")}
+            for (const competencia of candidato.getCompetencias) {
 
-                    </div>
+                const competenciaElemento = document.createElement("span")
+                competenciaElemento.classList.add("skill")
+                competenciaElemento.innerHTML = competencia
 
-                </div>
+                listaCompetencias.appendChild(competenciaElemento)
+            }
 
-                <div class="candidate-section">
+            secaoCompetencias.appendChild(tituloCompetencias)
+            secaoCompetencias.appendChild(listaCompetencias)
 
-                    <span>VAGA</span>
+            const secaoVaga = document.createElement("div")
+            secaoVaga.classList.add("candidate-section")
 
-                    <p>
-                        ${vaga.nome}
-                    </p>
+            const tituloVaga = document.createElement("span")
+            tituloVaga.innerHTML = "VAGA"
 
-                </div>
+            const nomeVagaElemento = document.createElement("p")
+            nomeVagaElemento.innerHTML = vaga.nome
 
-                <div class="candidate-footer">
+            secaoVaga.appendChild(tituloVaga)
+            secaoVaga.appendChild(nomeVagaElemento)
 
-                    <button class="btn-like">
-                        ♥
-                    </button>
+            const rodape = document.createElement("div")
+            rodape.classList.add("candidate-footer")
 
-                </div>
-            `
+            const botao = document.createElement("button")
+            botao.classList.add("btn-like")
+            botao.innerHTML = "♥"
+
+            if (candidatoJaCurtido) {
+                botao.textContent = "Curtido"
+                botao.classList.add("btn-success")
+            } else {
+                botao.textContent = "Curtir"
+                botao.classList.add("btn-primary")
+            }
+
+            botao.addEventListener("click", () => {
+                curtirCandidato(empresa, candidato, botao)
+            })
+
+            rodape.appendChild(botao)
+
+            card.appendChild(topo)
+            card.appendChild(nome)
+            card.appendChild(secaoFormacao)
+            card.appendChild(secaoCompetencias)
+            card.appendChild(secaoVaga)
+            card.appendChild(rodape)
 
             candidatosLista.appendChild(card)
         }
     }
 }
+
+
 
 export function criarVaga(): void {
     document.getElementById("criar-vaga")!.onclick = (): void => {
@@ -227,4 +261,27 @@ export function criarVaga(): void {
         }
     }
 }
+
+function curtirCandidato(empresa: Empresa, candidato: Candidato, botao: HTMLButtonElement): void {
+    if (empresa == null || candidato == null) {
+        return
+    }
+
+    const curtido = empresaService.curtirCandidato(empresa, candidato)
+
+    if (curtido) {
+        botao.textContent = "Curtido"
+        botao.classList.remove("btn-primary")
+        botao.classList.add("btn-success")
+
+    }
+
+    // if (curtido) {
+    //     candidato.addVaga(vaga)
+
+    //     botao.textContent = "Curtido"
+    //     botao.classList.remove("btn-primary")
+    //     botao.classList.add("btn-success")
+    // }
+} 
 

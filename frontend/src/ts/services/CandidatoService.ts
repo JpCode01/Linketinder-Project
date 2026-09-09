@@ -1,7 +1,7 @@
 import { Candidato } from "../models/Candidato"
 import { Competencia } from "../models/Competencia";
 import { Vaga, IVagaJSON } from "../models/Vaga"
-import { ICandidatoJSON } from "../models/Candidato"
+import { ICandidatoCurtidaJSON, ICandidatoJSON } from "../models/Candidato"
 import { Empresa, IEmpresaJSON } from "../models/Empresa"
 
 export class CandidatoService {
@@ -35,7 +35,8 @@ export class CandidatoService {
             throw "Nenhum candidato cadastrado"
         }
 
-        const candidatosJson: ICandidatoJSON[] = JSON.parse(candidatosSalvos)
+        const candidatosJson: ICandidatoJSON[] =
+            JSON.parse(candidatosSalvos)
 
         const candidatoEncontrado = candidatosJson.find(
             candidatoJson => candidatoJson._cpf === candidato.cpf
@@ -46,15 +47,22 @@ export class CandidatoService {
         }
 
         const vagaJaCurtida = candidatoEncontrado.vagasCurtidas.some(
-        vagaCurtida => vagaCurtida._nome === vaga.nome &&
-        vagaCurtida._empresa === vaga.empresa)
+            vagaCurtida =>
+                vagaCurtida._nome === vaga.nome &&
+                vagaCurtida._empresa === vaga.empresa
+        )
 
         if (vagaJaCurtida) {
             return false
         }
 
-        console.log("Vaga recebida:", vaga)
-        console.log("Competências da vaga:", vaga.getCompetencias)
+        const candidatoCurtida: ICandidatoCurtidaJSON = {
+            _cpf: candidato.cpf,
+            _nome: candidato.nome,
+            competencias: candidato.getCompetencias,
+            _formacao: candidato.formacao,
+            _descricao: candidato.descricao
+        }
 
         const vagaJson: IVagaJSON = {
             _nome: vaga.nome,
@@ -63,18 +71,8 @@ export class CandidatoService {
             _tipo: vaga.tipo,
             _localizacao: vaga.localização,
             competencias: vaga.getCompetencias,
-            candidatosQueCurtiram: [
-                                        {
-                                            _cpf: candidato.cpf,
-                                            _nome: candidato.nome,
-                                            competencias: candidato.getCompetencias,
-                                            _formacao: candidato.formacao,
-                                            _descricao: candidato.descricao
-                                        }
-            ]
+            candidatosQueCurtiram: [candidatoCurtida]
         }
-
-        
 
         candidatoEncontrado.vagasCurtidas.push(vagaJson)
 
@@ -83,7 +81,6 @@ export class CandidatoService {
             JSON.stringify(candidatosJson)
         )
 
-
         const vagasSalvas = localStorage.getItem("vagas")
 
         if (vagasSalvas == null) {
@@ -91,7 +88,7 @@ export class CandidatoService {
         }
 
         const vagasJson: IVagaJSON[] =
-        JSON.parse(vagasSalvas)
+            JSON.parse(vagasSalvas)
 
         const vagaEncontrada = vagasJson.find(
             vagaJson =>
@@ -104,18 +101,12 @@ export class CandidatoService {
         }
 
         const candidatoJaCurtiu = vagaEncontrada.candidatosQueCurtiram.some(
-            candidatoJson => 
+            candidatoJson =>
                 candidatoJson._cpf === candidato.cpf
         )
 
         if (!candidatoJaCurtiu) {
-            vagaEncontrada.candidatosQueCurtiram.push({
-                _cpf: candidato.cpf,
-                _nome: candidato.nome,
-                competencias: candidato.getCompetencias,
-                _formacao: candidato.formacao,
-                _descricao: candidato.descricao
-            })
+            vagaEncontrada.candidatosQueCurtiram.push(candidatoCurtida)
         }
 
         const empresasSalvas = localStorage.getItem("empresas")
@@ -124,10 +115,12 @@ export class CandidatoService {
             throw "Nenhuma empresa cadastrada"
         }
 
-        const empresaJson: IEmpresaJSON[] = JSON.parse(empresasSalvas)
-        
+        const empresaJson: IEmpresaJSON[] =
+            JSON.parse(empresasSalvas)
+
         const empresaEncontrada = empresaJson.find(
-            empresaJson => empresaJson._nome === vaga.empresa 
+            empresaJson =>
+                empresaJson._nome === vaga.empresa
         )
 
         if (empresaEncontrada == null) {
@@ -135,28 +128,25 @@ export class CandidatoService {
         }
 
         const vagaDaEmpresa = empresaEncontrada.vagas.find(
-        vagaJson =>
-        vagaJson._nome === vaga.nome &&
-        vagaJson._empresa === vaga.empresa
-         )
+            vagaJson =>
+                vagaJson._nome === vaga.nome &&
+                vagaJson._empresa === vaga.empresa
+        )
 
         if (vagaDaEmpresa == null) {
             throw "Vaga não encontrada na empresa"
         }
 
-        const candidatoJaCurtiuNaEmpresa = vagaDaEmpresa.candidatosQueCurtiram.some(
-            candidatoJson =>
-                candidatoJson._cpf === candidato.cpf
-        )
+        const candidatoJaCurtiuNaEmpresa =
+            vagaDaEmpresa.candidatosQueCurtiram.some(
+                candidatoJson =>
+                    candidatoJson._cpf === candidato.cpf
+            )
 
         if (!candidatoJaCurtiuNaEmpresa) {
-            vagaDaEmpresa.candidatosQueCurtiram.push({
-                _cpf: candidato.cpf,
-                _nome: candidato.nome,
-                competencias: candidato.getCompetencias,
-                _formacao: candidato.formacao,
-                _descricao: candidato.descricao
-            })
+            vagaDaEmpresa.candidatosQueCurtiram.push(
+                candidatoCurtida
+            )
         }
 
         localStorage.setItem(
@@ -165,10 +155,9 @@ export class CandidatoService {
         )
 
         localStorage.setItem(
-        "empresaLogada",
-        JSON.stringify(empresaEncontrada)
+            "empresaLogada",
+            JSON.stringify(empresaEncontrada)
         )
-
 
         localStorage.setItem(
             "vagas",
@@ -181,7 +170,7 @@ export class CandidatoService {
         )
 
         return true
-    } 
+    }
 
     adicionarCompetencia(candidato: Candidato, competencia: Competencia): void {
          if (competencia != null && candidato != null) {
