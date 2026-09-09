@@ -3,6 +3,8 @@ import { Empresa } from "../models/Empresa";
 import { Vaga } from "../models/Vaga";
 import { EmpresaService} from "../services/EmpresaService"
 import { VagaService } from "../services/VagaService"
+import { criarGraficoCompetencias } 
+    from "../charts/CompetenciaChart"
 
 const empresaService: EmpresaService = new EmpresaService
 const vagaService: VagaService = new VagaService
@@ -13,6 +15,7 @@ export function exibirPageEmpresa(): void {
             exibirDadosEmpresa(empresa)
             exibirVagas(empresa)
             exibirCandidatos(empresa)
+            criarGraficoCompetencias(empresa)
         }
 }
 
