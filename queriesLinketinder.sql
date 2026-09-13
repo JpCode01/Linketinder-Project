@@ -95,3 +95,101 @@ CREATE TABLE "match" (
 	"id_empresa" int NOT NULL REFERENCES "empresas" ("id"),
 	"id_vaga" int NOT NULL REFERENCES "vagas" ("id")
 );
+
+INSERT INTO "pais" ("nome")
+VALUES
+('Brasil'),
+('Estados Unidos'),
+('Reino Unido');
+
+INSERT INTO "instituicao_formacao" ("nome_instituicao")
+VALUES
+('FATEC Bragança Paulista'),
+('Universidade de São Paulo'),
+('FIAP');
+
+INSERT INTO "competencias" ("nome_competencia")
+VALUES
+('Java'),
+('Python'),
+('JavaScript');
+
+INSERT INTO "candidatos"
+("nome", "sobrenome", "email", "senha", "data_nascimento", "cpf", "id_pais", "cep", "descricao", "ativo")
+VALUES
+('João', 'Silva', '[joao@email.com](mailto:joao@email.com)', '123456', '2005-03-15', '11111111111', 1, '12900000', 'Desenvolvedor Java', true),
+('Maria', 'Santos', '[maria@email.com](mailto:maria@email.com)', '123456', '2004-07-20', '22222222222', 1, '12900001', 'Desenvolvedora Python', true),
+('Pedro', 'Oliveira', '[pedro@email.com](mailto:pedro@email.com)', '123456', '2003-01-10', '33333333333', 2, '01000000', 'Desenvolvedor JavaScript', true);
+
+INSERT INTO "formacao"
+("curso", "id_candidato", "id_instituicao", "inicio", "termino_ou_possivel")
+VALUES
+('Análise e Desenvolvimento de Sistemas', 1, 1, '2025-01-01', '2027-12-31'),
+('Ciência da Computação', 2, 2, '2024-01-01', '2028-12-31'),
+('Engenharia de Software', 3, 3, '2025-01-01', '2029-12-31');
+
+INSERT INTO "candidato_formacoes"
+("id_formacao", "id_candidato")
+VALUES
+(1, 1),
+(2, 2),
+(3, 3);
+
+INSERT INTO "candidatos_competencias"
+("id_candidato", "id_competencia")
+VALUES
+(1, 1),
+(2, 2),
+(3, 3);
+
+INSERT INTO "empresas"
+("nome", "cnpj", "email_corporativo", "descricao", "id_pais", "cep")
+VALUES
+('Pastelsoft', '11111111000111', '[contato@pastelsoft.com](mailto:contato@pastelsoft.com)', 'Empresa de tecnologia', 1, '12900010'),
+('ZG Soluções', '22222222000122', '[contato@zgs.com](mailto:contato@zgs.com)', 'Soluções em tecnologia', 1, '12900011'),
+('Tech Corp', '33333333000133', '[contato@techcorp.com](mailto:contato@techcorp.com)', 'Desenvolvimento de software', 2, '01000001');
+
+INSERT INTO "vagas"
+("nome", "descricao", "local", "id_empresa")
+VALUES
+('Desenvolvedor Java Junior', 'Desenvolvimento de aplicações utilizando Java', 'Bragança Paulista', 1),
+('Desenvolvedor Python', 'Desenvolvimento de aplicações utilizando Python', 'São Paulo', 2),
+('Desenvolvedor JavaScript', 'Desenvolvimento de aplicações web utilizando JavaScript', 'Campinas', 3);
+
+INSERT INTO "vagas_competencias"
+("id_vaga", "id_competencia")
+VALUES
+(1, 1),
+(2, 2),
+(3, 3);
+
+INSERT INTO "vagas_curtidas_candidato"
+("id_candidato", "id_vaga")
+VALUES
+(1, 1),
+(2, 2),
+(3, 3);
+
+INSERT INTO "candidatos_curtidos_empresa"
+("id_empresa", "id_candidato")
+VALUES
+(1, 1),
+(2, 2),
+(3, 3);
+
+INSERT INTO "candidatos_que_curtiram_vaga"
+("id_candidato", "id_vaga")
+VALUES
+(1, 1),
+(2, 2),
+(3, 3);
+
+INSERT INTO "match"
+("id_candidato", "id_empresa", "id_vaga")
+VALUES
+(1, 1, 1),
+(2, 2, 2),
+(3, 3, 3);
+
+select * from match;
+
