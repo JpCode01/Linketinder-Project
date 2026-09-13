@@ -86,6 +86,7 @@
                             empresaService.curtirCandidato(candidato, empresa)
                             Match match = new Match(empresa, candidato, vaga)
                             println(match)
+                            Menu.matchs << match
                         }
                     } catch (IndexOutOfBoundsException ex) {
                         println("ID invalido!")

@@ -3,6 +3,7 @@ package com.jpcode.view
 import com.jpcode.enums.CompetenciasEnum
 import com.jpcode.model.Candidato
 import com.jpcode.model.Empresa
+import com.jpcode.model.Match
 import com.jpcode.model.Vaga
 
 class Menu {
@@ -12,6 +13,7 @@ class Menu {
     static List<Candidato> candidatos = []
     static List<Empresa> empresas = []
     static List<Vaga> vagasGerais = []
+    static List<Match> matchs = []
 
     void inicio() {
 

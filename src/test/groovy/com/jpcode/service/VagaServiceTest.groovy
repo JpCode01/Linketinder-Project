@@ -115,7 +115,4 @@ class VagaServiceTest extends Specification {
         then:
         vagas == []
     }
-
-
-    
 }
