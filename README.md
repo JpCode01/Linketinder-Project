@@ -377,6 +377,144 @@ A aplicação será iniciada através do ponto de entrada `Main` e poderá ser u
 
 ---
 
+# Banco de Dados
+
+O projeto possui uma estrutura de banco de dados relacional desenvolvida para armazenar os dados de candidatos, empresas, vagas, competências e formações.
+
+O banco foi modelado utilizando o **dbdiagram.io**, seguindo os relacionamentos necessários para representar as regras de negócio do Linketinder.
+
+## Estrutura do banco de dados
+
+O banco é composto pelas seguintes tabelas:
+
+### Candidatos
+
+Armazena os dados pessoais e de cadastro dos candidatos, incluindo:
+
+* Nome;
+* Sobrenome;
+* E-mail;
+* Senha;
+* Data de nascimento;
+* CPF;
+* País;
+* CEP;
+* Descrição pessoal;
+* Status de atividade.
+
+Um candidato pode possuir diversas competências e formações.
+
+### Competências
+
+Armazena as competências disponíveis no sistema.
+
+As competências podem ser utilizadas tanto pelos candidatos quanto pelas vagas.
+
+Exemplos:
+
+* Java;
+* Python;
+* Groovy;
+* Angular;
+* Spring;
+* Entre outras.
+
+### Candidatos_Competencias
+
+Tabela responsável por representar o relacionamento entre candidatos e competências.
+
+Um candidato pode possuir várias competências e uma mesma competência pode pertencer a vários candidatos, caracterizando um relacionamento **N:N**.
+
+### Formação
+
+Armazena as formações acadêmicas ou técnicas dos candidatos, contendo informações como:
+
+* Curso;
+* Candidato;
+* Instituição;
+* Data de início;
+* Data de término ou previsão de término.
+
+### Candidato_Formacoes
+
+Tabela responsável por relacionar candidatos às suas formações.
+
+### Instituicao_Formacao
+
+Armazena as instituições relacionadas às formações dos candidatos.
+
+### País
+
+Armazena os países disponíveis para associação aos candidatos e empresas.
+
+### Empresas
+
+Armazena os dados das empresas cadastradas no sistema, incluindo:
+
+* Nome;
+* CNPJ;
+* E-mail corporativo;
+* Descrição;
+* País;
+* CEP.
+
+Uma empresa pode possuir diversas vagas.
+
+### Vagas
+
+Armazena as vagas cadastradas pelas empresas, contendo:
+
+* Nome;
+* Descrição;
+* Local;
+* Empresa responsável.
+
+O relacionamento entre empresas e vagas é **1:N**, pois uma empresa pode possuir várias vagas, enquanto cada vaga pertence a uma única empresa.
+
+### Vagas_Competencias
+
+Tabela responsável por representar o relacionamento entre vagas e competências.
+
+Uma vaga pode exigir várias competências e uma mesma competência pode ser exigida por várias vagas, caracterizando um relacionamento **N:N**.
+
+## Relacionamentos principais
+
+A estrutura do banco possui os seguintes relacionamentos:
+
+* **País → Candidatos:** 1:N;
+* **País → Empresas:** 1:N;
+* **Candidatos → Formações:** relacionamento através das tabelas de formação;
+* **Instituição → Formações:** 1:N;
+* **Candidatos ↔ Competências:** N:N;
+* **Empresa → Vagas:** 1:N;
+* **Vagas ↔ Competências:** N:N.
+
+As tabelas `candidatos_competencias` e `vagas_competencias` são utilizadas como tabelas intermediárias para representar os relacionamentos muitos-para-muitos.
+
+## MER / DER
+
+O modelo entidade-relacionamento foi desenvolvido utilizando o **dbdiagram.io**.
+
+A representação visual da estrutura do banco pode ser adicionada abaixo:
+
+**Modelo Entidade-Relacionamento (MER/DER)**
+
+<img width="1293" height="1081" alt="linketind_bd1" src="https://github.com/user-attachments/assets/51feb32e-5ac6-4395-8134-0a08f6282f30" />
+
+## SQL
+
+O arquivo SQL do projeto contém:
+
+* Criação das tabelas;
+* Definição das chaves primárias;
+* Definição das chaves estrangeiras;
+* Restrições de unicidade;
+* Dados iniciais para testes;
+* Inserts dos candidatos e empresas fictícios utilizados no projeto.
+
+O script foi desenvolvido para **PostgreSQL**.
+
+
 ## Frontend
 
 Entre no diretório do frontend:
