@@ -379,9 +379,9 @@ A aplicação será iniciada através do ponto de entrada `Main` e poderá ser u
 
 # Banco de Dados
 
-O projeto possui uma estrutura de banco de dados relacional desenvolvida para armazenar os dados de candidatos, empresas, vagas, competências e formações.
+O projeto utiliza um banco de dados relacional desenvolvido em **PostgreSQL** para armazenar e relacionar os dados de candidatos, empresas, vagas, competências, formações e interações entre candidatos e empresas.
 
-O banco foi modelado utilizando o **dbdiagram.io**, seguindo os relacionamentos necessários para representar as regras de negócio do Linketinder.
+O modelo foi desenvolvido utilizando o **dbdiagram.io**, considerando as regras de negócio do Linketinder e os relacionamentos entre as entidades.
 
 ## Estrutura do banco de dados
 
@@ -389,7 +389,7 @@ O banco é composto pelas seguintes tabelas:
 
 ### Candidatos
 
-Armazena os dados pessoais e de cadastro dos candidatos, incluindo:
+Armazena os dados pessoais e de cadastro dos candidatos:
 
 * Nome;
 * Sobrenome;
@@ -399,35 +399,34 @@ Armazena os dados pessoais e de cadastro dos candidatos, incluindo:
 * CPF;
 * País;
 * CEP;
-* Descrição pessoal;
+* Descrição;
 * Status de atividade.
 
-Um candidato pode possuir diversas competências e formações.
+Cada candidato pode possuir diversas competências, formações e curtidas em vagas.
 
 ### Competências
 
 Armazena as competências disponíveis no sistema.
 
-As competências podem ser utilizadas tanto pelos candidatos quanto pelas vagas.
+As competências são compartilhadas entre candidatos e vagas, permitindo identificar quais habilidades um candidato possui e quais são exigidas por uma vaga.
 
 Exemplos:
 
 * Java;
 * Python;
 * Groovy;
-* Angular;
-* Spring;
+* JavaScript;
 * Entre outras.
 
 ### Candidatos_Competencias
 
-Tabela responsável por representar o relacionamento entre candidatos e competências.
+Representa o relacionamento entre candidatos e competências.
 
-Um candidato pode possuir várias competências e uma mesma competência pode pertencer a vários candidatos, caracterizando um relacionamento **N:N**.
+Um candidato pode possuir diversas competências e uma mesma competência pode pertencer a diversos candidatos, caracterizando um relacionamento **N:N**.
 
 ### Formação
 
-Armazena as formações acadêmicas ou técnicas dos candidatos, contendo informações como:
+Armazena as formações acadêmicas ou técnicas dos candidatos:
 
 * Curso;
 * Candidato;
@@ -437,19 +436,23 @@ Armazena as formações acadêmicas ou técnicas dos candidatos, contendo inform
 
 ### Candidato_Formacoes
 
-Tabela responsável por relacionar candidatos às suas formações.
+Relaciona os candidatos às suas formações.
+
+Essa tabela permite associar um candidato às formações cadastradas no sistema.
 
 ### Instituicao_Formacao
 
-Armazena as instituições relacionadas às formações dos candidatos.
+Armazena as instituições de ensino relacionadas às formações dos candidatos.
 
 ### País
 
 Armazena os países disponíveis para associação aos candidatos e empresas.
 
+Um país pode estar relacionado a diversos candidatos e empresas.
+
 ### Empresas
 
-Armazena os dados das empresas cadastradas no sistema, incluindo:
+Armazena os dados das empresas cadastradas:
 
 * Nome;
 * CNPJ;
@@ -458,24 +461,73 @@ Armazena os dados das empresas cadastradas no sistema, incluindo:
 * País;
 * CEP.
 
-Uma empresa pode possuir diversas vagas.
+Uma empresa pode cadastrar diversas vagas e também pode curtir candidatos.
 
 ### Vagas
 
-Armazena as vagas cadastradas pelas empresas, contendo:
+Armazena as vagas cadastradas pelas empresas:
 
 * Nome;
 * Descrição;
 * Local;
 * Empresa responsável.
 
-O relacionamento entre empresas e vagas é **1:N**, pois uma empresa pode possuir várias vagas, enquanto cada vaga pertence a uma única empresa.
+Cada vaga pertence a uma única empresa, enquanto uma empresa pode possuir diversas vagas, caracterizando um relacionamento **1:N**.
 
 ### Vagas_Competencias
 
-Tabela responsável por representar o relacionamento entre vagas e competências.
+Representa o relacionamento entre vagas e competências.
 
-Uma vaga pode exigir várias competências e uma mesma competência pode ser exigida por várias vagas, caracterizando um relacionamento **N:N**.
+Uma vaga pode exigir diversas competências e uma mesma competência pode ser exigida por diversas vagas, caracterizando um relacionamento **N:N**.
+
+### Vagas_Curtidas_Candidato
+
+Armazena as vagas que foram curtidas pelos candidatos.
+
+Cada registro representa uma interação em que um candidato demonstrou interesse em uma determinada vaga.
+
+### Candidatos_Curtidos_Empresa
+
+Armazena os candidatos que foram curtidos pelas empresas.
+
+Cada registro representa uma interação em que uma empresa demonstrou interesse em um determinado candidato.
+
+### Candidatos_Que_Curtiram_Vaga
+
+Armazena os candidatos que demonstraram interesse em determinadas vagas.
+
+Essa tabela mantém o registro dos candidatos que curtiram cada vaga para utilização na lógica de relacionamento entre candidatos, empresas e vagas.
+
+### Match
+
+Armazena os matches realizados entre candidatos, empresas e vagas.
+
+Um match ocorre quando existe interesse de ambas as partes, relacionando:
+
+* Um candidato;
+* Uma empresa;
+* Uma vaga.
+
+Dessa forma, o registro do match identifica qual candidato e qual empresa demonstraram interesse na mesma oportunidade.
+
+## Lógica aplicada
+
+O funcionamento do banco segue a lógica de interação entre candidatos, empresas e vagas.
+
+Primeiramente, um candidato é cadastrado no sistema e pode adicionar suas competências e formações.
+
+As empresas também são cadastradas e podem criar uma ou mais vagas. Cada vaga possui suas próprias competências exigidas.
+
+Depois do cadastro:
+
+1. O candidato visualiza as vagas disponíveis.
+2. O candidato pode curtir uma vaga de seu interesse.
+3. A empresa pode visualizar candidatos de acordo com as regras de recrutamento do sistema e demonstrar interesse em um candidato.
+4. As interações são armazenadas nas respectivas tabelas de curtidas.
+5. Quando ocorre interesse de ambas as partes para uma determinada oportunidade, é registrado um **match**.
+6. O match relaciona o candidato, a empresa e a vaga correspondente.
+
+A estrutura permite manter separadas as informações de candidatos, empresas, vagas, competências e interações, evitando armazenar essas relações diretamente dentro das entidades principais.
 
 ## Relacionamentos principais
 
@@ -483,13 +535,18 @@ A estrutura do banco possui os seguintes relacionamentos:
 
 * **País → Candidatos:** 1:N;
 * **País → Empresas:** 1:N;
-* **Candidatos → Formações:** relacionamento através das tabelas de formação;
+* **Candidatos → Formações:** 1:N;
 * **Instituição → Formações:** 1:N;
 * **Candidatos ↔ Competências:** N:N;
 * **Empresa → Vagas:** 1:N;
-* **Vagas ↔ Competências:** N:N.
+* **Vagas ↔ Competências:** N:N;
+* **Candidatos ↔ Vagas:** relacionamento através das curtidas;
+* **Empresas ↔ Candidatos:** relacionamento através das curtidas;
+* **Candidato + Empresa + Vaga → Match:** relacionamento que representa o interesse mútuo.
 
-As tabelas `candidatos_competencias` e `vagas_competencias` são utilizadas como tabelas intermediárias para representar os relacionamentos muitos-para-muitos.
+As tabelas `candidatos_competencias` e `vagas_competencias` são utilizadas para representar os relacionamentos **N:N** entre candidatos, vagas e competências.
+
+As tabelas `vagas_curtidas_candidato`, `candidatos_curtidos_empresa` e `candidatos_que_curtiram_vaga` armazenam as interações realizadas durante o processo de interesse por vagas e candidatos.
 
 ## MER / DER
 
@@ -499,7 +556,8 @@ A representação visual da estrutura do banco pode ser adicionada abaixo:
 
 **Modelo Entidade-Relacionamento (MER/DER)**
 
-<img width="1293" height="1081" alt="linketind_bd1" src="https://github.com/user-attachments/assets/51feb32e-5ac6-4395-8134-0a08f6282f30" />
+<img width="1148" height="1263" alt="linketind_bd2" src="https://github.com/user-attachments/assets/8bc91627-5b9b-4601-a5b4-831bd6152c0b" />
+
 
 ## SQL
 
@@ -509,11 +567,16 @@ O arquivo SQL do projeto contém:
 * Definição das chaves primárias;
 * Definição das chaves estrangeiras;
 * Restrições de unicidade;
+* Relacionamentos entre as entidades;
 * Dados iniciais para testes;
-* Inserts dos candidatos e empresas fictícios utilizados no projeto.
+* Candidatos fictícios;
+* Empresas fictícias;
+* Vagas fictícias;
+* Competências e formações;
+* Registros de curtidas;
+* Registros de matches.
 
 O script foi desenvolvido para **PostgreSQL**.
-
 
 ## Frontend
 
