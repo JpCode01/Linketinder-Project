@@ -5,8 +5,14 @@ class Candidato extends Pessoa {
     int idade
     List<Vaga> vagasCurtidas = []
 
-    Candidato(String nome, String email, String cpf, int idade, String estado, String cep, String descricao) {
-        super(nome, email, estado, cep, descricao)
+    Candidato(String nome, String email, String cpf, Integer idPais, int idade, String estado, String cep, String descricao) {
+        super(nome, email, estado, cep, descricao, idPais)
+        this.cpf = cpf
+        this.idade = idade
+    }
+
+    Candidato(Long id, String nome, String email, String cpf, Integer idPais, int idade, String estado, String cep, String descricao) {
+        super(nome, email, estado, cep, descricao, idPais, id)
         this.cpf = cpf
         this.idade = idade
     }

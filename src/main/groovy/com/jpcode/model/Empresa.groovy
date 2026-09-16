@@ -3,14 +3,17 @@ package com.jpcode.model
 class Empresa extends Pessoa {
 
     String cnpj
-    String pais
     List<Vaga> vagas = []
     List<Candidato> candidatosCurtidos = []
 
-    Empresa(String nome, String email, String cnpj, String pais, String estado, String cep, String descricao) {
-        super(nome, email, estado, cep, descricao)
+    Empresa(String nome, String email, String cnpj, Long idPais, String estado, String cep, String descricao) {
+        super(nome, email, estado, cep, descricao, idPais)
         this.cnpj = cnpj
-        this.pais = pais
+    }
+
+    Empresa(Long id, String nome, String email, String cnpj, Long idPais, String estado, String cep, String descricao) {
+        super(nome, email, estado, cep, descricao, idPais, id)
+        this.cnpj = cnpj
     }
 
     @Override
