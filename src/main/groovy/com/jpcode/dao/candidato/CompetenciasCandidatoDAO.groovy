@@ -35,8 +35,8 @@ class CompetenciasCandidatoDAO {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection(sql)
-            def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
+            def connection = ConnectionFactory.getConnection()
+            def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idVaga)
 
