@@ -6,13 +6,13 @@ class Empresa extends Pessoa {
     List<Vaga> vagas = []
     List<Candidato> candidatosCurtidos = []
 
-    Empresa(String nome, String email, String cnpj, Long idPais, String estado, String cep, String descricao) {
-        super(nome, email, estado, cep, descricao, idPais)
+    Empresa(String nome, String email, String senha, String cnpj, Long idPais, String estado, String cep, String descricao) {
+        super(nome, email, senha, estado, cep, descricao, idPais)
         this.cnpj = cnpj
     }
 
-    Empresa(Long id, String nome, String email, String cnpj, Long idPais, String estado, String cep, String descricao) {
-        super(nome, email, estado, cep, descricao, idPais, id)
+    Empresa(Long id, String nome, String email, String senha, String cnpj, Long idPais, String estado, String cep, String descricao) {
+        super(nome, email, senha, estado, cep, descricao, idPais, id)
         this.cnpj = cnpj
     }
 
