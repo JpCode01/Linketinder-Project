@@ -1,4 +1,4 @@
 package com.jpcode.dao
 
-class CurtidaDAO {
+class EmpresaCurtirDAO {
 }
