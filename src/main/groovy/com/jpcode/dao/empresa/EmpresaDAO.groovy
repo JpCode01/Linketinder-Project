@@ -1,7 +1,7 @@
-package com.jpcode.dao
+package com.jpcode.dao.empresa
 
 import com.jpcode.database.ConnectionFactory
-import com.jpcode.model.Empresa
+import com.jpcode.model.core.Empresa
 
 import java.sql.Statement
 

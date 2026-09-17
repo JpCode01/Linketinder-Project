@@ -1,7 +1,7 @@
-package com.jpcode.dao
+package com.jpcode.dao.vaga
 
 import com.jpcode.database.ConnectionFactory
-import com.jpcode.model.Vaga
+import com.jpcode.model.core.Vaga
 
 import java.sql.Statement
 

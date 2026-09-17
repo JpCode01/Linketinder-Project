@@ -1,7 +1,7 @@
 package com.jpcode.service
 
 import com.jpcode.enums.CompetenciasEnum
-import com.jpcode.model.Candidato
+import com.jpcode.model.core.Candidato
 import com.jpcode.validation.CompetenciaValidation
 
 class CandidatoService {

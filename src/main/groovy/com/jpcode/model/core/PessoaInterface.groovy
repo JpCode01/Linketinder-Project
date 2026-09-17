@@ -1,4 +1,4 @@
-package com.jpcode.model
+package com.jpcode.model.core
 
 import com.jpcode.enums.CompetenciasEnum
 

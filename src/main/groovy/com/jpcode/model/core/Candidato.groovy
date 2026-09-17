@@ -1,4 +1,5 @@
-package com.jpcode.model
+package com.jpcode.model.core
+
 
 import java.time.LocalDate
 

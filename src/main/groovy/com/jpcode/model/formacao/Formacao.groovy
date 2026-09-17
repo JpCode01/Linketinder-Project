@@ -1,4 +1,4 @@
-package com.jpcode.model
+package com.jpcode.model.formacao
 
 import java.time.LocalDate
 

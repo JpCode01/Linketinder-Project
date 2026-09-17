@@ -1,7 +1,7 @@
-package com.jpcode.dao
+package com.jpcode.dao.candidato
 
 import com.jpcode.database.ConnectionFactory
-import com.jpcode.model.Candidato
+import com.jpcode.model.core.Candidato
 
 import java.sql.Date
 import java.sql.Statement

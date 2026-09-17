@@ -1,8 +1,8 @@
 package com.jpcode.service
 
-import com.jpcode.model.Candidato
-import com.jpcode.model.Empresa
-import com.jpcode.model.Vaga
+import com.jpcode.model.core.Candidato
+import com.jpcode.model.core.Empresa
+import com.jpcode.model.core.Vaga
 
 class VagaService {
     

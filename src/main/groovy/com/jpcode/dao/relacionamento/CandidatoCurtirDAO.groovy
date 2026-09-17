@@ -1,8 +1,8 @@
-package com.jpcode.dao
+package com.jpcode.dao.relacionamento
 
 import com.jpcode.database.ConnectionFactory
-import com.jpcode.model.Candidato
-import com.jpcode.model.Vaga
+import com.jpcode.model.core.Candidato
+import com.jpcode.model.core.Vaga
 
 import java.sql.Statement
 

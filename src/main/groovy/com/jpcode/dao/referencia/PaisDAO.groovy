@@ -1,7 +1,7 @@
-package com.jpcode.dao
+package com.jpcode.dao.referencia
 
 import com.jpcode.database.ConnectionFactory
-import com.jpcode.model.Pais
+import com.jpcode.model.referencia.Pais
 
 class PaisDAO {
 

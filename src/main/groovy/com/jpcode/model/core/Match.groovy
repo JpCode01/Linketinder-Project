@@ -1,4 +1,4 @@
-package com.jpcode.model
+package com.jpcode.model.core
 
 class Match {
     Long id

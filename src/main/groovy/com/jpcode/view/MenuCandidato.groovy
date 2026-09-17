@@ -1,8 +1,8 @@
 package com.jpcode.view
 
 import com.jpcode.enums.CompetenciasEnum
-import com.jpcode.model.Candidato
-import com.jpcode.model.Vaga
+import com.jpcode.model.core.Candidato
+import com.jpcode.model.core.Vaga
 import com.jpcode.service.CandidatoService
 import com.jpcode.service.VagaService
 import com.jpcode.validation.CompetenciaValidation

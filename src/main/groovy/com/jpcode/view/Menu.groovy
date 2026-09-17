@@ -1,10 +1,10 @@
 package com.jpcode.view
 
 import com.jpcode.enums.CompetenciasEnum
-import com.jpcode.model.Candidato
-import com.jpcode.model.Empresa
-import com.jpcode.model.Match
-import com.jpcode.model.Vaga
+import com.jpcode.model.core.Candidato
+import com.jpcode.model.core.Empresa
+import com.jpcode.model.core.Match
+import com.jpcode.model.core.Vaga
 
 class Menu {
     private final Scanner scanner = new Scanner(System.in)

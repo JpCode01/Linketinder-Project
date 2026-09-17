@@ -1,8 +1,8 @@
 package com.jpcode.service
 
 import com.jpcode.enums.CompetenciasEnum
-import com.jpcode.model.Candidato
-import com.jpcode.model.Vaga
+import com.jpcode.model.core.Candidato
+import com.jpcode.model.core.Vaga
 import com.jpcode.validation.CompetenciaValidation
 import spock.lang.Specification
 
