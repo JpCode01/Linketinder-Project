@@ -87,7 +87,8 @@ class CandidatoDAO {
                     resultSet.getInt("idade"),
                     resultSet.getString("estado"),
                     resultSet.getString("cep"),
-                    resultSet.getString("descricao")
+                    resultSet.getString("descricao"),
+                    resultSet.getBoolean("ativo")
             )
 
         }

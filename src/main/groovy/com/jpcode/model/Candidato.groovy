@@ -17,8 +17,8 @@ class Candidato extends Pessoa {
         this.dataNascimento = dataNascimento
     }
 
-    Candidato(Long id, String nome, String sobrenome, String email, String senha, String cpf, LocalDate dataNascimento, Long idPais, int idade, String estado, String cep, String descricao) {
-        super(nome, email, senha, estado, cep, descricao, idPais, id)
+    Candidato(Long id, String nome, String sobrenome, String email, String senha, String cpf, LocalDate dataNascimento, Long idPais, int idade, String estado, String cep, String descricao, boolean ativo) {
+        super(nome, email, senha, estado, cep, descricao, idPais, id, ativo)
         this.cpf = cpf
         this.idade = idade
         this.sobrenome = sobrenome

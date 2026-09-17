@@ -25,7 +25,7 @@ class Pessoa implements PessoaInterface {
         this.senha = senha
     }
     
-    Pessoa(String nome, String email, String senha, String estado, String cep, String descricao,  Long idPais, Long id) {
+    Pessoa(String nome, String email, String senha, String estado, String cep, String descricao,  Long idPais, Long id, boolean ativo) {
         this.nome = nome
         this.email = email
         this.estado = estado
@@ -34,6 +34,7 @@ class Pessoa implements PessoaInterface {
         this.idPais = idPais
         this.id = id
         this.senha = senha
+        this.ativo = ativo
     }
 
     String adicionarCompetencia(CompetenciasEnum competencia) {

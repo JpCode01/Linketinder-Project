@@ -11,8 +11,8 @@ class Empresa extends Pessoa {
         this.cnpj = cnpj
     }
 
-    Empresa(Long id, String nome, String email, String senha, String cnpj, Long idPais, String estado, String cep, String descricao) {
-        super(nome, email, senha, estado, cep, descricao, idPais, id)
+    Empresa(Long id, String nome, String email, String senha, String cnpj, Long idPais, String estado, String cep, String descricao, boolean ativo) {
+        super(nome, email, senha, estado, cep, descricao, idPais, id, ativo)
         this.cnpj = cnpj
     }
 
