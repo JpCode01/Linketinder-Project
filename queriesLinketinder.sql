@@ -191,5 +191,8 @@ VALUES
 (2, 2, 2),
 (3, 3, 3);
 
+ALTER TABLE candidatos
+    ADD COLUMN idade int;
+
 select * from match;
 
