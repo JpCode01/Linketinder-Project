@@ -1,4 +1,32 @@
 package com.jpcode.dao.referencia
 
+import com.jpcode.database.ConnectionFactory
+import com.jpcode.model.referencia.Competencia
+
 class CompetenciaDAO {
+    Competencia buscarPorId(Long id) {
+        String sql = """
+            SELECT id, nome_competencia
+            FROM competencias
+        """
+
+        try (
+            def connection = ConnectionFactory.getConnection(sql)
+            def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, id)
+
+            def resultSet = statement.executeQuery()
+
+            if (!resultSet.next()) {
+                return null
+            }
+
+            return new Competencia(
+                    resultSet.getLong("id"),
+                    resultSet.getString("nome_competencia")
+            )
+
+        }
+    }
 }
