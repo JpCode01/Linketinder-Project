@@ -6,7 +6,7 @@ class Pessoa implements PessoaInterface {
     Long id
     String nome
     String email
-    String estado
+    Long idEstado
     String cep
     String descricao
     Long idPais
@@ -14,10 +14,10 @@ class Pessoa implements PessoaInterface {
     String senha
     boolean ativo
 
-    Pessoa(String nome, String email, String senha, String estado, String cep, String descricao, Long idPais) {
+    Pessoa(String nome, String email, String senha, Long idEstado, String cep, String descricao, Long idPais) {
         this.nome = nome
         this.email = email
-        this.estado = estado
+        this.idEstado = idEstado
         this.cep = cep
         this.descricao = descricao
         this.idPais = idPais
@@ -25,10 +25,10 @@ class Pessoa implements PessoaInterface {
         this.senha = senha
     }
     
-    Pessoa(String nome, String email, String senha, String estado, String cep, String descricao,  Long idPais, Long id, boolean ativo) {
+    Pessoa(String nome, String email, String senha, Long idEstado, String cep, String descricao,  Long idPais, Long id, boolean ativo) {
         this.nome = nome
         this.email = email
-        this.estado = estado
+        this.idEstado = idEstado
         this.cep = cep
         this.descricao = descricao
         this.idPais = idPais

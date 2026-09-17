@@ -13,7 +13,7 @@ class CandidatoDAO {
         String sql = """
             INSERT INTO candidatos
                 (nome, sobrenome, email, data_nascimento, cpf,
-                id_pais, cep, descricao, ativo, senha)
+                id_pais, cep, descricao, ativo, senha, id_estado)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)            
         """
 
@@ -41,6 +41,7 @@ class CandidatoDAO {
             statement.setString(8, candidato.descricao)
             statement.setBoolean(9, candidato.ativo)
             statement.setString(10, candidato.senha)
+            statement.setLong(11, candidato.idEstado)
 
             
             statement.executeUpdate()
@@ -58,7 +59,7 @@ class CandidatoDAO {
     Candidato buscacrPorId(Long id) {
         String sql = """
             SELECT id, nome, sobrenome, email, data_nascimento, 
-            cpf, id_pais, cep, descricao, ativo, senha
+            cpf, id_pais, cep, descricao, ativo, senha, id_estado
             FROM candidatos
             WHERE id = ?
         """
@@ -85,7 +86,7 @@ class CandidatoDAO {
                     resultSet.getDate("data_nascimento").toLocalDate(),
                     resultSet.getLong("id_pais"),
                     resultSet.getInt("idade"),
-                    resultSet.getString("estado"),
+                    resultSet.getLong("id_estado"),
                     resultSet.getString("cep"),
                     resultSet.getString("descricao"),
                     resultSet.getBoolean("ativo")
