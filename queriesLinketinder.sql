@@ -191,6 +191,8 @@ VALUES
 (2, 2, 2),
 (3, 3, 3);
 
+-- Alterações necessárias ao longo do desenvolvimento
+
 ALTER TABLE candidatos
     ADD COLUMN idade int;
 
@@ -201,6 +203,9 @@ CREATE TABLE "estados" (
 
 ALTER TABLE "empresas"
     ADD COLUMN "id_estado" int REFERENCES "estados" ("id");
+
+ALTER TABLE "empresas"
+    ADD COLUMN "senha" varchar;
 
 select * from match;
 
