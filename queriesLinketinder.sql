@@ -194,5 +194,13 @@ VALUES
 ALTER TABLE candidatos
     ADD COLUMN idade int;
 
+CREATE TABLE "estados" (
+                           "id" serial PRIMARY KEY,
+                           "sigla" varchar(2) NOT NULL
+);
+
+ALTER TABLE "empresas"
+    ADD COLUMN "id_estado" int REFERENCES "estados" ("id");
+
 select * from match;
 
