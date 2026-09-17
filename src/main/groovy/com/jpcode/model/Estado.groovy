@@ -2,14 +2,14 @@ package com.jpcode.model
 
 class Estado {
     Long id
-    String nome
+    String sigla
 
-    Estado(String nome) {
-        this.nome = nome
+    Estado(String sigla) {
+        this.sigla = sigla
     }
 
-    Estado(Long id, String nome) {
+    Estado(Long id, String sigla) {
         this.id = id
-        this.nome = nome
+        this.sigla = sigla
     }
 }
