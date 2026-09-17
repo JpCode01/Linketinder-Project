@@ -44,7 +44,7 @@ class EmpresaDAO {
 
     Empresa buscarPorId(Long id) {
         String sql = """
-            SELECT nome, cnpj, email_corporativo, descricao, 
+            SELECT id, nome, cnpj, email_corporativo, descricao, 
             id_pais, cep, id_estado, ativo, senha
             FROM empresas
             WHERE id = ?
