@@ -24,4 +24,53 @@ class EmpresaCurtirDAO {
             statement.executeUpdate()
         }
     }
+
+    List<Candidato> buscarCandidatosCurtidos(Long idEmpresa) {
+        String sql = """
+            SELECT c.id, c.descricao, c.ativo
+            FROM candidatos c
+            JOIN candidatos_curtidos_empresa cce
+            ON cce.id_candidato = c.id
+            WHERE cce.id_empresa = ?
+        """
+
+        try (
+            def connection = ConnectionFactory.getConnection()
+            def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, idEmpresa)
+
+            def resultSet = statement.executeQuery()
+
+            List<Candidato> candidatos = []
+
+            
+
+                while (resultSet.next()) {
+                    if (resultSet.getBoolean("ativo")) {
+                        candidatos.add(
+                                new Candidato(
+                                        resultSet.getLong("id"),
+                                        "Candidato",
+                                        "Anônimo",
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        -1,
+                                        null,
+                                        null,
+                                        resultSet.getString("descricao"),
+                                        resultSet.getBoolean("ativo")
+                                )
+                        )
+                    }
+
+                    
+                }
+            return candidatos
+        }
+
+    }
 }
