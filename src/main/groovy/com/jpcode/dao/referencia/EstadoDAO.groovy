@@ -31,7 +31,7 @@ class EstadoDAO {
         }
     }
 
-    Long buscarrIdPorNome(String sigla) {
+    Long buscarIdPorSigla(String sigla) {
         String sql = """
             SELECT id
             FROM estados
