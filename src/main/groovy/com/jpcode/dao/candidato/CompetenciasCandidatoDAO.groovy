@@ -25,20 +25,20 @@ class CompetenciasCandidatoDAO {
         }
     }
 
-    List<Competencia> buscarPorVaga(Long idVaga) {
+    List<Competencia> buscarPorCandidato(Long idCandidato) {
         String sql = """
-            SELECT c.id, c.nome_competencia
-            FROM competencias c
-            JOIN candidatos_competencias cc
-            ON cc.id_competencia = c.id
-            WHERE cc.id_vaga = ?
+        SELECT c.id, c.nome_competencia
+        FROM competencias c
+        JOIN candidatos_competencias cc
+        ON cc.id_competencia = c.id
+        WHERE cc.id_candidato = ?
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
-            statement.setLong(1, idVaga)
+            statement.setLong(1, idCandidato)
 
             def resultSet = statement.executeQuery()
 
