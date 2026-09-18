@@ -60,5 +60,48 @@ class CandidatoCurtirDAO {
             return vagas
         }
     }
-    
+
+    List<Candidato> buscarCandidatosQueCurtiram(Long idVaga) {
+        String sql = """
+        SELECT c.id, c.descricao, c.ativo 
+        FROM candidatos c
+        JOIN vagas_curtidas_candidato vcc
+        ON vcc.id_candidato = c.id
+        WHERE vcc.id_vaga = ?        
+        """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, idVaga)
+
+            def resultSet = statement.executeQuery()
+
+            List<Candidato> candidatos = []
+
+            while (resultSet.next()) {
+                if (resultSet.getBoolean("ativo")) {
+                    candidatos.add(
+                            new Candidato(
+                                    resultSet.getLong("id"),
+                                    "Candidato",
+                                    "Anônimo",
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    -1,
+                                    null,
+                                    null,
+                                    resultSet.getString("descricao"),
+                                    resultSet.getBoolean("ativo")
+                            )
+                    )
+                }
+
+            }
+        }
+    }
 }
