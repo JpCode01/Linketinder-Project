@@ -56,4 +56,36 @@ class MatchDAO {
             )
         }
     }
+
+    List<Match> buscarMatchesPorEmpresa(Long idEmpresa) {
+        String sql = """
+        SELECT id, id_candidato, id_empresa, id_vaga
+        FROM match
+        WHERE id_empresa = ?
+        """
+
+        try (
+            def connection = ConnectionFactory.getConnection()
+            def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, idEmpresa)
+
+            def resultSet = statement.executeQuery()
+
+            List<Match> matches = []
+            
+            while(resultSet.next()) {
+                matches.add(
+                        new Match(
+                                resultSet.getLong("id"),
+                                resultSet.getLong("id_candidato"),
+                                resultSet.getLong("id_empresa"),
+                                resultSet.getLong("id_vaga")
+                        )
+                )
+            }
+
+            return matches
+        }
+    }
 }
