@@ -30,4 +30,27 @@ class EstadoDAO {
             )
         }
     }
+
+    Long buscarrIdPorNome(String sigla) {
+        String sql = """
+            SELECT id
+            FROM estados
+            WHERE sigla = ?
+        """
+
+        try (
+            def connection = ConnectionFactory.getConnection()
+            def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, sigla.toUpperCase())
+
+            def resultSet = statement.executeQuery()
+
+            if (!resultSet.next()) {
+                return null
+            }
+
+            return resultSet.getLong("id")
+        }
+    }
 }
