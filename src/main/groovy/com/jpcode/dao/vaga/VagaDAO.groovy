@@ -106,4 +106,34 @@ class VagaDAO {
         }
     }
 
+    List<Vaga> buscarTodasAsVagas() {
+        String sql = """
+        SELECT id, nome, descricao, local
+        FROM vagas 
+        """
+
+        try (
+            def connection = ConnectionFactory.getConnection()
+            def statement = connection.prepareStatement(sql)
+        ) {
+            def resultSet = statement.executeQuery()
+
+            List<Vaga> vagas = []
+
+            while (resultSet.next()) {
+                vagas.add(
+                        new Vaga(
+                                resultSet.getLong("id"),
+                                resultSet.getString("nome"),
+                                resultSet.getString("descricao"),
+                                resultSet.getString("local"),
+                                null
+                        )
+                )
+            }
+
+            return vagas
+        }
+    }
+
 }
