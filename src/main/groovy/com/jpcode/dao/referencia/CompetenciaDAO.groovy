@@ -29,4 +29,27 @@ class CompetenciaDAO {
 
         }
     }
+
+    Long buscarIdPorNomeCompetencia(String competencia) {
+        String sql = """
+            SELECT id
+            FROM competencias
+            WHERE nome_competencia = ?
+        """
+
+        try (
+            def connection = ConnectionFactory.getConnection()
+            def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, competencia.toUpperCase())
+
+            def resultSet = statement.executeQuery()
+
+            if (!resultSet.next()) {
+                return null
+            }
+
+            return resultSet.getLong("id")
+        }
+    }
 }
