@@ -31,4 +31,27 @@ class PaisDAO {
             )
         }
     }
+
+    Long buscarIdPorNome(String nome) {
+        String sql = """
+            SELECT id
+            FROM pais
+            WHERE nome = ?
+        """
+
+        try (
+            def connection = ConnectionFactory.getConnection()
+            def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, nome.toUpperCase())
+
+            def resultSet = statement.executeQuery()
+
+            if (!resultSet.next()) {
+                return null
+            }
+
+            return resultSet.getLong("id")
+        }
+    }
 }
