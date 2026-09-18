@@ -67,4 +67,43 @@ class VagaDAO {
         }
     }
 
+    List<Vaga> buscarVagasEmpresa(Long idEmpresa) {
+        String sql = """
+        SELECT v.id, v.nome, v.descricao,
+       v.local, v.id_empresa, e.ativo
+        FROM vagas v
+        JOIN empresas e
+            ON e.id = v.id_empresa
+        WHERE v.id_empresa = ?
+        """
+
+        try (
+            def connection = ConnectionFactory.getConnection()
+            def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, idEmpresa)
+
+            def resultSet = statement.executeQuery()
+
+            List<Vaga> vagas = []
+
+            while (resultSet.next()) {
+                if (resultSet.getBoolean("ativo")) {
+                    vagas.add(
+                            new Vaga(
+                                    resultSet.getLong("id"),
+                                    resultSet.getString("nome"),
+                                    resultSet.getString("descricao"),
+                                    resultSet.getString("local"),
+                                    resultSet.getLong("id_empresa")
+                            )
+                    )
+                }
+            }
+
+            return vagas
+
+        }
+    }
+
 }
