@@ -10,12 +10,13 @@ class VagaEmpresaDTO {
     Integer qtdeCandidatosQueCurtiram
     List<Competencia> competencias
 
-    VagaEmpresaDTO(Long id, String nome, String descricao, String local, Integer qtdeCandidatosQueCurtiram) {
+    VagaEmpresaDTO(Long id, String nome, String descricao, String local, Integer qtdeCandidatosQueCurtiram, List<Competencia> competencias) {
         this.id = id
         this.nome = nome
         this.descricao = descricao
         this.local = local
         this.qtdeCandidatosQueCurtiram = qtdeCandidatosQueCurtiram
+        this.competencias = competencias
     }
 
 

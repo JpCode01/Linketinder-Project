@@ -1,7 +1,9 @@
 package com.jpcode.dao.vaga
 
 import com.jpcode.database.ConnectionFactory
+import com.jpcode.dto.vaga.VagaEmpresaDTO
 import com.jpcode.model.core.Vaga
+import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
 
@@ -67,14 +69,30 @@ class VagaDAO {
         }
     }
 
-    List<Vaga> buscarVagasEmpresa(Long idEmpresa) {
+    List<VagaEmpresaDTO> buscarVagasEmpresa(Long idEmpresa) {
         String sql = """
-        SELECT v.id, v.nome, v.descricao,
-       v.local, v.id_empresa, e.ativo
+        SELECT
+            v.id,
+            v.nome,
+            v.descricao,
+            v.local,
+            v.id_empresa,
+            (
+                SELECT COUNT(*)
+                FROM vagas_curtidas_candidato vcc
+                WHERE vcc.id_vaga = v.id
+            ) AS quantidade_candidatos,
+            c.id AS competencia_id,
+            c.nome_competencia
         FROM vagas v
         JOIN empresas e
             ON e.id = v.id_empresa
+        LEFT JOIN vagas_competencias vc
+            ON vc.id_vaga = v.id
+        LEFT JOIN competencias c
+            ON c.id = vc.id_competencia
         WHERE v.id_empresa = ?
+        ORDER BY v.id
         """
 
         try (
@@ -85,20 +103,47 @@ class VagaDAO {
 
             def resultSet = statement.executeQuery()
 
-            List<Vaga> vagas = []
+            List<VagaEmpresaDTO> vagas = []
+
+            VagaEmpresaDTO vagaAtual = null
+            List<Competencia> competencias = []
 
             while (resultSet.next()) {
-                if (resultSet.getBoolean("ativo")) {
-                    vagas.add(
-                            new Vaga(
-                                    resultSet.getLong("id"),
-                                    resultSet.getString("nome"),
-                                    resultSet.getString("descricao"),
-                                    resultSet.getString("local"),
-                                    resultSet.getLong("id_empresa")
+
+                Long idVaga = resultSet.getLong("id")
+                // Apenas cria quando o id da vaga for diferente da vaga atual, caso contrário, considera a mesma vaga e add as competencias
+                if (vagaAtual == null || vagaAtual.id != idVaga) {
+
+                    if (vagaAtual != null) {
+                        vagas.add(vagaAtual)
+                    }
+
+                    competencias = []
+
+                    vagaAtual = new VagaEmpresaDTO(
+                            idVaga,
+                            resultSet.getString("nome"),
+                            resultSet.getString("descricao"),
+                            resultSet.getString("local"),
+                            resultSet.getInt("quantidade_candidatos"),
+                            competencias
+                    )
+                }
+
+                Long competenciaId = resultSet.getLong("competencia_id")
+
+                if (competenciaId != 0) {
+                    competencias.add(
+                            new Competencia(
+                                    competenciaId,
+                                    resultSet.getString("nome_competencia")
                             )
                     )
                 }
+            }
+
+            if (vagaAtual != null) {
+                vagas.add(vagaAtual)
             }
 
             return vagas
