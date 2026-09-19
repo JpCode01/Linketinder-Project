@@ -32,14 +32,13 @@ class Vaga {
         candidatosQueCurtiram.add(candidato)
     }
 
-
     @Override
     String toString() {
         return """
         ---------------------------------
         NOME DA VAGA: ${nome}
         DESCRIÇÃO: ${descricao}
-        COMPETENCIAS ${competencias} 
+        LOCAL: ${local} 
         """
     }
 }
