@@ -1,8 +1,10 @@
 package com.jpcode.dao.relacionamento
 
 import com.jpcode.database.ConnectionFactory
+import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Empresa
+import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
 
@@ -25,13 +27,23 @@ class EmpresaCurtirDAO {
         }
     }
 
-    List<Candidato> buscarCandidatosCurtidos(Long idEmpresa) {
+    List<CandidatoAnonimoDTO> buscarCandidatosCurtidos(Long idEmpresa) {
         String sql = """
-            SELECT c.id, c.descricao, c.ativo
-            FROM candidatos c
-            JOIN candidatos_curtidos_empresa cce
+        SELECT
+            c.id,
+            c.descricao,
+            comp.id AS competencia_id,
+            comp.nome_competencia
+        FROM candidatos c
+        JOIN candidatos_curtidos_empresa cce
             ON cce.id_candidato = c.id
-            WHERE cce.id_empresa = ?
+        LEFT JOIN candidatos_competencias cc
+            ON cc.id_candidato = c.id
+        LEFT JOIN competencias comp
+            ON comp.id = cc.id_competencia
+        WHERE cce.id_empresa = ?
+          AND c.ativo = true
+        ORDER BY c.id
         """
 
         try (
@@ -42,35 +54,50 @@ class EmpresaCurtirDAO {
 
             def resultSet = statement.executeQuery()
 
-            List<Candidato> candidatos = []
+            List<CandidatoAnonimoDTO> candidatos = []
+            CandidatoAnonimoDTO candidatoAtual = null
 
-            
+            List<Competencia> competencias = []
+        
+            while (resultSet.next()) {
+                Long idCandidato = resultSet.getLong("id")
 
-                while (resultSet.next()) {
-                    if (resultSet.getBoolean("ativo")) {
-                        candidatos.add(
-                                new Candidato(
-                                        resultSet.getLong("id"),
-                                        "Candidato",
-                                        "Anônimo",
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        -1,
-                                        null,
-                                        null,
-                                        resultSet.getString("descricao"),
-                                        resultSet.getBoolean("ativo")
-                                )
-                        )
+                if (candidatoAtual == null || candidatoAtual.id != idCandidato) {
+
+                    if (candidatoAtual != null) {
+                        candidatos.add(candidatoAtual)
                     }
 
-                    
-                }
-            return candidatos
-        }
+                    competencias = []
 
+                    candidatoAtual = new CandidatoAnonimoDTO(
+                            idCandidato,
+                            resultSet.getString("descricao"),
+                            competencias
+                    )
+
+                }
+
+
+                Long competenciaId = resultSet.getLong("competencia_id")
+
+                if (competenciaId != 0) {
+                    competencias.add(
+                            new Competencia(
+                                    competenciaId,
+                                    resultSet.getString("nome_competencia")
+                            )
+                    )
+                }
+                
+            }
+
+            if (candidatoAtual != null) {
+                candidatos.add(candidatoAtual)
+            }
+
+            return candidatos
+
+        }
     }
 }
