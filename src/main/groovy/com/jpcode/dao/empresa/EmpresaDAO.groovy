@@ -52,7 +52,7 @@ class EmpresaDAO {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection(sql)
+            def connection = ConnectionFactory.getConnection()
             def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, id)
@@ -118,6 +118,46 @@ class EmpresaDAO {
                     resultSet.getString("pais"),
                     resultSet.getString("cep"),
                     resultSet.getString("estado")
+            )
+        }
+    }
+
+    Empresa buscarPorEmailESenha(String emailCorporativo, String senha) {
+        String sql = """
+            SELECT id, nome, cnpj, email_corporativo, descricao, 
+            id_pais, cep, id_estado, ativo, senha
+            FROM empresas
+            WHERE email_corporativo = ?
+                AND senha = ?
+        """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, emailCorporativo)
+            statement.setString(2, senha)
+
+            def resultSet = statement.executeQuery()
+
+            if (!resultSet.next()) {
+                return null
+            }
+
+            return new Empresa(
+                    resultSet.getLong("id"),
+                    resultSet.getString("nome"),
+                    resultSet.getString("email_corporativo"),
+                    resultSet.getString("senha"),
+                    resultSet.getString("cnpj"),
+                    resultSet.getLong("id_pais"),
+                    resultSet.getLong("id_estado"),
+                    resultSet.getString("cep"),
+                    resultSet.getString("descricao"),
+                    resultSet.getBoolean("ativo")
+
+
+
             )
         }
     }
