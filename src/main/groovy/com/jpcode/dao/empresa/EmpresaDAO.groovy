@@ -92,7 +92,7 @@ class EmpresaDAO {
             FROM empresas e
             JOIN pais p
             ON p.id = e.id_pais
-            JOIN estado es
+            JOIN estados es
             ON es.id = e.id_estado
             WHERE e.id = ?
         """
