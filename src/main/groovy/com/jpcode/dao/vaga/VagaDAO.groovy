@@ -1,6 +1,7 @@
 package com.jpcode.dao.vaga
 
 import com.jpcode.database.ConnectionFactory
+import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
 import com.jpcode.model.core.Vaga
 import com.jpcode.model.referencia.Competencia
@@ -151,10 +152,19 @@ class VagaDAO {
         }
     }
 
-    List<Vaga> buscarTodasAsVagas() {
+    List<VagaAnonimaDTO> buscarTodasAsVagas() {
         String sql = """
-        SELECT id, nome, descricao, local
-        FROM vagas 
+        SELECT
+            v.id,
+            v.descricao,
+            comp.id AS competencia_id,
+            comp.nome_competencia
+        FROM vagas v
+        LEFT JOIN vagas_competencias vc
+            ON vc.id_vaga = v.id
+        LEFT JOIN competencias comp
+            ON comp.id = vc.id_competencia
+        ORDER BY v.id
         """
 
         try (
@@ -163,21 +173,48 @@ class VagaDAO {
         ) {
             def resultSet = statement.executeQuery()
 
-            List<Vaga> vagas = []
+            List<VagaAnonimaDTO> vagas = []
+
+            VagaAnonimaDTO vagaAtual = null
+            List<Competencia> competencias = []
 
             while (resultSet.next()) {
-                vagas.add(
-                        new Vaga(
-                                resultSet.getLong("id"),
-                                resultSet.getString("nome"),
-                                resultSet.getString("descricao"),
-                                resultSet.getString("local"),
-                                null
-                        )
-                )
+                Long idVaga = resultSet.getLong("id")
+
+                if (vagaAtual == null || vagaAtual.id != idVaga) {
+
+                    if (vagaAtual != null) {
+                        vagas.add(vagaAtual)
+                    }
+
+                    vagas = []
+
+                    vagaAtual = new VagaAnonimaDTO(
+                            idVaga,
+                            resultSet.getString("descricao"),
+                            competencias
+                    )
+                    
+                }
+
+                Long competenciaId = resultSet.getLong("competencia_id")
+
+                if (competenciaId != 0) {
+                    competencias.add(
+                            new Competencia(
+                                    competenciaId,
+                                    resultSet.getString("nome_competencia")
+                            )
+                    )
+                }
+            }
+
+            if (vagaAtual != null) {
+                vagas.add(vagaAtual)
             }
 
             return vagas
+            
         }
     }
 
