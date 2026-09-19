@@ -168,4 +168,45 @@ class CandidatoDAO {
             return candidato
         }
     }
+
+    Candidato buscarPorEmailESenha(String email, String senha) {
+        String sql = """
+            SELECT id, nome, sobrenome, email, data_nascimento, 
+            cpf, id_pais, cep, descricao, ativo, senha, id_estado
+            FROM empresas
+            WHERE email = ?
+                AND senha = ?
+        """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, email)
+            statement.setString(2, senha)
+
+            def resultSet = statement.executeQuery()
+
+            if (!resultSet.next()) {
+                return null
+            }
+
+            return new Candidato(
+                    resultSet.getLong("id"),
+                    resultSet.getString("nome"),
+                    resultSet.getString("sobrenome"),
+                    resultSet.getString("email"),
+                    resultSet.getString("senha"),
+                    resultSet.getString("cpf"),
+                    resultSet.getDate("data_nascimento").toLocalDate(),
+                    resultSet.getLong("id_pais"),
+                    resultSet.getInt("idade"),
+                    resultSet.getLong("id_estado"),
+                    resultSet.getString("cep"),
+                    resultSet.getString("descricao"),
+                    resultSet.getBoolean("ativo")
+            )
+
+        }
+    }
 }
