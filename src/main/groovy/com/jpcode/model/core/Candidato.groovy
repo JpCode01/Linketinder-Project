@@ -26,6 +26,17 @@ class Candidato extends Pessoa {
         this.dataNascimento = dataNascimento
     }
 
+    void exibirParaEmpresa() {
+        println """
+            ----------------------------------------------------------------
+
+            CANDIDATO:
+            
+            NOME: CANDIDATO ANONIMO
+            DESCRIÇÃO: ${descricao}
+        """
+    }
+
     @Override
     String toString() {
         return """
@@ -38,9 +49,7 @@ class Candidato extends Pessoa {
             Idade: ${idade}
             Email: ${email}
             CPF: ${cpf}
-            Estado: ${estado}
             CEP: ${cep}
-            Competencia: ${competencias}
         """;
     }
 
