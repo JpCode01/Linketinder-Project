@@ -112,17 +112,20 @@ class CandidatoCurtirDAO {
                             competencias
                     )
 
-                    Long competenciaId = resultSet.getLong("competencia_id")
 
-                    if (competenciaId != 0) {
-                        competencias.add(
-                                new Competencia(
-                                        competenciaId,
-                                        resultSet.getString("nome_competencia")
-                                )
-                        )
-                    }
                 }
+
+                Long competenciaId = resultSet.getLong("competencia_id")
+
+                if (competenciaId != 0) {
+                    competencias.add(
+                            new Competencia(
+                                    competenciaId,
+                                    resultSet.getString("nome_competencia")
+                            )
+                    )
+                }
+
             }
 
             if (candidatoAtual != null) {
