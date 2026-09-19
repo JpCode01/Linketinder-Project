@@ -1,4 +1,5 @@
 package com.jpcode.dto.vaga
 
-class VagaCandidatoDTO {
+class VagaEmpresaDTO {
+    
 }
