@@ -1,16 +1,19 @@
 package com.jpcode.view
 
-
 import com.jpcode.dto.vaga.VagaAnonimaDTO
-import com.jpcode.enums.CompetenciasEnum
 import com.jpcode.model.core.Candidato
 import com.jpcode.service.CandidatoService
+import com.jpcode.service.CompetenciaService
 import com.jpcode.service.VagaService
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class MenuCandidato {
     final Scanner scanner = new Scanner(System.in)
     final CandidatoService candidatoService = new CandidatoService()
     final VagaService vagaService = new VagaService()
+    final CompetenciaService competenciaService = new CompetenciaService()
     
     void inicio() {
         println("""
@@ -110,17 +113,30 @@ class MenuCandidato {
         println("Nome:")
         String nome = scanner.nextLine()
 
+        println("Nome:")
+        String sobrenome = scanner.nextLine()
+
         println("Email:")
         String email = scanner.nextLine()
 
+        println("Senha:")
+        String senha = scanner.nextLine()
+
         println("CPF:")
         String cpf = scanner.nextLine()
+
+        println("Data de nascimento (dd/MM/yyyy): ")
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        LocalDate data = LocalDate.parse(scanner.nextLine(), formatter)
 
         println("Idade:")
         int idade = scanner.nextInt()
         scanner.nextLine()
 
-        println("Estado:")
+        println("Pais:")
+        String pais = scanner.nextLine()
+
+        println("Estado em sigla (SP/RS/RJ:")
         String estado = scanner.nextLine()
 
         println("CEP:")
@@ -133,26 +149,30 @@ class MenuCandidato {
 
         Candidato candidato = candidatoService.cadastrarCandidato(
                 nome,
+                sobrenome,
                 email,
+                senha,
                 cpf,
+                data,
+                pais,
                 idade,
                 estado,
                 cep,
                 descricao,
                 competencias
         )
-
-        if (candidato != null) {
-            Menu.candidatos.add(candidato)
-        }
-
     }
+
     private List<String> capturarCompetencias() {
         List<String> competencias = []
+        List<String> todasCompetencias = competenciaService.listarCompetencias()
 
         while (true) {
+            if (todasCompetencias - competencias == []) {
+                break
+            }
             println("""
-                Competências atuais do Candidato: ${competencias}
+                Competências atuais: ${competencias}
         
                 1 - Digitar nova competência
                 2 - Parar
@@ -165,12 +185,16 @@ class MenuCandidato {
             scanner.nextLine()
 
             println("""
-        Competências disponíveis: ${CompetenciasEnum.values() - competencias}
+        Competências disponíveis: ${todasCompetencias - competencias}
         
         Digite uma competência:
         """)
-
-            competencias.add(scanner.nextLine())
+            String competencia = scanner.nextLine()
+            if (!competencias.contains(competencia)) {
+                competencias.add(competencia)
+            } else {
+                println("Competencia ja existente!")
+            }
         }
 
         return competencias
