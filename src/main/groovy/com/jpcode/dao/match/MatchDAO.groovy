@@ -8,14 +8,14 @@ import java.sql.Statement
 class MatchDAO {
     void salvar(Long idCandidato, Long idEmpresa, Long idVaga) {
         String sql = """
-            INSERT INTO 
+            INSERT INTO "match"
                 (id_candidato, id_empresa, id_vaga)
             VALUES (?, ?, ?)
         """
 
         try (
             def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
+            def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idCandidato)
             statement.setLong(2, idEmpresa)
@@ -54,7 +54,7 @@ class MatchDAO {
     List<Match> buscarMatchesPorEmpresa(Long idEmpresa) {
         String sql = """
         SELECT id, id_candidato, id_empresa, id_vaga
-        FROM match
+        FROM "match"
         WHERE id_empresa = ?
         """
 

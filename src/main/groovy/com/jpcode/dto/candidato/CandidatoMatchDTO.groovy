@@ -48,7 +48,7 @@ class CandidatoMatchDTO {
             CEP: ${cep}
             ESTADO: ${estado}
             PAIS: ${pais}
-            COMPETENCIAS: ${competencias.forEach {competencia -> print(competencia.nome + ", ")}}
+            COMPETENCIAS: ${competencias*.nome.join(", ")}
         """;
     }
 

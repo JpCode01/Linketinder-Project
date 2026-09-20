@@ -44,7 +44,7 @@ class VagaAnonimaDTO {
             
             ID: ${id}
             DESCRICAO: ${descricao}
-            COMPETENCIAS: ${competencias.forEach {competencia -> print(competencia.nome + ", ")}}
+            COMPETENCIAS: ${competencias*.nome.join(", ")}
         """;
     }
 }

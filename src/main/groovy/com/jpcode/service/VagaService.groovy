@@ -70,4 +70,8 @@ class VagaService {
     List<VagaAnonimaDTO> buscarTodasAsVagas() {
         return vagaDAO.buscarTodasAsVagas()
     }
+
+    List<Competencia> buscarCompetenciasDeVaga(Long idVaga) {
+        return competenciasVagaDAO.buscarPorVaga(idVaga)
+    }
 }

@@ -16,7 +16,7 @@ class CandidatoDAO {
             INSERT INTO candidatos
                 (nome, sobrenome, email, data_nascimento, cpf,
                 id_pais, cep, descricao, ativo, senha, id_estado)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)            
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)            
         """
 
 
@@ -61,7 +61,7 @@ class CandidatoDAO {
     Candidato buscarPorId(Long id) {
         String sql = """
             SELECT id, nome, sobrenome, email, data_nascimento, 
-            cpf, id_pais, cep, descricao, ativo, senha, id_estado
+            cpf, idade, id_pais, cep, descricao, ativo, senha, id_estado
             FROM candidatos
             WHERE id = ?
         """
@@ -172,8 +172,8 @@ class CandidatoDAO {
     Candidato buscarPorEmailESenha(String email, String senha) {
         String sql = """
             SELECT id, nome, sobrenome, email, data_nascimento, 
-            cpf, id_pais, cep, descricao, ativo, senha, id_estado
-            FROM empresas
+            idade, cpf, id_pais, cep, descricao, ativo, senha, id_estado
+            FROM candidatos
             WHERE email = ?
                 AND senha = ?
         """

@@ -104,7 +104,7 @@ class MenuCandidato {
 
         if (vagaBuscada != null) {
 
-            println("Competencias exigidas: " + vagaBuscada.competencias)
+            println("Competencias exigidas: " + vagaService.buscarCompetenciasDeVaga(idVaga))
             println("Desja Curtir a vaga: (s/n)? ")
 
             if (scanner.nextLine().toLowerCase() == "s") {
@@ -122,7 +122,7 @@ class MenuCandidato {
         println("Nome:")
         String nome = scanner.nextLine()
 
-        println("Nome:")
+        println("Sobrenome:")
         String sobrenome = scanner.nextLine()
 
         println("Email:")
