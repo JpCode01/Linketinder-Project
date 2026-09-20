@@ -28,7 +28,7 @@
         void inicio() {
             println("""
             1 - Cadastrar Empresa
-            2 - Acessar empresa por nome
+            2 - Fazer Login
             """)
             switch (scanner.nextInt()) {
                 case 1:

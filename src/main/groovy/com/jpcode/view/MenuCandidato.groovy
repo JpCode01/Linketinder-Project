@@ -27,7 +27,7 @@ class MenuCandidato {
     void inicio() {
         println("""
         1 - Cadastre-se 
-        2 - Login por nome
+        2 - Fazer Login
         """)
         switch (scanner.nextInt()) {
             case 1:
