@@ -87,4 +87,8 @@ class EmpresaService {
     void curtirCandidato(Long idEmpresa,Long idCandidato) {
         empresaCurtirDAO.salvar(idEmpresa, idCandidato)
     }
+
+    List<CandidatoAnonimoDTO> buscarCandidatosCurtidos(Long idEmpresa) {
+        return empresaCurtirDAO.buscarCandidatosCurtidos(idEmpresa)
+    }
 }
