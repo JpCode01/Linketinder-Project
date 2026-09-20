@@ -1,5 +1,12 @@
     package com.jpcode.view
 
+    import com.jpcode.dao.candidato.CandidatoDAO
+    import com.jpcode.dao.match.MatchDAO
+    import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
+    import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
+    import com.jpcode.dao.vaga.VagaDAO
+    import com.jpcode.dto.candidato.CandidatoAnonimoDTO
+    import com.jpcode.dto.vaga.VagaEmpresaDTO
     import com.jpcode.enums.CompetenciasEnum
     import com.jpcode.model.core.Candidato
     import com.jpcode.model.core.Empresa
@@ -13,7 +20,12 @@
         final Scanner scanner = new Scanner(System.in)
         final EmpresaService empresaService = new EmpresaService(new CompetenciaValidation())
         final VagaService vagaService = new VagaService()
-            
+        final VagaDAO vagaDAO = new VagaDAO()
+        final CandidatoCurtirDAO candidatoCurtirDAO = new CandidatoCurtirDAO()
+        final EmpresaCurtirDAO empresaCurtirDAO = new EmpresaCurtirDAO()
+        final MatchDAO matchDAO = new MatchDAO()
+        final CandidatoDAO candidatoDAO = new CandidatoDAO()
+        
         void inicio() {
             println("""
             1 - Cadastrar Empresa
@@ -55,6 +67,8 @@
         }
 
         private menuEmpresa(Empresa empresa) {
+            List<VagaEmpresaDTO> vagasEmpresa = vagaDAO.buscarVagasEmpresa(empresa.id)
+            
             while(true) {
                 println(empresa)
                 println("""
@@ -65,10 +79,10 @@
                 """)
                 switch (scanner.nextInt()) {
                     case 1:
-                        println(empresaService.ListarVagasPorEmpresa(empresa))
+                        println(vagasEmpresa)
                         break
                     case 2:
-                        verVagasCandidatos(empresa)
+                        verVagasCandidatos(empresa, vagasEmpresa)
                         break
                     case 3:
                         criarVaga(empresa)
@@ -79,37 +93,29 @@
             }
         }
 
-        private verVagasCandidatos(Empresa empresa) {
+        private verVagasCandidatos(Empresa empresa, List<VagaEmpresaDTO> vagasEmpresa) {
             scanner.nextLine()
-            println(empresaService.ListarVagasPorEmpresa(empresa))
-            println("Digite o nome da vaga: ")
-            String nomeVaga = scanner.nextLine()
-            if (empresa.vagas.find {it.nome == nomeVaga} ) {
-                Vaga vaga = empresa.vagas.find {it.nome == nomeVaga}
-                List candidatos = vaga.candidatosQueCurtiram
-                if (candidatos != null) {
-                    empresaService.ListarCandidatosPorVaga(vaga)
-                    println("Escolha um candidato por id: ")
-                    int idCandidato = scanner.nextInt()
+            println(vagasEmpresa)
+            println("Digite o id da vaga: ")
+            Long idVaga = scanner.nextLong()
+            Vaga vagaEncontrada = vagaDAO.buscarPorId(idVaga)
+            if (vagaEncontrada != null) {
+                List<CandidatoAnonimoDTO> candidatosQueCurtiramVaga = candidatoCurtirDAO.buscarCandidatosQueCurtiram(vagaEncontrada.id)
+                println("Digite o ID do Candidato: ")
+                Long idCandidatoAnonimo = scanner.nextLong()
+                Candidato candidatoEncontrado = candidatoDAO.buscacrPorId(idCandidatoAnonimo)
+                if (candidatoEncontrado != null) {
                     scanner.nextLine()
-                    try {
-                        Candidato candidato = candidatos.get(idCandidato)
-                        println(candidato.competencias)
-                        println("Deseja curtir o candidato(s/n)? ")
-                        if (scanner.nextLine().toLowerCase() == "s") {
-                            empresaService.curtirCandidato(candidato, empresa)
-                            Match match = new Match(empresa, candidato, vaga)
-                            println(match)
-                            Menu.matchs << match
-                        }
-                    } catch (IndexOutOfBoundsException ex) {
-                        println("ID invalido!")
+                    println("Desja curtir o Candidado s/n?")
+                    if (scanner.nextLine().toUpperCase() == "s") {
+                        empresaCurtirDAO.salvar(empresa.id, idCandidatoAnonimo)
+                        matchDAO.salvar(idCandidatoAnonimo, empresa.id, idVaga)
                     }
                 } else {
-                    println("Nenhum candidato curtiu a sua vaga até o momento, por favor aguarde!")
+                    println("Canidadato não encontrado!")
                 }
             } else {
-                println("A Empresa nao possui essa vaga")
+                println("Vaga não encontrada!")
             }
         }
 
