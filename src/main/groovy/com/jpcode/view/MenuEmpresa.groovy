@@ -19,7 +19,7 @@
     class MenuEmpresa {
         final Scanner scanner = new Scanner(System.in)
         final EmpresaService empresaService = new EmpresaService(new CompetenciaValidation(), new PaisDAO(), new EstadoDAO(), new EmpresaDAO(), new CandidatoCurtirDAO(), new EmpresaCurtirDAO())
-        final VagaService vagaService = new VagaService(new CompetenciaDAO(), new CompetenciasVagaDAO(), new VagaDAO())
+        final VagaService vagaService = new VagaService(new CompetenciaDAO(), new CompetenciasVagaDAO(), new VagaDAO(), new CandidatoCurtirDAO())
         final CandidatoService candidatoService = new CandidatoService(new PaisDAO(), new EstadoDAO(), new CompetenciaDAO(), new CompetenciasCandidatoDAO(), new CandidatoDAO())
         final MatchService matchService = new MatchService(new MatchDAO())
         final CompetenciaService competenciaService = new CompetenciaService(new CompetenciaDAO())
