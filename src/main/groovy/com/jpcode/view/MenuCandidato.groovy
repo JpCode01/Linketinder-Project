@@ -10,6 +10,7 @@ import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dao.vaga.VagaDAO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.model.core.Candidato
+import com.jpcode.model.core.Vaga
 import com.jpcode.service.CandidatoService
 import com.jpcode.service.CompetenciaService
 import com.jpcode.service.VagaService
@@ -99,15 +100,15 @@ class MenuCandidato {
         println("Escolha uma vaga por ID: ")
         int idVaga = scanner.nextInt()
         scanner.nextLine()
-        if (vagaService.buscarVaga(idVaga) != null) {
+        Vaga vagaBuscada = vagaService.buscarVaga(idVaga)
 
-            println("Competencias exigidas: " + vagaService.buscarVaga(idVaga).competencias)
+        if (vagaBuscada != null) {
+
+            println("Competencias exigidas: " + vagaBuscada.competencias)
             println("Desja Curtir a vaga: (s/n)? ")
 
             if (scanner.nextLine().toLowerCase() == "s") {
                 vagaService.curtir(candidato.id, idVaga)
-            } else {
-                println("Opção inválida!")
             }
             
         } else {
