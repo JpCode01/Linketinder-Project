@@ -15,6 +15,27 @@ class VagaAnonimaDTO {
 
 
     @Override
+    public boolean equals(Object objeto) {
+        if (this.is(objeto)) {
+            return true
+        }
+
+        if (!(objeto instanceof VagaAnonimaDTO)) {
+            return false
+        }
+
+        VagaAnonimaDTO outraVaga = (VagaAnonimaDTO) objeto
+
+        return this.id == outraVaga.id
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0
+    }
+
+
+    @Override
     public String toString() {
         return """
             ----------------------------------------------------------------
