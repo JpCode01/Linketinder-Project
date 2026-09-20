@@ -18,7 +18,7 @@ class VagaDAO {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection(sql)
+            def connection = ConnectionFactory.getConnection()
             def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
         ) {
             statement.setString(1, vaga.nome)
