@@ -1,8 +1,9 @@
 package com.jpcode.view
 
+
+import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.enums.CompetenciasEnum
 import com.jpcode.model.core.Candidato
-import com.jpcode.model.core.Vaga
 import com.jpcode.service.CandidatoService
 import com.jpcode.service.VagaService
 
@@ -53,6 +54,8 @@ class MenuCandidato {
 
     private void menuCandidato(Candidato candidato) {
         while (true) {
+            List<VagaAnonimaDTO> vagasCurtidas = vagaService.listarVagasCurtidas(candidato.id)
+            List<VagaAnonimaDTO> vagasDisponiveis = vagaService.buscarTodasAsVagas() - vagasCurtidas
             println(candidato)
             println("""
                         1 - Ver vagas curtidas
@@ -62,13 +65,13 @@ class MenuCandidato {
                         """)
             switch (scanner.nextInt()) {
                 case 1:
-                    verVagasCurtidas(candidato)
+                    println(vagasCurtidas)
                     break
                 case 2:
-                    verVagasDisponiveis(candidato)
+                    println(vagasDisponiveis)
                     break
                 case 3:
-                    curtirVaga(candidato)
+                    curtirVaga(candidato, vagasDisponiveis)
                     break
                 case 4:
                     return
@@ -76,45 +79,28 @@ class MenuCandidato {
         }
     }
 
-    void verVagasCurtidas(Candidato candidato){
-        if (!candidato.vagasCurtidas.isEmpty()) {
-            println(candidato.vagasCurtidas)
-        } else {
-            println("Não há nenhuma vaga curtida")
+    void curtirVaga(Candidato candidato, List<VagaAnonimaDTO> vagasDisponiveis) {
+        if (vagasDisponiveis.isEmpty()) {
+            println("Nao ha vagas disponiveis no momento!")
+            return
         }
-    }
-
-    void verVagasDisponiveis(Candidato candidato) {
-        if (candidato.vagasCurtidas.isEmpty()) {
-            println(Menu.vagasGerais)
-        } else {
-            println(Menu.vagasGerais - candidato.vagasCurtidas)
-        }
-    }
-
-    void curtirVaga(Candidato candidato) {
-        println(Menu.vagasGerais)
-        List vagas
-        if (candidato.vagasCurtidas.isEmpty()) {
-            vagas = vagaService.listarVagas(Menu.vagasGerais)
-        } else {
-            vagas = vagaService.listarVagas(Menu.vagasGerais - candidato.vagasCurtidas)
-        }
+        println(vagasDisponiveis)
         println("Escolha uma vaga por ID: ")
         int idVaga = scanner.nextInt()
         scanner.nextLine()
-        try {
-            Vaga vaga = vagas.get(idVaga)
-            println(vaga.competencias)
-            println("Deseja curtir a vaga(s/n)? ")
+        if (vagaService.buscarVaga(idVaga) != null) {
 
-            if(scanner.nextLine().toLowerCase() == "s") {
-                vagaService.curtir(candidato, vaga)
+            println("Competencias exigidas: " + vagaService.buscarVaga(idVaga).competencias)
+            println("Desja Curtir a vaga: (s/n)? ")
+
+            if (scanner.nextLine().toLowerCase() == "s") {
+                vagaService.curtir(candidato.id, idVaga)
             } else {
-                println("Opção invalida")
+                println("Opção inválida!")
             }
-        } catch (IndexOutOfBoundsException ex) {
-            println("ID invalido")
+            
+        } else {
+            println("Vaga não encontrada, talvez voce tenha digitado o ID incorretamente")
         }
     }
 
