@@ -48,7 +48,7 @@ class VagaDAO {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection(sql)
+            def connection = ConnectionFactory.getConnection()
             def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, id)
