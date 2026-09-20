@@ -6,7 +6,6 @@ import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dao.vaga.VagaDAO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
-import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Vaga
 import com.jpcode.model.referencia.Competencia
 
@@ -52,13 +51,8 @@ class VagaService {
         }
     }
 
-    void curtir(Candidato candidato, Vaga vaga) {
-        if (vaga && candidato && !candidato.vagasCurtidas.contains(vaga) &&
-                !vaga.candidatosQueCurtiram.contains(candidato)
-        ) {
-            vaga.adicionarCandidatoQueCurtiu(candidato)
-            candidato.adicionarVagaCurtida(vaga)
-        }
+    void curtir(Long idCandidato, Long idVaga) {
+        candidatoCurtirDAO.salvar(idCandidato, idVaga)
     }
 
     List<VagaEmpresaDTO>  listarVagas(Long idEmpresa) {
