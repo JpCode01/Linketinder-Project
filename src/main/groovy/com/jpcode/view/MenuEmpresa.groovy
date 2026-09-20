@@ -68,9 +68,8 @@
         }
 
         private menuEmpresa(Empresa empresa) {
-            List<VagaEmpresaDTO> vagasEmpresa = vagaService.listarVagas(empresa.id)
-
             while(true) {
+                List<VagaEmpresaDTO> vagasEmpresa = vagaService.listarVagas(empresa.id)
                 println(empresa)
                 println("""
                 1 - Ver Vagas
@@ -99,13 +98,11 @@
             println(vagasEmpresa)
             println("Digite o id da vaga: ")
             Long idVaga = scanner.nextLong()
-            Vaga vagaEncontrada = vagaService.buscarVaga(idVaga)
-            if (vagaEncontrada != null) {
+            if (vagaService.buscarVaga(idVaga) != null) {
                 println(empresaService.buscarCandidatosQueCurtiram(idVaga))
                 println("Digite o ID do Candidato: ")
                 Long idCandidatoAnonimo = scanner.nextLong()
-                Candidato candidatoEncontrado = candidatoService.buscarCandidato(idCandidatoAnonimo)
-                if (candidatoEncontrado != null) {
+                if (candidatoService.buscarCandidato(idCandidatoAnonimo) != null) {
                     scanner.nextLine()
                     println("Desja curtir o Candidado s/n?")
                     if (scanner.nextLine().toLowerCase() == "s") {
