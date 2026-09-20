@@ -3,7 +3,9 @@ package com.jpcode.service
 import com.jpcode.dao.empresa.EmpresaDAO
 import com.jpcode.dao.referencia.EstadoDAO
 import com.jpcode.dao.referencia.PaisDAO
-import com.jpcode.enums.CompetenciasEnum
+import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
+import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
+import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Empresa
 import com.jpcode.model.core.Vaga
@@ -14,12 +16,16 @@ class EmpresaService {
     final PaisDAO paisDAO
     final EstadoDAO estadoDAO
     final EmpresaDAO empresaDAO
+    final CandidatoCurtirDAO candidatoCurtirDAO
+    final EmpresaCurtirDAO empresaCurtirDAO
 
-    EmpresaService(CompetenciaValidation validation, PaisDAO paisDAO, EstadoDAO estadoDAO, EmpresaDAO empresaDAO) {
+    EmpresaService(CompetenciaValidation validation, PaisDAO paisDAO, EstadoDAO estadoDAO, EmpresaDAO empresaDAO, CandidatoCurtirDAO candidatoCurtirDAO, EmpresaCurtirDAO empresaCurtirDAO) {
         this.validation = validation
         this.paisDAO = paisDAO
         this.estadoDAO = estadoDAO
         this.empresaDAO = empresaDAO
+        this.candidatoCurtirDAO = candidatoCurtirDAO
+        this.empresaCurtirDAO = empresaCurtirDAO
     }
 
     Empresa cadastrarEmpresa(
@@ -34,18 +40,22 @@ class EmpresaService {
     ) {
         Long paisId = paisDAO.buscarIdPorNome(pais)
         Long estadoId = estadoDAO.buscarIdPorSigla(estado)
-        Empresa empresa = new Empresa(
-                nome,
-                email,
-                senha,
-                cnpj,
-                paisId,
-                estadoId,
-                cep,
-                descricao
-        )
+        if (paisId != null && estadoId != null) {
 
-        return empresaDAO.salvar(empresa)
+            Empresa empresa = new Empresa(
+                    nome,
+                    email,
+                    senha,
+                    cnpj,
+                    paisId,
+                    estadoId,
+                    cep,
+                    descricao
+            )
+            return empresaDAO.salvar(empresa)
+        } else {
+            return null
+        }
     }
 
     void curtirCandidato(Candidato candidato, Empresa empresa) {
@@ -68,5 +78,13 @@ class EmpresaService {
             empresaEncontrada = empresaDAO.buscarPorEmailESenha(email, senha)
         }
         return empresaEncontrada
+    }
+    
+    List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Long idVaga) {
+        return candidatoCurtirDAO.buscarCandidatosQueCurtiram(idVaga)
+    }
+
+    void curtirCandidato(Long idEmpresa,Long idCandidato) {
+        empresaCurtirDAO.salvar(idEmpresa, idCandidato)
     }
 }

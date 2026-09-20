@@ -58,7 +58,7 @@ class CandidatoDAO {
         }
     }
 
-    Candidato buscacrPorId(Long id) {
+    Candidato buscarPorId(Long id) {
         String sql = """
             SELECT id, nome, sobrenome, email, data_nascimento, 
             cpf, id_pais, cep, descricao, ativo, senha, id_estado

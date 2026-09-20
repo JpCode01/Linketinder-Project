@@ -6,20 +6,17 @@ import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.EstadoDAO
 import com.jpcode.dao.referencia.PaisDAO
 import com.jpcode.model.core.Candidato
-import com.jpcode.validation.CompetenciaValidation
 
 import java.time.LocalDate
 
 class CandidatoService {
-    final CompetenciaValidation validation
     final PaisDAO paisDAO
     final EstadoDAO estadoDAO
     final CompetenciaDAO competenciaDAO
     final CompetenciasCandidatoDAO competenciasCandidatoDAO
     final CandidatoDAO candidatoDAO
 
-    CandidatoService(CompetenciaValidation validation, PaisDAO paisDAO, EstadoDAO estadoDAO, CompetenciaDAO competenciaDAO, CompetenciasCandidatoDAO competenciasCandidatoDAO, CandidatoDAO candidatoDAO) {
-        this.validation = validation
+    CandidatoService(PaisDAO paisDAO, EstadoDAO estadoDAO, CompetenciaDAO competenciaDAO, CompetenciasCandidatoDAO competenciasCandidatoDAO, CandidatoDAO candidatoDAO) {
         this.paisDAO = paisDAO
         this.estadoDAO = estadoDAO
         this.competenciaDAO = competenciaDAO
@@ -67,5 +64,9 @@ class CandidatoService {
         }
 
         return candidatoSalvo
+    }
+
+    Candidato buscarCandidato(Long idCandidato) {
+        return candidatoDAO.buscarPorId(idCandidato)
     }
 }

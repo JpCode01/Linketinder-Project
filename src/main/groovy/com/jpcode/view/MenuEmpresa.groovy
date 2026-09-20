@@ -1,30 +1,31 @@
     package com.jpcode.view
 
     import com.jpcode.dao.candidato.CandidatoDAO
+    import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
+    import com.jpcode.dao.empresa.EmpresaDAO
     import com.jpcode.dao.match.MatchDAO
+    import com.jpcode.dao.referencia.CompetenciaDAO
+    import com.jpcode.dao.referencia.EstadoDAO
+    import com.jpcode.dao.referencia.PaisDAO
     import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
     import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
+    import com.jpcode.dao.vaga.CompetenciasVagaDAO
     import com.jpcode.dao.vaga.VagaDAO
-    import com.jpcode.dto.candidato.CandidatoAnonimoDTO
     import com.jpcode.dto.vaga.VagaEmpresaDTO
-    import com.jpcode.enums.CompetenciasEnum
     import com.jpcode.model.core.Candidato
     import com.jpcode.model.core.Empresa
-    import com.jpcode.model.core.Match
     import com.jpcode.model.core.Vaga
-    import com.jpcode.service.EmpresaService
-    import com.jpcode.service.VagaService
+    import com.jpcode.service.*
     import com.jpcode.validation.CompetenciaValidation
 
     class MenuEmpresa {
         final Scanner scanner = new Scanner(System.in)
-        final EmpresaService empresaService = new EmpresaService(new CompetenciaValidation())
-        final VagaService vagaService = new VagaService()
-        final VagaDAO vagaDAO = new VagaDAO()
-        final CandidatoCurtirDAO candidatoCurtirDAO = new CandidatoCurtirDAO()
-        final EmpresaCurtirDAO empresaCurtirDAO = new EmpresaCurtirDAO()
-        final MatchDAO matchDAO = new MatchDAO()
-        final CandidatoDAO candidatoDAO = new CandidatoDAO()
+        final EmpresaService empresaService = new EmpresaService(new CompetenciaValidation(), new PaisDAO(), new EstadoDAO(), new EmpresaDAO(), new CandidatoCurtirDAO(), new EmpresaCurtirDAO())
+        final VagaService vagaService = new VagaService(new CompetenciaDAO(), new CompetenciasVagaDAO(), new VagaDAO())
+        final CandidatoService candidatoService = new CandidatoService(new PaisDAO(), new EstadoDAO(), new CompetenciaDAO(), new CompetenciasCandidatoDAO(), new CandidatoDAO())
+        final MatchService matchService = new MatchService(new MatchDAO())
+        final CompetenciaService competenciaService = new CompetenciaService(new CompetenciaDAO())
+
         
         void inicio() {
             println("""
@@ -67,8 +68,8 @@
         }
 
         private menuEmpresa(Empresa empresa) {
-            List<VagaEmpresaDTO> vagasEmpresa = vagaDAO.buscarVagasEmpresa(empresa.id)
-            
+            List<VagaEmpresaDTO> vagasEmpresa = vagaService.listarVagas(empresa.id)
+
             while(true) {
                 println(empresa)
                 println("""
@@ -98,18 +99,18 @@
             println(vagasEmpresa)
             println("Digite o id da vaga: ")
             Long idVaga = scanner.nextLong()
-            Vaga vagaEncontrada = vagaDAO.buscarPorId(idVaga)
+            Vaga vagaEncontrada = vagaService.buscarVaga(idVaga)
             if (vagaEncontrada != null) {
-                List<CandidatoAnonimoDTO> candidatosQueCurtiramVaga = candidatoCurtirDAO.buscarCandidatosQueCurtiram(vagaEncontrada.id)
+                println(empresaService.buscarCandidatosQueCurtiram(idVaga))
                 println("Digite o ID do Candidato: ")
                 Long idCandidatoAnonimo = scanner.nextLong()
-                Candidato candidatoEncontrado = candidatoDAO.buscacrPorId(idCandidatoAnonimo)
+                Candidato candidatoEncontrado = candidatoService.buscarCandidato(idCandidatoAnonimo)
                 if (candidatoEncontrado != null) {
                     scanner.nextLine()
                     println("Desja curtir o Candidado s/n?")
                     if (scanner.nextLine().toUpperCase() == "s") {
-                        empresaCurtirDAO.salvar(empresa.id, idCandidatoAnonimo)
-                        matchDAO.salvar(idCandidatoAnonimo, empresa.id, idVaga)
+                        empresaService.curtirCandidato(empresa.id, idCandidatoAnonimo)
+                        matchService.salvar(idCandidatoAnonimo, empresa.id, idVaga)
                     }
                 } else {
                     println("Canidadato não encontrado!")
@@ -128,13 +129,16 @@
             println("Email:")
             String email = scanner.nextLine()
 
+            println("Senha: ")
+            String senha = scanner.nextLine()
+
             println("CNPJ:")
             String cnpj = scanner.nextLine()
 
-            println("País:")
+            println("Pais:")
             String pais = scanner.nextLine()
 
-            println("Estado:")
+            println("Estado em sigla (SP/RS/RJ:")
             String estado = scanner.nextLine()
 
             println("CEP:")
@@ -143,26 +147,29 @@
             println("Descrição:")
             String descricao = scanner.nextLine()
 
-            List<String> competencias = capturarCompetencias()
-
-            Empresa empresa = empresaService.cadastrarEmpresa(
-                    nome,
+            Empresa empresaCadastrada = empresaService.cadastrarEmpresa( nome,
                     email,
+                    senha,
                     cnpj,
                     pais,
                     estado,
                     cep,
-                    descricao,
-                    competencias
-            )
+                    descricao)
+            
 
-            Menu.empresas.add(empresa)
+            if (empresaCadastrada == null) {
+                println("Não foi possível cadastrar empresa, Estado ou Pais inexistente em nossa base de dados")
+            }
         }
 
         private List<String> capturarCompetencias() {
             List<String> competencias = []
+            List<String> todasCompetencias = competenciaService.listarCompetencias()
 
             while (true) {
+                if (todasCompetencias - competencias == []) {
+                    break
+                }
                 println("""
                 Competências atuais da empresa: ${competencias}
         
@@ -177,12 +184,16 @@
                 scanner.nextLine()
 
                 println("""
-        Competências disponíveis: ${CompetenciasEnum.values() - competencias}
+        Competências disponíveis: ${todasCompetencias - competencias}
         
         Digite uma competência:
         """)
-
-                competencias.add(scanner.nextLine())
+                String competencia = scanner.nextLine()
+                if (!competencias.contains(competencia)) {
+                    competencias.add(competencia)
+                } else {
+                    println("Competencia ja existente!")
+                }
             }
 
             return competencias
@@ -197,12 +208,10 @@
             println("Digite a descrição da vaga:")
             String descricao = scanner.nextLine()
 
-            Vaga vaga = vagaService.criarVaga(
-                    empresa,
-                    nome,
-                    descricao
-            )
+            println("Digite a localização da vaga: ")
+            String local = scanner.nextLine()
 
-            Menu.vagasGerais.add(vaga)
+            List<String> competencias = capturarCompetencias()
+            vagaService.criarVaga(nome, descricao, local, empresa.id, competencias)
         }
     }

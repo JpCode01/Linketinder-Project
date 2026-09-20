@@ -3,8 +3,10 @@ package com.jpcode.service
 import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dao.vaga.VagaDAO
+import com.jpcode.dto.vaga.VagaEmpresaDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Vaga
+import com.jpcode.model.referencia.Competencia
 
 class VagaService {
 
@@ -18,31 +20,32 @@ class VagaService {
         this.vagaDAO = vagaDAO
     }
 
-    Vaga criarVaga(
+    void criarVaga(
             String nome,
             String descricao,
             String local,
             Long idEmpresa,
             List<String> competencias
     ) {
-        Vaga vaga = new Vaga(
-                nome,
-                descricao,
-                local,
-                idEmpresa
+        Vaga vagaSalva =  vagaDAO.salvar(
+                new Vaga(
+                        nome,
+                        descricao,
+                        local,
+                        idEmpresa
+                )
         )
 
-        Vaga vagaSalva = vagaDAO.salvar(vaga)
+        List<Competencia> competenciasNormalizadas = []
 
         competencias.each {
             competencia ->
-                Long idCompetenciaNormalizada = competenciaDAO.buscarIdPorNomeCompetencia(competencia)
-                if (idCompetenciaNormalizada != null) {
-                    competenciasVagaDAO.salvar(vagaSalva.id, idCompetenciaNormalizada)
-                }
+            Long idCompetenciaNormalizada =
+                    competenciaDAO.buscarIdPorNomeCompetencia(competencia)
+            if (idCompetenciaNormalizada != null) {
+                competenciasVagaDAO.salvar(vagaSalva.id, idCompetenciaNormalizada)
+            }
         }
-
-        return vagaSalva
     }
 
     void curtir(Candidato candidato, Vaga vaga) {
@@ -54,13 +57,11 @@ class VagaService {
         }
     }
 
-    List<Vaga> listarVagas(List<Vaga> vagas) {
-        if (!vagas.isEmpty()) {
-            vagas.eachWithIndex { vaga, index ->
-                println "$index - ${vaga.nome}"
-            }
-        }
-        return vagas
+    List<VagaEmpresaDTO>  listarVagas(Long idEmpresa) {
+        return vagaDAO.buscarVagasEmpresa(idEmpresa)
+    }
 
-    } 
+    Vaga buscarVaga(Long idVaga) {
+        return vagaDAO.buscarPorId(idVaga)
+    }
 }

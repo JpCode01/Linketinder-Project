@@ -52,4 +52,29 @@ class CompetenciaDAO {
             return resultSet.getLong("id")
         }
     }
+
+    List<String> listarTodasCompetencias() {
+        String sql = """
+        SELECT nome_competencia
+        FROM competencias
+        """
+
+        try (
+            def connection = ConnectionFactory.getConnection()
+            def statement = connection.prepareStatement(sql)
+        ) {
+            def resultSet = statement.executeQuery()
+            List<String> competencias = []
+
+            while (resultSet.next()) {
+                competencias.add(
+                        resultSet.getString("nome_competencia")
+                )
+            }
+
+            return competencias
+        }
+
+
+    }
 }
