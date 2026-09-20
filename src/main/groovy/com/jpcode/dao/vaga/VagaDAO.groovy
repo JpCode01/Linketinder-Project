@@ -12,11 +12,11 @@ class VagaDAO {
 
     Vaga salvar(Vaga vaga) {
         String sql = """
-            INSERT INTO     
+            INSERT INTO vagas           
                 (nome, descricao, local, id_empresa)
             VALUES (?, ?, ?, ?)
         """
-
+    
         try (
             def connection = ConnectionFactory.getConnection()
             def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
@@ -70,87 +70,87 @@ class VagaDAO {
         }
     }
 
-    List<VagaEmpresaDTO> buscarVagasEmpresa(Long idEmpresa) {
-        String sql = """
-        SELECT
-            v.id,
-            v.nome,
-            v.descricao,
-            v.local,
-            v.id_empresa,
-            (
-                SELECT COUNT(*)
-                FROM vagas_curtidas_candidato vcc
-                WHERE vcc.id_vaga = v.id
-            ) AS quantidade_candidatos,
-            c.id AS competencia_id,
-            c.nome_competencia
-        FROM vagas v
-        JOIN empresas e
-            ON e.id = v.id_empresa
-        LEFT JOIN vagas_competencias vc
-            ON vc.id_vaga = v.id
-        LEFT JOIN competencias c
-            ON c.id = vc.id_competencia
-        WHERE v.id_empresa = ?
-        ORDER BY v.id
-        """
-
-        try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
-        ) {
-            statement.setLong(1, idEmpresa)
-
-            def resultSet = statement.executeQuery()
-
-            List<VagaEmpresaDTO> vagas = []
-
-            VagaEmpresaDTO vagaAtual = null
-            List<Competencia> competencias = []
-
-            while (resultSet.next()) {
-
-                Long idVaga = resultSet.getLong("id")
-                // Apenas cria quando o id da vaga for diferente da vaga atual, caso contrário, considera a mesma vaga e add as competencias
-                if (vagaAtual == null || vagaAtual.id != idVaga) {
-
-                    if (vagaAtual != null) {
-                        vagas.add(vagaAtual)
+        List<VagaEmpresaDTO> buscarVagasEmpresa(Long idEmpresa) {
+            String sql = """
+            SELECT
+                v.id,
+                v.nome,
+                v.descricao,
+                v.local,
+                v.id_empresa,
+                (
+                    SELECT COUNT(*)
+                    FROM vagas_curtidas_candidato vcc
+                    WHERE vcc.id_vaga = v.id
+                ) AS quantidade_candidatos,
+                c.id AS competencia_id,
+                c.nome_competencia
+            FROM vagas v
+            JOIN empresas e
+                ON e.id = v.id_empresa
+            LEFT JOIN vagas_competencias vc
+                ON vc.id_vaga = v.id
+            LEFT JOIN competencias c
+                ON c.id = vc.id_competencia
+            WHERE v.id_empresa = ?
+            ORDER BY v.id
+            """
+    
+            try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+            ) {
+                statement.setLong(1, idEmpresa)
+    
+                def resultSet = statement.executeQuery()
+    
+                List<VagaEmpresaDTO> vagas = []
+    
+                VagaEmpresaDTO vagaAtual = null
+                List<Competencia> competencias = []
+    
+                while (resultSet.next()) {
+    
+                    Long idVaga = resultSet.getLong("id")
+                    // Apenas cria quando o id da vaga for diferente da vaga atual, caso contrário, considera a mesma vaga e add as competencias
+                    if (vagaAtual == null || vagaAtual.id != idVaga) {
+    
+                        if (vagaAtual != null) {
+                            vagas.add(vagaAtual)
+                        }
+    
+                        competencias = []
+    
+                        vagaAtual = new VagaEmpresaDTO(
+                                idVaga,
+                                resultSet.getString("nome"),
+                                resultSet.getString("descricao"),
+                                resultSet.getString("local"),
+                                resultSet.getInt("quantidade_candidatos"),
+                                competencias
+                        )
                     }
-
-                    competencias = []
-
-                    vagaAtual = new VagaEmpresaDTO(
-                            idVaga,
-                            resultSet.getString("nome"),
-                            resultSet.getString("descricao"),
-                            resultSet.getString("local"),
-                            resultSet.getInt("quantidade_candidatos"),
-                            competencias
-                    )
+    
+                    Long competenciaId = resultSet.getLong("competencia_id")
+    
+                    if (competenciaId != 0) {
+                        competencias.add(
+                                new Competencia(
+                                        competenciaId,
+                                        resultSet.getString("nome_competencia")
+                                )
+                        )
+                    }
                 }
-
-                Long competenciaId = resultSet.getLong("competencia_id")
-
-                if (competenciaId != 0) {
-                    competencias.add(
-                            new Competencia(
-                                    competenciaId,
-                                    resultSet.getString("nome_competencia")
-                            )
-                    )
+    
+                if (vagaAtual != null) {
+                    vagas.add(vagaAtual)
                 }
+    
+                return vagas
+    
             }
-
-            if (vagaAtual != null) {
-                vagas.add(vagaAtual)
-            }
-
-            return vagas
-
         }
-    }
 
     List<VagaAnonimaDTO> buscarTodasAsVagas() {
         String sql = """

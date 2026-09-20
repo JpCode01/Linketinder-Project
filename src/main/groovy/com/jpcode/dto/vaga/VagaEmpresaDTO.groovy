@@ -32,7 +32,7 @@ class VagaEmpresaDTO {
         DESCRIÇÃO: ${descricao}
         LOCAL: ${local} 
         QUANTIDADE DE CANDIDATOS QUE CURTIRAM: ${qtdeCandidatosQueCurtiram}
-        COMPETENCIAS: ${competencias.forEach {competencia -> print(competencia.nome + ", ")}}
+        COMPETENCIAS: ${competencias*.nome.join(", ")}
         """
     }
 }
