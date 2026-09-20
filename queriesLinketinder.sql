@@ -1,3 +1,5 @@
+-- Todos os comandos Utilizados ao longo do projeto
+
 CREATE TABLE "pais" (
                         "id" serial PRIMARY KEY,
                         "nome" varchar NOT NULL
@@ -252,3 +254,6 @@ INSERT INTO competencias (nome_competencia) VALUES
                                                 ('DOCKER'),
                                                 ('GIT'),
                                                 ('AWS');
+
+ALTER TABLE empresas
+    ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT true;
