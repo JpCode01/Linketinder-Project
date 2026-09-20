@@ -27,10 +27,7 @@ class Empresa extends Pessoa {
             Descricao: ${descricao}
             Email: ${email}
             CNPJ: ${cnpj}
-            Pais: ${pais}
-            Estado: ${estado}
             CEP: ${cep}
-            Competencia: ${competencias}
         """;
     }
 
