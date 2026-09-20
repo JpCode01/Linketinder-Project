@@ -16,13 +16,15 @@ class CandidatoService {
     final EstadoDAO estadoDAO
     final CompetenciaDAO competenciaDAO
     final CompetenciasCandidatoDAO competenciasCandidatoDAO
+    final CandidatoDAO candidatoDAO
 
-    CandidatoService(CompetenciaValidation validation, PaisDAO paisDAO, EstadoDAO estadoDAO, CompetenciaDAO competenciaDAO, CompetenciasCandidatoDAO competenciasCandidatoDAO) {
+    CandidatoService(CompetenciaValidation validation, PaisDAO paisDAO, EstadoDAO estadoDAO, CompetenciaDAO competenciaDAO, CompetenciasCandidatoDAO competenciasCandidatoDAO, CandidatoDAO candidatoDAO) {
         this.validation = validation
         this.paisDAO = paisDAO
         this.estadoDAO = estadoDAO
         this.competenciaDAO = competenciaDAO
         this.competenciasCandidatoDAO = competenciasCandidatoDAO
+        this.candidatoDAO = candidatoDAO
     }
     
     Candidato cadastrarCandidato(String nome, 
@@ -54,7 +56,6 @@ class CandidatoService {
 
         )
 
-        CandidatoDAO candidatoDAO = new CandidatoDAO()
         Candidato candidatoSalvo = candidatoDAO.salvar(candidato)
         
         competencias.each {
