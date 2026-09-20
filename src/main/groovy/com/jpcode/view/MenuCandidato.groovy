@@ -5,11 +5,10 @@ import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Vaga
 import com.jpcode.service.CandidatoService
 import com.jpcode.service.VagaService
-import com.jpcode.validation.CompetenciaValidation
 
 class MenuCandidato {
     final Scanner scanner = new Scanner(System.in)
-    final CandidatoService candidatoService = new CandidatoService(new CompetenciaValidation())
+    final CandidatoService candidatoService = new CandidatoService()
     final VagaService vagaService = new VagaService()
     
     void inicio() {
@@ -28,12 +27,27 @@ class MenuCandidato {
     }
 
     private void login() {
-        scanner.nextLine()
-        println("Digite o nome do candidato desejado: ")
-        String nome = scanner.nextLine()
-        Candidato candidato = Menu.candidatos.find {it.nome == nome}
-        if (candidato) {
-            menuCandidato(candidato)
+        while (true) {
+            scanner.nextLine()
+            println("Digite o email do candidato: ")
+            String email = scanner.nextLine()
+            println("Digite a senha do candidato: ")
+            String senha = scanner.nextLine()
+            Candidato candidatoEncontrado = candidatoService.logar(email, senha)
+            if (candidatoEncontrado) {
+                menuCandidato(candidatoEncontrado)
+                break
+            } else {
+                println("""
+                Email ou Senha incorretos
+                
+                1 - Tente Novamente
+                Qualquer Tecla - Sair
+                """)
+                if (scanner.nextLine() != "1") {
+                    break
+                }
+            }
         }
     }
 
