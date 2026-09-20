@@ -72,4 +72,8 @@ class VagaService {
     List<VagaAnonimaDTO> listarVagasCurtidas(long idCandidato) {
         return candidatoCurtirDAO.buscarVagasCurtidas(idCandidato)
     }
+
+    List<VagaAnonimaDTO> buscarTodasAsVagas() {
+        return vagaDAO.buscarTodasAsVagas()
+    }
 }
