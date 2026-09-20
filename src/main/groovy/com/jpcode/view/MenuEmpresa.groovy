@@ -76,7 +76,8 @@
                 1 - Ver Vagas
                 2 - Ver Candidatos em vagas
                 3 - Criar Vaga
-                4 - Sair
+                4 - Ver Candidatos Curtidos
+                5 - Sair
                 """)
                 switch (scanner.nextInt()) {
                     case 1:
@@ -89,9 +90,16 @@
                         criarVaga(empresa)
                         break
                     case 4:
+                        verCandidatosCurtidos(empresa)
+                        break
+                    case 5:
                         return
                 }
             }
+        }
+
+        private verCandidatosCurtidos(Empresa empresa) {
+            println(empresaService.buscarCandidatosCurtidos(empresa.id))
         }
 
         private verVagasCandidatos(Empresa empresa, List<VagaEmpresaDTO> vagasEmpresa) {
