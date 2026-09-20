@@ -31,12 +31,26 @@
         }
 
         private login() {
-            scanner.nextLine()
-            println("Digite o nome da empresa: ")
-            String nome = scanner.nextLine()
-            Empresa empresa = Menu.empresas.find {it.nome == nome }
-            if (empresa) {
-                menuEmpresa(empresa)
+            while (true) {
+                scanner.nextLine()
+                println("Digite o email da empresa: ")
+                String email = scanner.nextLine()
+                println("Digite a senha da empresa: ")
+                String senha = scanner.nextLine()
+                Empresa empresaEncontrada = empresaService.logar(email, senha)
+                if (empresaEncontrada) {
+                    menuEmpresa(empresaEncontrada)
+                } else {
+                    println("""
+                Email ou Senha incorretos
+                
+                1 - Tente Novamente
+                Qualquer Tecla - Sair
+                """)
+                    if (scanner.nextLine() != "1") {
+                        break
+                    }
+                }
             }
         }
 
