@@ -2,14 +2,12 @@ package com.jpcode.dao.relacionamento
 
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
-import com.jpcode.model.core.Candidato
-import com.jpcode.model.core.Empresa
 import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
 
 class EmpresaCurtirDAO {
-    void salvar(Empresa empresa, Candidato candidato) {
+    void salvar(Long idEmpresa, Long idCandidato) {
        String sql = """
             INSERT INTO candidatos_curtidos_empresa
                 (id_empresa, id_candidato)
@@ -20,8 +18,8 @@ class EmpresaCurtirDAO {
             def connection = ConnectionFactory.getConnection(sql)
             def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
         ) {
-            statement.setLong(1, empresa.id)
-            statement.setLong(2, candidato.id)
+            statement.setLong(1, idEmpresa)
+            statement.setLong(2, idCandidato)
 
             statement.executeUpdate()
         }
