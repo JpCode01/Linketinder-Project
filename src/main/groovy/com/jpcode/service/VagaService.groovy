@@ -1,26 +1,48 @@
 package com.jpcode.service
 
+import com.jpcode.dao.referencia.CompetenciaDAO
+import com.jpcode.dao.vaga.CompetenciasVagaDAO
+import com.jpcode.dao.vaga.VagaDAO
 import com.jpcode.model.core.Candidato
-import com.jpcode.model.core.Empresa
 import com.jpcode.model.core.Vaga
 
 class VagaService {
-    
+
+    final CompetenciaDAO competenciaDAO
+    final CompetenciasVagaDAO competenciasVagaDAO
+    final VagaDAO vagaDAO
+
+    VagaService(CompetenciaDAO competenciaDAO, CompetenciasVagaDAO competenciasVagaDAO, VagaDAO vagaDAO) {
+        this.competenciaDAO = competenciaDAO
+        this.competenciasVagaDAO = competenciasVagaDAO
+        this.vagaDAO = vagaDAO
+    }
+
     Vaga criarVaga(
-            Empresa empresa,
             String nome,
-            String descricao
+            String descricao,
+            String local,
+            Long idEmpresa,
+            List<String> competencias
     ) {
-        Vaga vaga = null
-        if (empresa != null) {
+        Vaga vaga = new Vaga(
+                nome,
+                descricao,
+                local,
+                idEmpresa
+        )
 
-            vaga = new Vaga(nome, descricao)
+        Vaga vagaSalva = vagaDAO.salvar(vaga)
 
-            vaga.competencias = empresa.competencias
-            empresa.adicionarVaga(vaga)
-
+        competencias.each {
+            competencia ->
+                Long idCompetenciaNormalizada = competenciaDAO.buscarIdPorNomeCompetencia(competencia)
+                if (idCompetenciaNormalizada != null) {
+                    competenciasVagaDAO.salvar(vagaSalva.id, idCompetenciaNormalizada)
+                }
         }
-        return vaga
+
+        return vagaSalva
     }
 
     void curtir(Candidato candidato, Vaga vaga) {
