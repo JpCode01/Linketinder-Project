@@ -1,5 +1,13 @@
 package com.jpcode.view
 
+import com.jpcode.dao.candidato.CandidatoDAO
+import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
+import com.jpcode.dao.referencia.CompetenciaDAO
+import com.jpcode.dao.referencia.EstadoDAO
+import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
+import com.jpcode.dao.vaga.CompetenciasVagaDAO
+import com.jpcode.dao.vaga.VagaDAO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.service.CandidatoService
@@ -11,9 +19,9 @@ import java.time.format.DateTimeFormatter
 
 class MenuCandidato {
     final Scanner scanner = new Scanner(System.in)
-    final CandidatoService candidatoService = new CandidatoService()
-    final VagaService vagaService = new VagaService()
-    final CompetenciaService competenciaService = new CompetenciaService()
+    final CandidatoService candidatoService = new CandidatoService(new PaisDAO(),new EstadoDAO(), new CompetenciaDAO(), new CompetenciasCandidatoDAO(), new CandidatoDAO())
+    final VagaService vagaService = new VagaService(new CompetenciaDAO(), new CompetenciasVagaDAO(), new VagaDAO(), new CandidatoCurtirDAO())
+    final CompetenciaService competenciaService = new CompetenciaService(new CompetenciaDAO())
     
     void inicio() {
         println("""
