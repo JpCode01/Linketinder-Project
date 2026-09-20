@@ -194,7 +194,7 @@
         """)
                 String competencia = scanner.nextLine()
                 if (!competencias.contains(competencia)) {
-                    competencias.add(competencia)
+                    competencias.add(competencia.toString())
                 } else {
                     println("Competencia ja existente!")
                 }
