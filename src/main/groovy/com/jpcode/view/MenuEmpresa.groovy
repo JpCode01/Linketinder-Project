@@ -108,7 +108,7 @@
                 if (candidatoEncontrado != null) {
                     scanner.nextLine()
                     println("Desja curtir o Candidado s/n?")
-                    if (scanner.nextLine().toUpperCase() == "s") {
+                    if (scanner.nextLine().toLowerCase() == "s") {
                         empresaService.curtirCandidato(empresa.id, idCandidatoAnonimo)
                         matchService.salvar(idCandidatoAnonimo, empresa.id, idVaga)
                     }
