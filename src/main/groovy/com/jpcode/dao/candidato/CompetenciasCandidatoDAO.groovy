@@ -7,7 +7,7 @@ import com.jpcode.model.referencia.Competencia
 import java.sql.Statement
 
 class CompetenciasCandidatoDAO {
-    void salvar(Candidato candidato, Competencia competencia) {
+    void salvar(Long idCandidato, Long idCompetencia) {
         String sql = """
             INSERT INTO candidatos_competencias
                 (id_candidato, id_competencia)
@@ -18,8 +18,8 @@ class CompetenciasCandidatoDAO {
             def connection = ConnectionFactory.getConnection()
             def statement = connection.prepareStatement(sql)
         ) {
-            statement.setLong(1, candidato.id)
-            statement.setLong(2, competencia.id)
+            statement.setLong(1, idCandidato)
+            statement.setLong(2, idCompetencia)
 
             statement.executeUpdate()
         }
