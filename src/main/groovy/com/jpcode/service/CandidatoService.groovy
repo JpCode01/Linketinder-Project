@@ -69,4 +69,12 @@ class CandidatoService {
     Candidato buscarCandidato(Long idCandidato) {
         return candidatoDAO.buscarPorId(idCandidato)
     }
+
+    Candidato logar(String email, String senha) {
+        Candidato candidatoEncontrado = null
+        if ((!email.isBlank()) && (!senha.isBlank())) {
+            candidatoEncontrado = candidatoDAO.buscarPorEmailESenha(email, senha)
+        }
+        return candidatoEncontrado
+    }
 }
