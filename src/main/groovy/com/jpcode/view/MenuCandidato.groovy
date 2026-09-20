@@ -182,9 +182,9 @@ class MenuCandidato {
             }
 
             println("""
-        Competências atuais: ${competencias}
+        Competencias atuais: ${competencias}
 
-        1 - Digitar nova competência
+        1 - Digitar nova competencia
         2 - Parar
         """)
 
@@ -195,9 +195,9 @@ class MenuCandidato {
             scanner.nextLine()
 
             println("""
-        Competências disponíveis: ${todasCompetencias - competencias}
+        Competencias disponiveis: ${todasCompetencias - competencias}
 
-        Digite uma competência:
+        Digite uma competencia:
         """)
 
             String competencia = scanner.nextLine().trim().toUpperCase()

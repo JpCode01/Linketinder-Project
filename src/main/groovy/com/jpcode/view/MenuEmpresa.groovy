@@ -148,7 +148,7 @@
             println("CEP:")
             String cep = scanner.nextLine()
 
-            println("Descrição:")
+            println("Descricao:")
             String descricao = scanner.nextLine()
 
             Empresa empresaCadastrada = empresaService.cadastrarEmpresa( nome,
@@ -176,9 +176,9 @@
                 }
 
                 println("""
-        Competências atuais: ${competencias}
+        Competencias atuais: ${competencias}
 
-        1 - Digitar nova competência
+        1 - Digitar nova competencia
         2 - Parar
         """)
 
@@ -189,9 +189,9 @@
                 scanner.nextLine()
 
                 println("""
-        Competências disponíveis: ${todasCompetencias - competencias}
+        Competencias disponiveis: ${todasCompetencias - competencias}
 
-        Digite uma competência:
+        Digite uma competencia:
         """)
 
                 String competencia = scanner.nextLine().trim().toUpperCase()
@@ -212,10 +212,10 @@
             println("Digite o nome da vaga:")
             String nome = scanner.nextLine()
 
-            println("Digite a descrição da vaga:")
+            println("Digite a descricao da vaga:")
             String descricao = scanner.nextLine()
 
-            println("Digite a localização da vaga: ")
+            println("Digite a localizacao da vaga: ")
             String local = scanner.nextLine()
 
             List<String> competencias = capturarCompetencias()
