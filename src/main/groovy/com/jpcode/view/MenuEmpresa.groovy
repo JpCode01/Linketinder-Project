@@ -174,12 +174,13 @@
                 if (todasCompetencias - competencias == []) {
                     break
                 }
+
                 println("""
-                Competências atuais: ${competencias}
-        
-                1 - Digitar nova competência
-                2 - Parar
-                """)
+        Competências atuais: ${competencias}
+
+        1 - Digitar nova competência
+        2 - Parar
+        """)
 
                 if (scanner.nextInt() == 2) {
                     break
@@ -189,12 +190,14 @@
 
                 println("""
         Competências disponíveis: ${todasCompetencias - competencias}
-        
+
         Digite uma competência:
         """)
-                String competencia = scanner.nextLine()
+
+                String competencia = scanner.nextLine().trim().toUpperCase()
+
                 if (!competencias.contains(competencia)) {
-                    competencias.add(competencia.toString())
+                    competencias.add(competencia)
                 } else {
                     println("Competencia ja existente!")
                 }
