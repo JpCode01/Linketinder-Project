@@ -12,9 +12,7 @@
     import com.jpcode.dao.vaga.CompetenciasVagaDAO
     import com.jpcode.dao.vaga.VagaDAO
     import com.jpcode.dto.vaga.VagaEmpresaDTO
-    import com.jpcode.model.core.Candidato
     import com.jpcode.model.core.Empresa
-    import com.jpcode.model.core.Vaga
     import com.jpcode.service.*
     import com.jpcode.validation.CompetenciaValidation
 
@@ -177,7 +175,7 @@
                     break
                 }
                 println("""
-                Competências atuais da empresa: ${competencias}
+                Competências atuais: ${competencias}
         
                 1 - Digitar nova competência
                 2 - Parar
