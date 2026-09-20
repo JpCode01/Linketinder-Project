@@ -1,5 +1,8 @@
 package com.jpcode.service
 
+import com.jpcode.dao.empresa.EmpresaDAO
+import com.jpcode.dao.referencia.EstadoDAO
+import com.jpcode.dao.referencia.PaisDAO
 import com.jpcode.enums.CompetenciasEnum
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Empresa
@@ -8,46 +11,43 @@ import com.jpcode.validation.CompetenciaValidation
 
 class EmpresaService {
     final CompetenciaValidation validation
+    final PaisDAO paisDAO
+    final EstadoDAO estadoDAO
+    final EmpresaDAO empresaDAO
 
-    EmpresaService(CompetenciaValidation validation) {
+    EmpresaService(CompetenciaValidation validation, PaisDAO paisDAO, EstadoDAO estadoDAO, EmpresaDAO empresaDAO) {
         this.validation = validation
+        this.paisDAO = paisDAO
+        this.estadoDAO = estadoDAO
+        this.empresaDAO = empresaDAO
     }
 
     Empresa cadastrarEmpresa(
             String nome,
             String email,
+            String senha,
             String cnpj,
             String pais,
             String estado,
             String cep,
-            String descricao,
-            List<String> competencias
+            String descricao
     ) {
+        Long paisId = paisDAO.buscarIdPorNome(pais)
+        Long estadoId = estadoDAO.buscarIdPorSigla(estado)
         Empresa empresa = new Empresa(
                 nome,
                 email,
+                senha,
                 cnpj,
-                pais,
-                estado,
+                paisId,
+                estadoId,
                 cep,
                 descricao
         )
 
-        competencias.each { competencia ->
-            String competenciaNormalizada = competencia.toUpperCase()
-
-            if (validation.validarCompetencia(
-                    competenciaNormalizada,
-                    empresa.competencias
-            )) {
-                empresa.adicionarCompetencia(
-                        CompetenciasEnum.valueOf(competenciaNormalizada)
-                )
-            }
-        }
-
-        return empresa
+        return empresaDAO.salvar(empresa)
     }
+
     void curtirCandidato(Candidato candidato, Empresa empresa) {
         empresa.adicionarCandidatoCurtido(candidato)
     }
