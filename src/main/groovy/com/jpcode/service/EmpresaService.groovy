@@ -61,4 +61,12 @@ class EmpresaService {
             println "$index - Candidato anônimo ${index + 1}"
         }
     }
+
+    Empresa logar(String email, String senha) {
+        Empresa empresaEncontrada = null
+        if ((!email.isBlank()) && (!senha.isBlank())) {
+            empresaEncontrada = empresaDAO.buscarPorEmailESenha(email, senha)
+        }
+        return empresaEncontrada
+    }
 }
