@@ -53,6 +53,7 @@
                 Empresa empresaEncontrada = empresaService.logar(email, senha)
                 if (empresaEncontrada) {
                     menuEmpresa(empresaEncontrada)
+                    break
                 } else {
                     println("""
                 Email ou Senha incorretos
