@@ -6,7 +6,7 @@ import com.jpcode.model.core.Match
 import java.sql.Statement
 
 class MatchDAO {
-    Match salvar(Match match) {
+    void salvar(Long idCandidato, Long idEmpresa, Long idVaga) {
         String sql = """
             INSERT INTO 
                 (id_candidato, id_empresa, id_vaga)
@@ -17,17 +17,11 @@ class MatchDAO {
             def connection = ConnectionFactory.getConnection(sql)
             def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
         ) {
-            statement.setLong(1, match.idCandidato)
-            statement.setLong(2, match.idEmpresa)
-            statement.setLong(3, match.idVaga)
+            statement.setLong(1, idCandidato)
+            statement.setLong(2, idEmpresa)
+            statement.setLong(3, idVaga)
 
-            def generatedKeys = statement.getGeneratedKeys()
-
-            if (generatedKeys.next()) {
-                match.id = generatedKeys.getLong(1)
-            }
-
-            return match
+            statement.executeUpdate()
         }
     }
 
