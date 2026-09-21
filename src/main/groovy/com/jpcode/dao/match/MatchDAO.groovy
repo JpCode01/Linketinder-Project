@@ -3,14 +3,13 @@ package com.jpcode.dao.match
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.core.Match
 
-import java.sql.Statement
-
 class MatchDAO {
     void salvar(Long idCandidato, Long idEmpresa, Long idVaga) {
         String sql = """
             INSERT INTO "match"
                 (id_candidato, id_empresa, id_vaga)
             VALUES (?, ?, ?)
+            ON CONFLICT (id_candidato, id_empresa, id_vaga) DO NOTHING
         """
 
         try (

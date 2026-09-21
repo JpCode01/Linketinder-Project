@@ -3,7 +3,6 @@ package com.jpcode.dao.relacionamento
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
-import com.jpcode.model.core.Vaga
 import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
@@ -14,6 +13,7 @@ class CandidatoCurtirDAO {
             INSERT INTO vagas_curtidas_candidato
                 (id_candidato, id_vaga)
             VALUES (?, ?)
+            ON CONFLICT (id_candidato, id_vaga) DO NOTHING
         """
 
         try (

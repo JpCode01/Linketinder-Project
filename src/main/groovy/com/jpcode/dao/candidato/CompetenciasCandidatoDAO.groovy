@@ -12,6 +12,7 @@ class CompetenciasCandidatoDAO {
             INSERT INTO candidatos_competencias
                 (id_candidato, id_competencia)
             VALUES (?, ?)
+            ON CONFLICT (id_candidato, id_competencia) DO NOTHING
         """
 
         try (

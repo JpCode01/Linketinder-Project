@@ -12,6 +12,7 @@ class EmpresaCurtirDAO {
             INSERT INTO candidatos_curtidos_empresa
                 (id_empresa, id_candidato)
             VALUES (?, ?)
+            ON CONFLICT (id_empresa, id_candidato) DO NOTHING
         """
 
         try (
