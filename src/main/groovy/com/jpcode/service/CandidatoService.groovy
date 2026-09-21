@@ -6,6 +6,7 @@ import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.EstadoDAO
 import com.jpcode.dao.referencia.PaisDAO
 import com.jpcode.model.core.Candidato
+import com.jpcode.model.referencia.Competencia
 
 import java.time.LocalDate
 
@@ -80,5 +81,9 @@ class CandidatoService {
 
     void desativarCandidato(Long idCandidato) {
         candidatoDAO.desativar(idCandidato)
+    }
+
+    List<Competencia> listarCompetenciasCandidato (Long idCandidato) {
+      return competenciasCandidatoDAO.buscarPorCandidato(idCandidato)
     }
 }
