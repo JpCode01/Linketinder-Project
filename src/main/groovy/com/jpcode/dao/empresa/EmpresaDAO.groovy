@@ -140,10 +140,10 @@ class EmpresaDAO {
 
             def resultSet = statement.executeQuery()
 
-            if (!resultSet.next()) {
+            if (!resultSet.next() || !resultSet.getBoolean("ativo")) {
                 return null
             }
-
+            
             return new Empresa(
                     resultSet.getLong("id"),
                     resultSet.getString("nome"),

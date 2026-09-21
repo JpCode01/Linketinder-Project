@@ -15,8 +15,8 @@ class CandidatoDAO {
         String sql = """
             INSERT INTO candidatos
                 (nome, sobrenome, email, data_nascimento, cpf,
-                id_pais, cep, descricao, ativo, senha, id_estado)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)            
+                id_pais, cep, descricao, ativo, senha, id_estado, idade)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)            
         """
 
 
@@ -44,6 +44,7 @@ class CandidatoDAO {
             statement.setBoolean(9, candidato.ativo)
             statement.setString(10, candidato.senha)
             statement.setLong(11, candidato.idEstado)
+            statement.setLong(12, candidato.idade)
 
             
             statement.executeUpdate()
@@ -187,7 +188,7 @@ class CandidatoDAO {
 
             def resultSet = statement.executeQuery()
 
-            if (!resultSet.next()) {
+            if (!resultSet.next() || !resultSet.getBoolean("ativo")) {
                 return null
             }
 
