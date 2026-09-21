@@ -218,4 +218,19 @@ class VagaDAO {
         }
     }
 
+    void deletar(Long id) {
+        String sql = """
+        DELETE FROM vagas
+        WHERE id = ?
+    """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, id)
+            statement.executeUpdate()
+        }
+    }
+
 }

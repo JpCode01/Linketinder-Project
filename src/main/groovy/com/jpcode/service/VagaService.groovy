@@ -74,4 +74,8 @@ class VagaService {
     List<Competencia> buscarCompetenciasDeVaga(Long idVaga) {
         return competenciasVagaDAO.buscarPorVaga(idVaga)
     }
+
+    void deletarVaga(Long idVaga) {
+        vagaDAO.deletar(idVaga)
+    }
 }
