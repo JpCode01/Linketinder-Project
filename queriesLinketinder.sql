@@ -257,3 +257,27 @@ INSERT INTO competencias (nome_competencia) VALUES
 
 ALTER TABLE empresas
     ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT true;
+
+ALTER TABLE candidatos_competencias
+    ADD CONSTRAINT uk_candidato_competencia
+        UNIQUE (id_candidato, id_competencia);
+
+ALTER TABLE vagas_competencias
+    ADD CONSTRAINT uk_vaga_competencia
+        UNIQUE (id_vaga, id_competencia);
+
+ALTER TABLE vagas_curtidas_candidato
+    ADD CONSTRAINT uk_candidato_vaga
+        UNIQUE (id_candidato, id_vaga);
+
+ALTER TABLE candidatos_curtidos_empresa
+    ADD CONSTRAINT uk_empresa_candidato
+        UNIQUE (id_empresa, id_candidato);
+
+ALTER TABLE candidato_formacoes
+    ADD CONSTRAINT uk_candidato_formacao
+        UNIQUE (id_candidato, id_formacao);
+
+ALTER TABLE "match"
+    ADD CONSTRAINT uk_match
+        UNIQUE (id_candidato, id_empresa, id_vaga);
