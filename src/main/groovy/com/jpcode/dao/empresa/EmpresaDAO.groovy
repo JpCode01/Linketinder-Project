@@ -161,4 +161,20 @@ class EmpresaDAO {
             )
         }
     }
+
+    void desativar(Long id) {
+        String sql = """
+        UPDATE empresas
+        SET ativo = false
+        WHERE id = ?
+    """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, id)
+            statement.executeUpdate()
+        }
+    }
 }

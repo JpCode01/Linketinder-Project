@@ -91,4 +91,8 @@ class EmpresaService {
     List<CandidatoAnonimoDTO> buscarCandidatosCurtidos(Long idEmpresa) {
         return empresaCurtirDAO.buscarCandidatosCurtidos(idEmpresa)
     }
+
+    void desativarEmpresa(Long idEmpresa) {
+        empresaDAO.desativar(idEmpresa)
+    }
 }
