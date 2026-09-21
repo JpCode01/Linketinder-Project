@@ -76,7 +76,8 @@
                 3 - Criar Vaga
                 4 - Ver Candidatos Curtidos
                 5 - Desativar Conta
-                6 - Sair
+                6 - Apagar vaga
+                7 - Sair
                 """)
                 switch (scanner.nextInt()) {
                     case 1:
@@ -93,11 +94,14 @@
                         break
                     case 5:
                         if (apagarEmpresa(empresa)) {
-                            return 
+                            return
                         }
                         break
                     case 6:
-                        return 
+                        vagasEmpresa =  apagarVaga(vagasEmpresa)
+                        break
+                    case 7:
+                        return
                 }
             }
         }
@@ -237,5 +241,23 @@
                 return true
             }
             return false
+        }
+
+        List<VagaEmpresaDTO> apagarVaga(List<VagaEmpresaDTO> vagas) {
+            scanner.nextLine()
+            println(vagas)
+
+            println("Digite o ID da vaga desejada: (Enter para cancelar) ")
+            String idVaga = scanner.nextLine()
+
+            if (idVaga != "") {
+                Long id = Long.parseLong(idVaga)
+
+                vagaService.deletarVaga(id)
+
+                vagas.removeIf { vaga -> vaga.id == id }
+            }
+
+            return vagas
         }
     }
