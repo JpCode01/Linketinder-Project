@@ -75,7 +75,8 @@
                 2 - Ver Candidatos em vagas
                 3 - Criar Vaga
                 4 - Ver Candidatos Curtidos
-                5 - Sair
+                5 - Desativar Conta
+                6 - Sair
                 """)
                 switch (scanner.nextInt()) {
                     case 1:
@@ -91,7 +92,12 @@
                         verCandidatosCurtidos(empresa)
                         break
                     case 5:
-                        return
+                        if (apagarEmpresa(empresa)) {
+                            return 
+                        }
+                        break
+                    case 6:
+                        return 
                 }
             }
         }
@@ -220,5 +226,16 @@
 
             List<String> competencias = capturarCompetencias()
             vagaService.criarVaga(nome, descricao, local, empresa.id, competencias)
+        }
+
+        boolean apagarEmpresa(Empresa empresa) {
+            scanner.nextLine()
+            println("Digite sua senha para confirmar (Caso queira desistir, aperte enter): ")
+            if (scanner.nextLine() == empresa.senha) {
+                empresaService.desativarEmpresa(empresa.id)
+                println("Conta deletada com sucesso")
+                return true
+            }
+            return false
         }
     }
