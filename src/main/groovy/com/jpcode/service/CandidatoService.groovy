@@ -77,4 +77,8 @@ class CandidatoService {
         }
         return candidatoEncontrado
     }
+
+    void desativarCandidato(Long idCandidato) {
+        candidatoDAO.desativar(idCandidato)
+    }
 }
