@@ -281,3 +281,30 @@ ALTER TABLE candidato_formacoes
 ALTER TABLE "match"
     ADD CONSTRAINT uk_match
         UNIQUE (id_candidato, id_empresa, id_vaga);
+
+ALTER TABLE vagas_competencias
+DROP CONSTRAINT vagas_competencias_id_vaga_fkey;
+
+ALTER TABLE vagas_competencias
+    ADD CONSTRAINT vagas_competencias_id_vaga_fkey
+        FOREIGN KEY (id_vaga)
+            REFERENCES vagas(id)
+            ON DELETE CASCADE;
+
+ALTER TABLE vagas_curtidas_candidato
+DROP CONSTRAINT vagas_curtidas_candidato_id_vaga_fkey;
+
+ALTER TABLE vagas_curtidas_candidato
+    ADD CONSTRAINT vagas_curtidas_candidato_id_vaga_fkey
+        FOREIGN KEY (id_vaga)
+            REFERENCES vagas(id)
+            ON DELETE CASCADE;
+
+ALTER TABLE "match"
+DROP CONSTRAINT match_id_vaga_fkey;
+
+ALTER TABLE "match"
+    ADD CONSTRAINT match_id_vaga_fkey
+        FOREIGN KEY (id_vaga)
+            REFERENCES vagas(id)
+            ON DELETE CASCADE;
