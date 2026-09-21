@@ -73,7 +73,8 @@ class MenuCandidato {
                         1 - Ver vagas curtidas
                         2 - Ver vagas disponíveis
                         3 - Curtir Vaga
-                        4 - Sair
+                        4 - Desativar Conta
+                        5 - Sair
                         """)
             switch (scanner.nextInt()) {
                 case 1:
@@ -86,6 +87,11 @@ class MenuCandidato {
                     curtirVaga(candidato, vagasDisponiveis)
                     break
                 case 4:
+                    if(apagarCandidato(candidato)) {
+                        return
+                    }
+                    break
+                case 5:
                     return
             }
         }
@@ -210,5 +216,16 @@ class MenuCandidato {
         }
 
         return competencias
+    }
+
+    boolean apagarCandidato(Candidato candidato) {
+        scanner.nextLine()
+        println("Digite sua senha para confirmar (Caso queira desistir, aperte enter): ")
+        if (scanner.nextLine() == candidato.senha) {
+            candidatoService.desativarCandidato(candidato.id)
+            println("Conta deletada com sucesso")
+            return true
+        }
+        return false
     }
 }
