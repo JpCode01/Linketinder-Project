@@ -78,4 +78,22 @@ class VagaService {
     void deletarVaga(Long idVaga) {
         vagaDAO.deletar(idVaga)
     }
+
+    void atualizarVaga(
+            Long id,
+            String nome,
+            String descricao,
+            String local,
+            Long idEmpresa
+    ) {
+        vagaDAO.atualizarDados(
+                new Vaga(
+                        id,
+                        nome,
+                        descricao,
+                        local,
+                        idEmpresa
+                )
+        )
+    }
 }

@@ -233,4 +233,28 @@ class VagaDAO {
         }
     }
 
+    Vaga atualizarDados(Vaga vaga) {
+        String sql = """
+        UPDATE vagas
+        SET nome = ?,
+            descricao = ?,
+            "local" = ?
+        WHERE id = ?
+        """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, vaga.nome)
+            statement.setString(2, vaga.descricao)
+            statement.setString(3, vaga.local)
+            statement.setLong(4, vaga.id)
+
+            statement.executeUpdate()
+
+        }
+
+        return vaga
+    }
 }

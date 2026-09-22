@@ -13,6 +13,7 @@
     import com.jpcode.dao.vaga.VagaDAO
     import com.jpcode.dto.vaga.VagaEmpresaDTO
     import com.jpcode.model.core.Empresa
+    import com.jpcode.model.core.Vaga
     import com.jpcode.service.*
     import com.jpcode.validation.CompetenciaValidation
 
@@ -78,7 +79,8 @@
                 5 - Desativar Conta
                 6 - Apagar vaga
                 7 - Atualizar conta 
-                8 - Sair
+                8 - Atualizar vaga
+                9 - Sair
                 """)
                 switch (scanner.nextInt()) {
                     case 1:
@@ -103,7 +105,11 @@
                         break
                     case 7:
                         atualizarEmpresa(empresa)
+                        break
                     case 8:
+                        atualizarVaga(vagasEmpresa)
+                        break
+                    case 9:
                         return
                 }
             }
@@ -331,5 +337,42 @@
                     empresa.descricao,
                     empresa.ativo
             )
+        }
+
+        void atualizarVaga(List<VagaEmpresaDTO> vagas) {
+            println(vagas)
+            println("Digite o id da vaga: ")
+            Long idVaga = scanner.nextLong()
+            if (vagaService.buscarVaga(idVaga) != null) {
+                Vaga vagaEncontrada = vagaService.buscarVaga(idVaga)
+                scanner.nextLine()
+                println("Nome:")
+                String nome = scanner.nextLine()
+                if (!nome.isEmpty()) {
+                    vagaEncontrada.nome = nome
+                }
+
+                println("Descrição:")
+                String descricao = scanner.nextLine()
+                if (!descricao.isEmpty()) {
+                    vagaEncontrada.descricao = descricao
+                }
+
+                println("Local:")
+                String local = scanner.nextLine()
+                if (!descricao.isEmpty()) {
+                    vagaEncontrada.local = local
+                }
+
+                vagaService.atualizarVaga(
+                        vagaEncontrada.id,
+                        vagaEncontrada.nome,
+                        vagaEncontrada.descricao,
+                        vagaEncontrada.local,
+                        vagaEncontrada.idEmpresa
+                )
+            } else {
+                println("Vaga não encontrada!")
+            }
         }
     }

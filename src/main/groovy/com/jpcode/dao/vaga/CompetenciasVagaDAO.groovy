@@ -1,7 +1,6 @@
 package com.jpcode.dao.vaga
 
 import com.jpcode.database.ConnectionFactory
-import com.jpcode.model.core.Vaga
 import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
