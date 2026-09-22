@@ -12,7 +12,7 @@ import spock.lang.Unroll
 
 import java.time.LocalDate
 
-class CandidatoServiceSpec extends Specification {
+class CandidatoServiceTest extends Specification {
 
     PaisDAO paisDAO = Mock()
     EstadoDAO estadoDAO = Mock()
