@@ -30,6 +30,33 @@ class CompetenciaDAO {
         }
     }
 
+    Competencia buscarPorNome(String nome) {
+        String sql = """
+            SELECT id, nome_competencia
+            FROM competencias
+            WHERE nome_competencia = ?
+        """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, nome)
+
+            def resultSet = statement.executeQuery()
+
+            if (!resultSet.next()) {
+                return null
+            }
+
+            return new Competencia(
+                    resultSet.getLong("id"),
+                    resultSet.getString("nome_competencia")
+            )
+
+        }
+    }
+
     Long buscarIdPorNomeCompetencia(String competencia) {
         String sql = """
             SELECT id

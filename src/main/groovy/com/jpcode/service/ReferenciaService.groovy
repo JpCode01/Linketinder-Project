@@ -9,6 +9,7 @@ class ReferenciaService {
 
     ReferenciaService(PaisDAO paisDAO, EstadoDAO estadoDAO) {
         this.paisDAO = paisDAO
+        this.estadoDAO = estadoDAO
     }
 
     String converterIdPaisParaString(Long idPais) {

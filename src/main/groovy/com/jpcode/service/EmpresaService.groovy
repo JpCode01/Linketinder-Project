@@ -95,4 +95,35 @@ class EmpresaService {
     void desativarEmpresa(Long idEmpresa) {
         empresaDAO.desativar(idEmpresa)
     }
+
+    void atualizarEmpresa(
+            Long id,
+            String nome,
+            String email,
+            String senha,
+            String cnpj,
+            String pais,
+            String estado,
+            String cep,
+            String descricao,
+            boolean ativo
+    ) {
+        Long idPais = paisDAO.buscarIdPorNome(pais)
+        Long idEstado = estadoDAO.buscarIdPorSigla(estado)
+
+        empresaDAO.atualizarDados(
+                new Empresa(
+                        id,
+                        nome,
+                        email,
+                        senha,
+                        cnpj,
+                        idPais,
+                        idEstado,
+                        cep,
+                        descricao,
+                        ativo
+                )
+        )
+    }
 }

@@ -23,7 +23,7 @@
         final CandidatoService candidatoService = new CandidatoService(new PaisDAO(), new EstadoDAO(), new CompetenciaDAO(), new CompetenciasCandidatoDAO(), new CandidatoDAO())
         final MatchService matchService = new MatchService(new MatchDAO())
         final CompetenciaService competenciaService = new CompetenciaService(new CompetenciaDAO())
-
+        final ReferenciaService referenciaService = new ReferenciaService(new PaisDAO(), new EstadoDAO())
         
         void inicio() {
             println("""
@@ -77,7 +77,8 @@
                 4 - Ver Candidatos Curtidos
                 5 - Desativar Conta
                 6 - Apagar vaga
-                7 - Sair
+                7 - Atualizar conta 
+                8 - Sair
                 """)
                 switch (scanner.nextInt()) {
                     case 1:
@@ -101,6 +102,8 @@
                         vagasEmpresa =  apagarVaga(vagasEmpresa)
                         break
                     case 7:
+                        atualizarEmpresa(empresa)
+                    case 8:
                         return
                 }
             }
@@ -259,5 +262,74 @@
             }
 
             return vagas
+        }
+
+        private void atualizarEmpresa(Empresa empresa) {
+            scanner.nextLine()
+
+
+            println("Nome:")
+            String nome = scanner.nextLine()
+            if (!nome.isEmpty()) {
+                empresa.nome = nome
+            }
+
+            println("Email:")
+            String email = scanner.nextLine()
+            if (!email.isEmpty()) {
+                empresa.email = email
+            }
+
+            println("Senha:")
+            String senha = scanner.nextLine()
+            if (!senha.isEmpty()) {
+                empresa.senha = senha
+            }
+
+            println("CPF:")
+            String cnpj = scanner.nextLine()
+            if (!cnpj.isEmpty()) {
+                empresa.cnpj = cnpj
+            }
+
+            println("Pais:")
+            String pais = scanner.nextLine()
+
+
+            if (pais.isEmpty()) {
+                pais = referenciaService.converterIdPaisParaString(empresa.idPais)
+            }
+
+            println("Estado em sigla (SP/RS/RJ):")
+            String estado = scanner.nextLine()
+
+            if (estado.isEmpty()) {
+                estado = referenciaService.converterIdEstadoParaString(empresa.idEstado)
+            }
+
+            println("CEP:")
+            String cep = scanner.nextLine()
+            if (!cep.isEmpty()) {
+                empresa.cep = cep
+            }
+
+            println("Descrição:")
+            String descricao = scanner.nextLine()
+            if (!descricao.isEmpty()) {
+                empresa.descricao = descricao
+            }
+
+            empresaService.atualizarEmpresa(
+                    empresa.id,
+                    empresa.nome,
+                    empresa.email,
+                    empresa.senha,
+                    empresa.cnpj,
+                    pais,
+                    estado,
+                    empresa.cep,
+                    empresa.descricao,
+                    empresa.ativo
+            )
         }
     }

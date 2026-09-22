@@ -2,8 +2,10 @@ package com.jpcode.dao.empresa
 
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.empresa.EmpresaMatchDTO
+import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Empresa
 
+import java.sql.Date
 import java.sql.Statement
 
 class EmpresaDAO {
@@ -176,5 +178,39 @@ class EmpresaDAO {
             statement.setLong(1, id)
             statement.executeUpdate()
         }
+    }
+
+    Empresa atualizarDados(Empresa empresa) {
+        String sql = """
+        UPDATE empresas
+        SET nome = ?,
+            email_corporativo = ?,
+            senha = ?,  
+            cnpj = ?,   
+            id_pais = ?,
+            id_estado = ?,
+            cep = ?,
+            descricao = ?
+        WHERE id = ?
+    """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, empresa.nome)
+            statement.setString(2, empresa.email)
+            statement.setString(3, empresa.senha)
+            statement.setString(4, empresa.cnpj)           
+            statement.setLong(5, empresa.idPais)
+            statement.setLong(6, empresa.idEstado)
+            statement.setString(7, empresa.cep)
+            statement.setString(8, empresa.descricao)
+            statement.setLong(9, empresa.id)
+
+            statement.executeUpdate()
+        }
+
+        return empresa
     }
 }

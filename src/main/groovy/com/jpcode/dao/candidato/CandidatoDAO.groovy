@@ -19,8 +19,6 @@ class CandidatoDAO {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)            
         """
 
-
-
         
         try (
             def connection = ConnectionFactory.getConnection()
@@ -225,5 +223,43 @@ class CandidatoDAO {
             statement.setLong(1, id)
             statement.executeUpdate()
         }
+    }
+
+    Candidato atualizarDados(Candidato candidato) {
+        String sql = """
+        UPDATE candidatos
+        SET nome = ?,
+            sobrenome = ?,
+            email = ?,
+            senha = ?,
+            cpf = ?,
+            data_nascimento = ?,
+            id_pais = ?,
+            id_estado = ?,
+            cep = ?,
+            descricao = ?
+        WHERE id = ?
+    """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, candidato.nome)
+            statement.setString(2, candidato.sobrenome)
+            statement.setString(3, candidato.email)
+            statement.setString(4, candidato.senha)
+            statement.setString(5, candidato.cpf)
+            statement.setDate(6, Date.valueOf(candidato.dataNascimento))
+            statement.setLong(7, candidato.idPais)
+            statement.setLong(8, candidato.idEstado)
+            statement.setString(9, candidato.cep)
+            statement.setString(10, candidato.descricao)
+            statement.setLong(11, candidato.id)
+
+            statement.executeUpdate()
+        }
+
+        return candidato
     }
 }

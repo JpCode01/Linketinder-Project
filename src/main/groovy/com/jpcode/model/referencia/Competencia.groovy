@@ -1,6 +1,5 @@
 package com.jpcode.model.referencia
 
-import com.jpcode.enums.CompetenciasEnum
 
 class Competencia {
     Long id

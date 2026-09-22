@@ -5,6 +5,7 @@ import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
 import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.EstadoDAO
 import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.referencia.Competencia
 
@@ -83,7 +84,67 @@ class CandidatoService {
         candidatoDAO.desativar(idCandidato)
     }
 
-    List<Competencia> listarCompetenciasCandidato (Long idCandidato) {
+    List<String> listarCompetenciasCandidato (Long idCandidato) {
       return competenciasCandidatoDAO.buscarPorCandidato(idCandidato)
     }
+
+    void atualizarCandidato(
+            Long id,
+            String nome,
+            String sobrenome,
+            String email,
+            String senha,
+            String cpf,
+            LocalDate dataNascimento,
+            String pais,
+            int idade,
+            String estado,
+            String cep,
+            String descricao,
+            boolean ativo
+    ) {
+        Long paisId = paisDAO.buscarIdPorNome(pais)
+        Long estadoId = estadoDAO.buscarIdPorSigla(estado)
+
+        candidatoDAO.atualizarDados(
+                new Candidato(
+                        id,
+                        nome,
+                        sobrenome,
+                        email,
+                        senha,
+                        cpf,
+                        dataNascimento,
+                        paisId,
+                        idade,
+                        estadoId,
+                        cep,
+                        descricao,
+                        ativo
+                ))
+
+    }
+
+
+    void adicionarCompetencias(Long idCandidato, List<String> competenciasNovas) {
+        List<Competencia> converterParaCompetencia = []
+        competenciasNovas.each {competenciaString ->
+            converterParaCompetencia.add(
+                    competenciaDAO.buscarPorNome(competenciaString))
+        }
+        competenciasCandidatoDAO.atualizar(idCandidato, converterParaCompetencia)
+    }
+
+    void removerCompetencia(Long idCandidato, Long idCompetencia) {
+        competenciasCandidatoDAO.removerCompetencia(idCandidato, idCompetencia)
+    }
+
+    List<RemoverCompetenciaDTO> listaParaRemover(Long idCandidato) {
+        return competenciasCandidatoDAO.converterCompetenciasParaDTO(competenciasCandidatoDAO.buscarPorCandidato(idCandidato))
+    }
+
+    List<String> competenciasEmString(Long idCandidato) {
+        return competenciasCandidatoDAO.buscarPorCandidatoString(idCandidato)
+    }
+    
 }
