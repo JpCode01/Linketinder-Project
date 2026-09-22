@@ -2,6 +2,7 @@ package com.jpcode.view
 
 import com.jpcode.dao.candidato.CandidatoDAO
 import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
+import com.jpcode.dao.match.MatchDAO
 import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.EstadoDAO
 import com.jpcode.dao.referencia.PaisDAO
@@ -11,9 +12,9 @@ import com.jpcode.dao.vaga.VagaDAO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Vaga
-import com.jpcode.model.referencia.Competencia
 import com.jpcode.service.CandidatoService
 import com.jpcode.service.CompetenciaService
+import com.jpcode.service.MatchService
 import com.jpcode.service.ReferenciaService
 import com.jpcode.service.VagaService
 
@@ -26,7 +27,8 @@ class MenuCandidato {
     final VagaService vagaService = new VagaService(new CompetenciaDAO(), new CompetenciasVagaDAO(), new VagaDAO(), new CandidatoCurtirDAO())
     final CompetenciaService competenciaService = new CompetenciaService(new CompetenciaDAO())
     final ReferenciaService referenciaService = new ReferenciaService(new PaisDAO(), new EstadoDAO())
-
+    final MatchService matchService = new MatchService(new MatchDAO(new CompetenciasCandidatoDAO(), new CompetenciasVagaDAO()))
+    
     void inicio() {
         println("""
         1 - Cadastre-se 
@@ -80,7 +82,8 @@ class MenuCandidato {
                         4 - Desativar Conta
                         5 - Atualizar competencias
                         6 - Atualizar conta
-                        7 - Sair
+                        7 - Ver matches
+                        8 - Sair
                         """)
             switch (scanner.nextInt()) {
                 case 1:
@@ -104,6 +107,9 @@ class MenuCandidato {
                     atualizarCandidato(candidato)
                     break
                 case 7:
+                    verMatches(candidato)
+                    break
+                case 8:
                     return
             }
         }
@@ -328,9 +334,12 @@ class MenuCandidato {
         return false
     }
 
-    void atualizarCompetencias(Candidato candidato, List<Competencia> competenciasCandidato) {
+    void atualizarCompetencias(Candidato candidato, List<String> competenciasCandidato) {
         List<String> novasCompetencias = capturarCompetencias(competenciasCandidato)
         candidatoService.adicionarCompetencias(candidato.id, novasCompetencias)
     }
-    
+
+    void verMatches(Candidato candidato) {
+        println(matchService.verMatchesPorCandidato(candidato.id))
+    }
 }

@@ -22,7 +22,7 @@
         final EmpresaService empresaService = new EmpresaService(new CompetenciaValidation(), new PaisDAO(), new EstadoDAO(), new EmpresaDAO(), new CandidatoCurtirDAO(), new EmpresaCurtirDAO())
         final VagaService vagaService = new VagaService(new CompetenciaDAO(), new CompetenciasVagaDAO(), new VagaDAO(), new CandidatoCurtirDAO())
         final CandidatoService candidatoService = new CandidatoService(new PaisDAO(), new EstadoDAO(), new CompetenciaDAO(), new CompetenciasCandidatoDAO(), new CandidatoDAO())
-        final MatchService matchService = new MatchService(new MatchDAO())
+        final MatchService matchService = new MatchService(new MatchDAO(new CompetenciasCandidatoDAO(), new CompetenciasVagaDAO()))
         final CompetenciaService competenciaService = new CompetenciaService(new CompetenciaDAO())
         final ReferenciaService referenciaService = new ReferenciaService(new PaisDAO(), new EstadoDAO())
         
@@ -81,7 +81,8 @@
                 7 - Atualizar conta 
                 8 - Atualizar vaga
                 9 - Adicionar competencias em Vaga
-                10 - Sair
+                10 - Ver Matches
+                11 - Sair
                 """)
                 switch (scanner.nextInt()) {
                     case 1:
@@ -114,6 +115,9 @@
                         atualizarCompetencias(vagasEmpresa)
                         break
                     case 10:
+                        verMatches(empresa)
+                        break
+                    case 11:
                         return
                 }
             }
@@ -240,7 +244,7 @@
             println("Digite a localizacao da vaga: ")
             String local = scanner.nextLine()
 
-            List<String> competencias = capturarCompetencias()
+            List<String> competencias = capturarCompetencias([])
             vagaService.criarVaga(nome, descricao, local, empresa.id, competencias)
         }
 
@@ -389,5 +393,9 @@
             } else {
                 println("Vaga não encontrada!")
             }
+        }
+
+        void verMatches(Empresa empresa) {
+            println(matchService.verMatchesPorEmpresa(empresa.id))
         }
     }
