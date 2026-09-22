@@ -1,6 +1,7 @@
 package com.jpcode.dao.referencia
 
 import com.jpcode.database.ConnectionFactory
+import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.referencia.Competencia
 
 class CompetenciaDAO {
@@ -104,5 +105,17 @@ class CompetenciaDAO {
         }
 
 
+    }
+
+    List<RemoverCompetenciaDTO> converterCompetenciasParaDTO(List<Competencia> competencias) {
+        List<RemoverCompetenciaDTO> competenciasConvertidas = []
+        competencias.each {competencia ->
+            competenciasConvertidas.add(
+                    new RemoverCompetenciaDTO(competencia.id,
+                            competencia.nome
+                    ))
+        }
+
+        return competenciasConvertidas
     }
 }

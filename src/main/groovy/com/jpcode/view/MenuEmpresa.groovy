@@ -19,7 +19,7 @@
 
     class MenuEmpresa {
         final Scanner scanner = new Scanner(System.in)
-        final EmpresaService empresaService = new EmpresaService(new CompetenciaValidation(), new PaisDAO(), new EstadoDAO(), new EmpresaDAO(), new CandidatoCurtirDAO(), new EmpresaCurtirDAO())
+        final EmpresaService empresaService = new EmpresaService(new CompetenciaValidation(), new PaisDAO(), new EstadoDAO(), new EmpresaDAO(), new CandidatoCurtirDAO(), new EmpresaCurtirDAO(), new CompetenciasVagaDAO(), new CompetenciaDAO())
         final VagaService vagaService = new VagaService(new CompetenciaDAO(), new CompetenciasVagaDAO(), new VagaDAO(), new CandidatoCurtirDAO())
         final CandidatoService candidatoService = new CandidatoService(new PaisDAO(), new EstadoDAO(), new CompetenciaDAO(), new CompetenciasCandidatoDAO(), new CandidatoDAO())
         final MatchService matchService = new MatchService(new MatchDAO(new CompetenciasCandidatoDAO(), new CompetenciasVagaDAO()))
@@ -82,7 +82,8 @@
                 8 - Atualizar vaga
                 9 - Adicionar competencias em Vaga
                 10 - Ver Matches
-                11 - Sair
+                11 - Remover competencia
+                12 - Sair
                 """)
                 switch (scanner.nextInt()) {
                     case 1:
@@ -118,6 +119,9 @@
                         verMatches(empresa)
                         break
                     case 11:
+                        removerCompetencia(vagasEmpresa)
+                        break
+                    case 12:
                         return
                 }
             }
@@ -397,5 +401,20 @@
 
         void verMatches(Empresa empresa) {
             println(matchService.verMatchesPorEmpresa(empresa.id))
+        }
+
+        void removerCompetencia(List<VagaEmpresaDTO> vagasEmpresa) {
+            println(vagasEmpresa)
+            println("Digite o id da vaga: ")
+            Long idVaga = scanner.nextLong()
+            if (vagaService.buscarVaga(idVaga) != null) {
+                println(empresaService.listaParaRemover(idVaga))
+                println("Digite o ID da competencia: ")
+                Long idCompetencia = scanner.nextLong()
+                if (competenciaService.buscarCompetencia(idCompetencia) != null) {
+                    empresaService.removerCompetencia(idVaga, idCompetencia)
+                }
+            }
+
         }
     }

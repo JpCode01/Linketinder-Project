@@ -1,11 +1,14 @@
 package com.jpcode.service
 
 import com.jpcode.dao.empresa.EmpresaDAO
+import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.EstadoDAO
 import com.jpcode.dao.referencia.PaisDAO
 import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
 import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
+import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
+import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Empresa
 import com.jpcode.model.core.Vaga
@@ -18,14 +21,18 @@ class EmpresaService {
     final EmpresaDAO empresaDAO
     final CandidatoCurtirDAO candidatoCurtirDAO
     final EmpresaCurtirDAO empresaCurtirDAO
+    final CompetenciasVagaDAO competenciasVagaDAO
+    final CompetenciaDAO competenciaDAO
 
-    EmpresaService(CompetenciaValidation validation, PaisDAO paisDAO, EstadoDAO estadoDAO, EmpresaDAO empresaDAO, CandidatoCurtirDAO candidatoCurtirDAO, EmpresaCurtirDAO empresaCurtirDAO) {
+    EmpresaService(CompetenciaValidation validation, PaisDAO paisDAO, EstadoDAO estadoDAO, EmpresaDAO empresaDAO, CandidatoCurtirDAO candidatoCurtirDAO, EmpresaCurtirDAO empresaCurtirDAO, CompetenciasVagaDAO competenciasVagaDAO, CompetenciaDAO competenciaDAO) {
         this.validation = validation
         this.paisDAO = paisDAO
         this.estadoDAO = estadoDAO
         this.empresaDAO = empresaDAO
         this.candidatoCurtirDAO = candidatoCurtirDAO
         this.empresaCurtirDAO = empresaCurtirDAO
+        this.competenciasVagaDAO = competenciasVagaDAO
+        this.competenciaDAO = competenciaDAO
     }
 
     Empresa cadastrarEmpresa(
@@ -125,5 +132,18 @@ class EmpresaService {
                         ativo
                 )
         )
+    }
+
+    List<RemoverCompetenciaDTO> listaParaRemover(Long idVaga) {
+        return competenciaDAO.converterCompetenciasParaDTO(competenciasVagaDAO.buscarPorVaga(idVaga))
+    }
+    
+    void removerCompetencia(Long idVaga, Long idCompetencia) {
+        competenciasVagaDAO.removerCompetencia(idVaga, idCompetencia)
+    }
+
+
+    List<String> competenciasEmString(Long idCandidato) {
+        return competenciasCandidatoDAO.buscarPorCandidatoString(idCandidato)
     }
 }

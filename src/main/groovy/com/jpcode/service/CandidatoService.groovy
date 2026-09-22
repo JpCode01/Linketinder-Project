@@ -140,7 +140,7 @@ class CandidatoService {
     }
 
     List<RemoverCompetenciaDTO> listaParaRemover(Long idCandidato) {
-        return competenciasCandidatoDAO.converterCompetenciasParaDTO(competenciasCandidatoDAO.buscarPorCandidato(idCandidato))
+        return competenciaDAO.converterCompetenciasParaDTO(competenciasCandidatoDAO.buscarPorCandidato(idCandidato))
     }
 
     List<String> competenciasEmString(Long idCandidato) {

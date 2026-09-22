@@ -112,7 +112,7 @@ class MenuCandidato {
                     verMatches(candidato)
                     break
                 case 8:
-                    removerCompetencia(competencias, candidato)
+                    removerCompetencia(candidato)
                     break
                 case 9:
                     return
@@ -348,7 +348,7 @@ class MenuCandidato {
         println(matchService.verMatchesPorCandidato(candidato.id))
     }
 
-    void removerCompetencia(List<String> competencias, Candidato candidato) {
+    void removerCompetencia(Candidato candidato) {
         println(candidatoService.listaParaRemover(candidato.id))
         println("Digite o ID da competencia: ")
         Long idCompetencia = scanner.nextLong()

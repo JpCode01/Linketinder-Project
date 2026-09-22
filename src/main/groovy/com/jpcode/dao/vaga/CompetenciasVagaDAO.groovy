@@ -105,4 +105,24 @@ class CompetenciasVagaDAO {
             }
         }
     }
+
+    void removerCompetencia(Long idVaga, Long idCompetencia) {
+        String sql = """
+        DELETE FROM vagas_competencias
+        WHERE  id_vaga = ?
+        AND id_competencia = ?
+        """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement =  connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, idVaga)
+            statement.setLong(2, idCompetencia)
+
+            statement.executeUpdate()
+
+
+        }
+    }
 }
