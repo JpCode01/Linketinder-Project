@@ -1,175 +1,238 @@
 package com.jpcode.service
 
-import com.jpcode.validation.CompetenciaValidation
+import com.jpcode.dao.candidato.CandidatoDAO
+import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
+import com.jpcode.dao.referencia.CompetenciaDAO
+import com.jpcode.dao.referencia.EstadoDAO
+import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.model.core.Candidato
+import com.jpcode.model.referencia.Competencia
 import spock.lang.Specification
-import com.jpcode.enums.CompetenciasEnum
+import spock.lang.Unroll
 
-class CandidatoServiceTest extends Specification {
-    def "Deve cadastrar um candidato"() {
-        given:
-        def validation = Stub(CompetenciaValidation) {
-            validarCompetencia(_, _) >> true
-        }
-        def service = new CandidatoService(validation)
+import java.time.LocalDate
 
-        when:
-        def candidato = service.cadastrarCandidato(
-                "João",
-                "joao@email.com",
-                "123456789",
-                20,
-                "SP",
-                "12900000",
-                "Desenvolvedor backend",
-                ["JAVA"]
+class CandidatoServiceSpec extends Specification {
+
+    PaisDAO paisDAO = Mock()
+    EstadoDAO estadoDAO = Mock()
+    CompetenciaDAO competenciaDAO = Mock()
+    CompetenciasCandidatoDAO competenciasCandidatoDAO = Mock()
+    CandidatoDAO candidatoDAO = Mock()
+
+    CandidatoService service
+
+    def setup() {
+        service = new CandidatoService(
+                paisDAO,
+                estadoDAO,
+                competenciaDAO,
+                competenciasCandidatoDAO,
+                candidatoDAO
         )
-
-        then:
-        candidato.nome == "João"
-        candidato.email == "joao@email.com"
-        candidato.cpf == "123456789"
-        candidato.idade == 20
-        candidato.estado == "SP"
-        candidato.cep == "12900000"
-        candidato.descricao == "Desenvolvedor backend"
-        candidato.competencias == [CompetenciasEnum.JAVA]
     }
 
-    def "Deve cadastrar um candidato sem competências"() {
+    def "deve buscar candidato pelo id"() {
         given:
-        def validation = Stub(CompetenciaValidation) {
-            validarCompetencia(_, _) >> true
-        }
-        def service = new CandidatoService(validation)
+        Candidato candidato = new Candidato(
+                "João",
+                "Pedro",
+                "joao@email.com",
+                "123",
+                "12345678900",
+                LocalDate.of(2000, 10, 10),
+                1L,
+                25,
+                2L,
+                "12900000",
+                "Desenvolvedor"
+        )
+
+        candidatoDAO.buscarPorId(1L) >> candidato
+
+        expect:
+        service.buscarCandidato(1L) == candidato
+    }
+
+    def "deve desativar candidato"() {
+        when:
+        service.desativarCandidato(1L)
+
+        then:
+        1 * candidatoDAO.desativar(1L)
+    }
+
+    @Unroll
+    def "não deve realizar login quando email ou senha estiver vazio"() {
+        when:
+        def resultado = service.logar(email, senha)
+
+        then:
+        resultado == null
+        0 * candidatoDAO.buscarPorEmailESenha(_, _)
+
+        where:
+        email            | senha
+        ""               | "123"
+        "joao@email.com" | ""
+        ""               | ""
+    }
+
+    def "deve realizar login"() {
+        given:
+        Candidato candidato = new Candidato(
+                "João",
+                "Pedro",
+                "joao@email.com",
+                "123",
+                "12345678900",
+                LocalDate.of(2000, 10, 10),
+                1L,
+                25,
+                2L,
+                "12900000",
+                "Desenvolvedor"
+        )
+
+        candidatoDAO.buscarPorEmailESenha("joao@email.com", "123") >> candidato
+
+        expect:
+        service.logar("joao@email.com", "123") == candidato
+    }
+
+    def "deve cadastrar candidato"() {
+        given:
+        Candidato candidatoSalvo = new Candidato(
+                1L,
+                "João",
+                "Pedro",
+                "joao@email.com",
+                "123",
+                "12345678900",
+                LocalDate.of(2000, 10, 10),
+                1L,
+                25,
+                2L,
+                "12900000",
+                "Desenvolvedor",
+                true
+        )
+
+        paisDAO.buscarIdPorNome("BRASIL") >> 1L
+        estadoDAO.buscarIdPorSigla("SP") >> 2L
+        candidatoDAO.salvar(_) >> candidatoSalvo
 
         when:
-        def candidato = service.cadastrarCandidato(
+        def resultado = service.cadastrarCandidato(
                 "João",
+                "Pedro",
                 "joao@email.com",
-                "123456789",
-                20,
+                "123",
+                "12345678900",
+                LocalDate.of(2000, 10, 10),
+                "BRASIL",
+                25,
                 "SP",
                 "12900000",
-                "Desenvolvedor backend",
+                "Desenvolvedor",
                 []
         )
 
         then:
-        candidato.nome == "João"
-        candidato.email == "joao@email.com"
-        candidato.cpf == "123456789"
-        candidato.idade == 20
-        candidato.estado == "SP"
-        candidato.cep == "12900000"
-        candidato.descricao == "Desenvolvedor backend"
-        candidato.competencias.isEmpty()
+        1 * candidatoDAO.salvar(_) >> candidatoSalvo
+        resultado == candidatoSalvo
     }
 
-    def "Não deve adicionar competência inválida"() {
+    def "deve cadastrar competencias do candidato"() {
         given:
-        def validation = Stub(CompetenciaValidation) {
-            validarCompetencia(_, _) >> false
-        }
-        def service = new CandidatoService(validation)
-
-        when:
-        def candidato = service.cadastrarCandidato(
+        Candidato candidatoSalvo = new Candidato(
+                1L,
                 "João",
+                "Pedro",
                 "joao@email.com",
-                "123456789",
-                20,
-                "SP",
+                "123",
+                "12345678900",
+                LocalDate.of(2000, 10, 10),
+                1L,
+                25,
+                2L,
                 "12900000",
-                "Desenvolvedor backend",
-                ["FIGMA"]
+                "Desenvolvedor",
+                true
         )
 
-        then:
-        candidato.nome == "João"
-        candidato.email == "joao@email.com"
-        candidato.cpf == "123456789"
-        candidato.idade == 20
-        candidato.estado == "SP"
-        candidato.cep == "12900000"
-        candidato.descricao == "Desenvolvedor backend"
-        candidato.competencias.isEmpty()
-    }
+        paisDAO.buscarIdPorNome("BRASIL") >> 1L
+        estadoDAO.buscarIdPorSigla("SP") >> 2L
+        candidatoDAO.salvar(_) >> candidatoSalvo
 
-    def "Deve normalizar competência para maiúsculo"() {
-        given:
-        def validation = Mock(CompetenciaValidation)
-        def service = new CandidatoService(validation)
+        competenciaDAO.buscarIdPorNomeCompetencia("JAVA") >> 10L
+        competenciaDAO.buscarIdPorNomeCompetencia("SPRING") >> 20L
 
         when:
         service.cadastrarCandidato(
                 "João",
+                "Pedro",
                 "joao@email.com",
-                "123456789",
-                20,
+                "123",
+                "12345678900",
+                LocalDate.of(2000, 10, 10),
+                "BRASIL",
+                25,
                 "SP",
                 "12900000",
-                "Desenvolvedor backend",
-                ["java"]
+                "Desenvolvedor",
+                ["JAVA", "SPRING"]
         )
 
         then:
-        1 * validation.validarCompetencia("JAVA", _)
+        1 * competenciasCandidatoDAO.salvar(1L, 10L)
+        1 * competenciasCandidatoDAO.salvar(1L, 20L)
     }
 
-    def "Deve cadastrar varias competencias validas"() {
+    def "deve desativar candidato pelo id"() {
+        when:
+        service.desativarCandidato(5L)
+
+        then:
+        1 * candidatoDAO.desativar(5L)
+    }
+
+    def "deve adicionar competencias ao candidato"() {
         given:
-        def validation = Stub(CompetenciaValidation) {
-            validarCompetencia(_, _) >> true
-        }
-        def service = new CandidatoService(validation)
+        Competencia java = new Competencia(1L, "JAVA")
+        Competencia spring = new Competencia(2L, "SPRING")
+
+        competenciaDAO.buscarPorNome("JAVA") >> java
+        competenciaDAO.buscarPorNome("SPRING") >> spring
 
         when:
-        def candidato = service.cadastrarCandidato(
-                "João",
-                "joao@email.com",
-                "123456789",
-                20,
-                "SP",
-                "12900000",
-                "Desenvolvedor backend",
-                ["JAVA", "GROOVY", "PYTHON", "SPRING"]
+        service.adicionarCompetencias(
+                1L,
+                ["JAVA", "SPRING"]
         )
 
         then:
-        candidato.competencias == [
-                CompetenciasEnum.JAVA,
-                CompetenciasEnum.GROOVY,
-                CompetenciasEnum.PYTHON,
-                CompetenciasEnum.SPRING
-        ]
+        1 * competenciasCandidatoDAO.atualizar(
+                1L,
+                [java, spring]
+        )
     }
 
-    def "Deve cadastrar apenas as cometencias validas"() {
-        given:
-        def validation = Stub(CompetenciaValidation) {
-            validarCompetencia("JAVA", _) >> true
-            validarCompetencia("PHP", _) >> false
-        }
-        def service = new CandidatoService(validation)
-
+    def "deve remover competencia do candidato"() {
         when:
-        def candidato = service.cadastrarCandidato(
-                "João",
-                "joao@email.com",
-                "123456789",
-                20,
-                "SP",
-                "12900000",
-                "Desenvolvedor backend",
-                ["JAVA", "PHP"]
-        )
+        service.removerCompetencia(1L, 5L)
 
         then:
-        candidato.competencias == [CompetenciasEnum.JAVA]
+        1 * competenciasCandidatoDAO.removerCompetencia(1L, 5L)
     }
 
+    def "deve buscar competencias do candidato"() {
+        given:
+        List<String> competencias = ["JAVA", "SPRING"]
 
+        competenciasCandidatoDAO.buscarPorCandidatoString(1L) >> competencias
 
-
-
+        expect:
+        service.competenciasEmString(1L) == competencias
+    }
 }
