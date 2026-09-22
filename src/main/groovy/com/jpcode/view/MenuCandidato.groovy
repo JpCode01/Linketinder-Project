@@ -185,7 +185,7 @@ class MenuCandidato {
 
         List<String> competencias = capturarCompetencias([])
 
-        Candidato candidato = candidatoService.cadastrarCandidato(
+        candidatoService.cadastrarCandidato(
                 nome,
                 sobrenome,
                 email,

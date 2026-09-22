@@ -39,8 +39,6 @@ class VagaService {
                 )
         )
 
-        List<Competencia> competenciasNormalizadas = []
-
         competencias.each {
             competencia ->
             Long idCompetenciaNormalizada =

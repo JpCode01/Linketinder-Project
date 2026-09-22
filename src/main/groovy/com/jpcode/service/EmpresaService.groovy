@@ -141,9 +141,4 @@ class EmpresaService {
     void removerCompetencia(Long idVaga, Long idCompetencia) {
         competenciasVagaDAO.removerCompetencia(idVaga, idCompetencia)
     }
-
-
-    List<String> competenciasEmString(Long idCandidato) {
-        return competenciasCandidatoDAO.buscarPorCandidatoString(idCandidato)
-    }
 }

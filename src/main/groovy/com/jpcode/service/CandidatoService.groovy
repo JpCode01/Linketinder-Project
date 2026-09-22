@@ -83,10 +83,7 @@ class CandidatoService {
     void desativarCandidato(Long idCandidato) {
         candidatoDAO.desativar(idCandidato)
     }
-
-    List<String> listarCompetenciasCandidato (Long idCandidato) {
-      return competenciasCandidatoDAO.buscarPorCandidato(idCandidato)
-    }
+    
 
     void atualizarCandidato(
             Long id,
