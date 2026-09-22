@@ -96,4 +96,18 @@ class VagaService {
                 )
         )
     }
+
+    List<String> competenciasEmString(Long idVaga) {
+        return competenciasVagaDAO.buscarPorVagaString(idVaga)
+    }
+
+    void adicionarCompetencias(Long idVaga, List<String> competenciasNovas) {
+        List<Competencia> converterParaCompetencia = []
+        competenciasNovas.each {competenciaString ->
+            converterParaCompetencia.add(
+                    competenciaDAO.buscarPorNome(competenciaString))
+        }
+        competenciasVagaDAO.atualizar(idVaga, converterParaCompetencia)
+    }
+
 }

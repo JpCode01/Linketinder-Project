@@ -80,7 +80,8 @@
                 6 - Apagar vaga
                 7 - Atualizar conta 
                 8 - Atualizar vaga
-                9 - Sair
+                9 - Adicionar competencias em Vaga
+                10 - Sair
                 """)
                 switch (scanner.nextInt()) {
                     case 1:
@@ -110,6 +111,9 @@
                         atualizarVaga(vagasEmpresa)
                         break
                     case 9:
+                        atualizarCompetencias(vagasEmpresa)
+                        break
+                    case 10:
                         return
                 }
             }
@@ -185,8 +189,7 @@
             }
         }
 
-        private List<String> capturarCompetencias() {
-            List<String> competencias = []
+        private List<String> capturarCompetencias(List<String> competencias) {
             List<String> todasCompetencias = competenciaService.listarCompetencias()
 
             while (true) {
@@ -360,7 +363,7 @@
 
                 println("Local:")
                 String local = scanner.nextLine()
-                if (!descricao.isEmpty()) {
+                if (!local.isEmpty()) {
                     vagaEncontrada.local = local
                 }
 
@@ -371,6 +374,18 @@
                         vagaEncontrada.local,
                         vagaEncontrada.idEmpresa
                 )
+            } else {
+                println("Vaga não encontrada!")
+            }
+        }
+
+        void atualizarCompetencias(List<VagaEmpresaDTO> vagasEmpresa) {
+            println(vagasEmpresa)
+            println("Digite o id da vaga: ")
+            Long idVaga = scanner.nextLong()
+            if (vagaService.buscarVaga(idVaga) != null) {
+                List<String> competencias = vagaService.competenciasEmString(idVaga)
+                vagaService.adicionarCompetencias(idVaga, capturarCompetencias(competencias))
             } else {
                 println("Vaga não encontrada!")
             }

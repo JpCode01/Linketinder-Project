@@ -298,13 +298,7 @@ class MenuCandidato {
             }
 
             scanner.nextLine()
-
-            println "TODAS: ${todasCompetencias}"
-            println "ATUAIS: ${competencias}"
-            println "JAVA existe? ${competencias.contains('JAVA')}"
-            println "GROOVY existe? ${competencias.contains('GROOVY')}"
-            println "SPRING existe? ${competencias.contains('SPRING')}"
-
+            
             println("""
         Competencias disponiveis: ${todasCompetencias - competencias}
 

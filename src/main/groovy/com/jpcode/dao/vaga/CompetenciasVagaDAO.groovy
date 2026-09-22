@@ -55,4 +55,54 @@ class CompetenciasVagaDAO {
             return competencias
         }
     }
+
+    List<String> buscarPorVagaString(Long idVaga) {
+        String sql = """
+        SELECT c.nome_competencia
+        FROM competencias c
+        JOIN vagas_competencias vc
+        ON vc.id_competencia = c.id
+        WHERE vc.id_vaga = ?
+        """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, idVaga)
+
+            def resultSet = statement.executeQuery()
+
+            List<String> competencias = []
+
+            while (resultSet.next()) {
+                competencias.add(
+                        resultSet.getString("nome_competencia")
+                )
+            }
+
+            return competencias
+        }
+    }
+
+    void atualizar(Long idVaga, List<Competencia> competencias) {
+        String sql = """
+        INSERT INTO vagas_competencias
+            (id_vaga, id_competencia)
+        VALUES (?, ?)
+        ON CONFLICT (id_vaga, id_competencia) DO NOTHING
+    """
+
+        try (
+                def connection = ConnectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            competencias.each { competencia ->
+                statement.setLong(1, idVaga)
+                statement.setLong(2, competencia.id)
+
+                statement.executeUpdate()
+            }
+        }
+    }
 }
