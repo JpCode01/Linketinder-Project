@@ -28,7 +28,8 @@ class MenuCandidato {
     final CompetenciaService competenciaService = new CompetenciaService(new CompetenciaDAO())
     final ReferenciaService referenciaService = new ReferenciaService(new PaisDAO(), new EstadoDAO())
     final MatchService matchService = new MatchService(new MatchDAO(new CompetenciasCandidatoDAO(), new CompetenciasVagaDAO()))
-    
+
+
     void inicio() {
         println("""
         1 - Cadastre-se 
@@ -83,7 +84,8 @@ class MenuCandidato {
                         5 - Atualizar competencias
                         6 - Atualizar conta
                         7 - Ver matches
-                        8 - Sair
+                        8 - Remover Competencia
+                        9 - Sair
                         """)
             switch (scanner.nextInt()) {
                 case 1:
@@ -110,6 +112,9 @@ class MenuCandidato {
                     verMatches(candidato)
                     break
                 case 8:
+                    removerCompetencia(competencias, candidato)
+                    break
+                case 9:
                     return
             }
         }
@@ -341,5 +346,14 @@ class MenuCandidato {
 
     void verMatches(Candidato candidato) {
         println(matchService.verMatchesPorCandidato(candidato.id))
+    }
+
+    void removerCompetencia(List<String> competencias, Candidato candidato) {
+        println(candidatoService.listaParaRemover(candidato.id))
+        println("Digite o ID da competencia: ")
+        Long idCompetencia = scanner.nextLong()
+        if (competenciaService.buscarCompetencia(idCompetencia) != null) {
+            candidatoService.removerCompetencia(candidato.id, idCompetencia)
+        }
     }
 }

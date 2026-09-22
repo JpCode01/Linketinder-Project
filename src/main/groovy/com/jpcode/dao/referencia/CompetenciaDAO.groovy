@@ -8,6 +8,7 @@ class CompetenciaDAO {
         String sql = """
             SELECT id, nome_competencia
             FROM competencias
+            WHERE id = ?
         """
 
         try (
