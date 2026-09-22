@@ -1,388 +1,223 @@
 package com.jpcode.service
 
-import com.jpcode.enums.CompetenciasEnum
-import com.jpcode.model.Candidato
-import com.jpcode.model.Vaga
+import com.jpcode.dao.empresa.EmpresaDAO
+import com.jpcode.dao.referencia.CompetenciaDAO
+import com.jpcode.dao.referencia.EstadoDAO
+import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
+import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
+import com.jpcode.dao.vaga.CompetenciasVagaDAO
+import com.jpcode.dto.candidato.CandidatoAnonimoDTO
+import com.jpcode.dto.competencia.RemoverCompetenciaDTO
+import com.jpcode.model.core.Empresa
 import com.jpcode.validation.CompetenciaValidation
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class EmpresaServiceTest extends Specification {
-    def "Deve cadastrar uma empresa"() {
-        given:
-        def validation = Stub(CompetenciaValidation) {
-            validarCompetencia(_, _) >> true
-        }
-        def service = new EmpresaService(validation)
 
-        when:
-        def empresa = service.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["PYTHON"]
+    CompetenciaValidation validation = Mock()
+    PaisDAO paisDAO = Mock()
+    EstadoDAO estadoDAO = Mock()
+    EmpresaDAO empresaDAO = Mock()
+    CandidatoCurtirDAO candidatoCurtirDAO = Mock()
+    EmpresaCurtirDAO empresaCurtirDAO = Mock()
+    CompetenciasVagaDAO competenciasVagaDAO = Mock()
+    CompetenciaDAO competenciaDAO = Mock()
+
+    EmpresaService service
+
+    def setup() {
+        service = new EmpresaService(
+                validation,
+                paisDAO,
+                estadoDAO,
+                empresaDAO,
+                candidatoCurtirDAO,
+                empresaCurtirDAO,
+                competenciasVagaDAO,
+                competenciaDAO
         )
-
-        then:
-        empresa.nome == "Google"
-        empresa.email == "google@email.com"
-        empresa.cnpj == "17.593.554/0001-42"
-        empresa.pais == "Estados Unidos"
-        empresa.estado == "Washington"
-        empresa.cep == "12900000"
-        empresa.descricao == "Empresa WEB"
-        empresa.competencias == [CompetenciasEnum.PYTHON]
     }
 
-    def "Deve cadastrar uma empresa sem competencia"() {
+    def "deve cadastrar empresa"() {
         given:
-        def validation = Stub(CompetenciaValidation) {
-            validarCompetencia(_, _) >> true
-        }
-        def service = new EmpresaService(validation)
+        Empresa empresaSalva = new Empresa(
+                1L,
+                "Empresa Teste",
+                "empresa@email.com",
+                "123",
+                "12345678000100",
+                1L,
+                2L,
+                "12900000",
+                "Empresa de tecnologia",
+                true
+        )
+
+        paisDAO.buscarIdPorNome("BRASIL") >> 1L
+        estadoDAO.buscarIdPorSigla("SP") >> 2L
 
         when:
-        def empresa = service.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                []
-        )
-
-        then:
-        empresa.nome == "Google"
-        empresa.email == "google@email.com"
-        empresa.cnpj == "17.593.554/0001-42"
-        empresa.pais == "Estados Unidos"
-        empresa.estado == "Washington"
-        empresa.cep == "12900000"
-        empresa.descricao == "Empresa WEB"
-        empresa.competencias.isEmpty()
-    }
-
-    def "Não deve adicionar competencia invalida"() {
-        given:
-        def validation = Stub(CompetenciaValidation) {
-            validarCompetencia(_, _) >> false
-        }
-        def service = new EmpresaService(validation)
-
-        when:
-        def empresa = service.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["PHP"]
-        )
-
-        then:
-        empresa.nome == "Google"
-        empresa.email == "google@email.com"
-        empresa.cnpj == "17.593.554/0001-42"
-        empresa.pais == "Estados Unidos"
-        empresa.estado == "Washington"
-        empresa.cep == "12900000"
-        empresa.descricao == "Empresa WEB"
-        empresa.competencias.isEmpty()
-    }
-
-    def "Deve normalizar competência para maiúsculo"() {
-        given:
-        def validation = Mock(CompetenciaValidation)
-        def service = new EmpresaService(validation)
-
-        when:
-        def empresa = service.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["python"]
-        )
-
-        then:
-        1 * validation.validarCompetencia("PYTHON", _)
-    }
-
-    def "Deve cadastrar varias competencias validas"() {
-        given:
-        def validation = Stub(CompetenciaValidation) {
-            validarCompetencia(_, _) >> true
-        }
-        def service = new EmpresaService(validation)
-
-        when:
-        def empresa = service.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["JAVA", "PYTHON"]
-        )
-
-        then:
-        empresa.competencias == [
-                CompetenciasEnum.JAVA,
-                CompetenciasEnum.PYTHON
-        ]
-    }
-
-    def "Deve cadastrar apenas as competencias validas"() {
-        given:
-        def validation = Stub(CompetenciaValidation) {
-            validarCompetencia("JAVA", _) >> true
-            validarCompetencia("PYTHON", _) >> true
-            validarCompetencia("PHP", _) >> false
-        }
-        def service = new EmpresaService(validation)
-
-        when:
-        def empresa = service.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["JAVA", "PYTHON", "PHP"]
-        )
-
-        then:
-        empresa.competencias == [
-                CompetenciasEnum.JAVA,
-                CompetenciasEnum.PYTHON
-        ]
-    }
-
-    def "Deve curtir candidato adicionando em candidatosCurtidos"() {
-        given:
-        EmpresaService empresaService = new EmpresaService(new CompetenciaValidation())
-        
-        def empresa = empresaService.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["JAVA"]
-        )
-        def candidato = new Candidato(
-                "João",
-                "joao@email.com",
-                "123456789",
-                20,
+        def resultado = service.cadastrarEmpresa(
+                "Empresa Teste",
+                "empresa@email.com",
+                "123",
+                "12345678000100",
+                "BRASIL",
                 "SP",
                 "12900000",
-                "Desenvolvedor backend"
+                "Empresa de tecnologia"
         )
-        candidato.competencias = ["JAVA"]
-        
-        when:
-            empresaService.curtirCandidato(candidato, empresa)
+
         then:
-            empresa.candidatosCurtidos == [candidato]
+        1 * empresaDAO.salvar(_) >> empresaSalva
+        resultado == empresaSalva
     }
 
-    def "Não deve adicionar candidato inexistente"() {
+    @Unroll
+    def "não deve cadastrar empresa quando país ou estado não existir"() {
         given:
-        EmpresaService empresaService = new EmpresaService(new CompetenciaValidation())
-        def empresa = empresaService.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["JAVA"]
-        )
-        def candidato = null
+        paisDAO.buscarIdPorNome(pais) >> idPais
+        estadoDAO.buscarIdPorSigla(estado) >> idEstado
 
         when:
-        empresaService.curtirCandidato(candidato, empresa)
+        def resultado = service.cadastrarEmpresa(
+                "Empresa Teste",
+                "empresa@email.com",
+                "123",
+                "12345678000100",
+                pais,
+                estado,
+                "12900000",
+                "Empresa de tecnologia"
+        )
+
         then:
-        empresa.candidatosCurtidos == []
+        resultado == null
+        0 * empresaDAO.salvar(_)
+
+        where:
+        pais     | estado | idPais | idEstado
+        "BRASIL" | "SP"   | null   | 2L
+        "BRASIL" | "SP"   | 1L    | null
+        "BRASIL" | "SP"   | null   | null
     }
 
-    def "Deve adicionar candidatos na lista"() {
+    def "deve realizar login"() {
         given:
-        EmpresaService empresaService = new EmpresaService(new CompetenciaValidation())
-        def empresa = empresaService.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
+        Empresa empresa = new Empresa(
+                "Empresa Teste",
+                "empresa@email.com",
+                "123",
+                "12345678000100",
+                1L,
+                2L,
                 "12900000",
-                "Empresa WEB",
-                ["JAVA"]
+                "Empresa de tecnologia"
         )
-        def candidato1 = new Candidato(
-                "João",
-                "joao@email.com",
-                "123456789",
-                20,
+
+        empresaDAO.buscarPorEmailESenha(
+                "empresa@email.com",
+                "123"
+        ) >> empresa
+
+        expect:
+        service.logar("empresa@email.com", "123") == empresa
+    }
+
+    @Unroll
+    def "não deve realizar login quando email ou senha estiver vazio"() {
+        when:
+        def resultado = service.logar(email, senha)
+
+        then:
+        resultado == null
+        0 * empresaDAO.buscarPorEmailESenha(_, _)
+
+        where:
+        email               | senha
+        ""                  | "123"
+        "empresa@email.com" | ""
+        ""                  | ""
+    }
+
+    def "deve buscar candidatos que curtiram uma vaga"() {
+        given:
+        List<CandidatoAnonimoDTO> candidatos = []
+
+        candidatoCurtirDAO.buscarCandidatosQueCurtiram(1L) >> candidatos
+
+        expect:
+        service.buscarCandidatosQueCurtiram(1L) == candidatos
+    }
+
+    def "deve curtir candidato pelo id"() {
+        when:
+        service.curtirCandidato(1L, 2L)
+
+        then:
+        1 * empresaCurtirDAO.salvar(1L, 2L)
+    }
+
+    def "deve buscar candidatos curtidos pela empresa"() {
+        given:
+        List<CandidatoAnonimoDTO> candidatos = []
+
+        empresaCurtirDAO.buscarCandidatosCurtidos(1L) >> candidatos
+
+        expect:
+        service.buscarCandidatosCurtidos(1L) == candidatos
+    }
+
+    def "deve desativar empresa"() {
+        when:
+        service.desativarEmpresa(1L)
+
+        then:
+        1 * empresaDAO.desativar(1L)
+    }
+
+    def "deve atualizar empresa"() {
+        given:
+        paisDAO.buscarIdPorNome("BRASIL") >> 1L
+        estadoDAO.buscarIdPorSigla("SP") >> 2L
+
+        when:
+        service.atualizarEmpresa(
+                1L,
+                "Empresa Atualizada",
+                "empresa@email.com",
+                "123",
+                "12345678000100",
+                "BRASIL",
                 "SP",
                 "12900000",
-                "Desenvolvedor backend"
+                "Nova descricao",
+                true
         )
-        candidato1.competencias = ["JAVA"]
-        def candidato2 = new Candidato(
-                "Maria",
-                "Maria@email.com",
-                "123456789",
-                20,
-                "SP",
-                "12900000",
-                "Desenvolvedor backend"
-        )
-        candidato2.competencias = ["JAVA"]
 
-        when:
-        empresaService.curtirCandidato(candidato1, empresa)
-        empresaService.curtirCandidato(candidato2, empresa)
         then:
-        empresa.candidatosCurtidos == [candidato1, candidato2]
+        1 * empresaDAO.atualizarDados(_)
     }
 
-    def "Não deve adicionar candidatos iguais na lista"() {
+    def "deve remover competencia da vaga"() {
+        when:
+        service.removerCompetencia(1L, 5L)
+
+        then:
+        1 * competenciasVagaDAO.removerCompetencia(1L, 5L)
+    }
+
+    def "deve buscar competencias da vaga para remover"() {
         given:
-        EmpresaService empresaService = new EmpresaService(new CompetenciaValidation())
-        def empresa = empresaService.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["JAVA"]
-        )
-        def candidato1 = new Candidato(
-                "João",
-                "joao@email.com",
-                "123456789",
-                20,
-                "SP",
-                "12900000",
-                "Desenvolvedor backend"
-        )
-        candidato1.competencias = ["JAVA"]
+        List<String> competencias = ["JAVA", "SPRING"]
+        List<RemoverCompetenciaDTO> resultadoDTO = []
 
-        when:
-        empresaService.curtirCandidato(candidato1, empresa)
-        empresaService.curtirCandidato(candidato1, empresa)
-        then:
-        empresa.candidatosCurtidos == [candidato1]
+        competenciasVagaDAO.buscarPorVaga(1L) >> competencias
+        competenciaDAO.converterCompetenciasParaDTO(competencias) >> resultadoDTO
+
+        expect:
+        service.listaParaRemover(1L) == resultadoDTO
     }
-
-    def "Deve listar vagas da empresa"() {
-        given:
-        EmpresaService empresaService = new EmpresaService(new CompetenciaValidation())
-        def empresa = empresaService.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["JAVA"]
-        )
-        Vaga vaga = new Vaga("Dev Java", "Dev")
-        when:
-        empresa.adicionarVaga(vaga)
-        then:
-        empresaService.ListarVagasPorEmpresa(empresa) == [vaga]
-    }
-
-    def "Deve exibir a lista de vagas vázia"() {
-        given:
-        EmpresaService empresaService = new EmpresaService(new CompetenciaValidation())
-        def empresa = empresaService.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["JAVA"]
-        )
-        def vaga = null
-        when:
-        empresa.adicionarVaga(vaga)
-        then:
-        empresaService.ListarVagasPorEmpresa(empresa) == []
-    }
-
-    def "Deve adicionar duas vagas iguais e exibir apenas a primeira"() {
-        given:
-        EmpresaService empresaService = new EmpresaService(new CompetenciaValidation())
-        def empresa = empresaService.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["JAVA"]
-        )
-        def vaga = new Vaga("Dev Java", "Dev")
-        when:
-        empresa.adicionarVaga(vaga)
-        empresa.adicionarVaga(vaga)
-        then:
-        empresaService.ListarVagasPorEmpresa(empresa) == [vaga]
-    }
-
-    def "Deve adicionar duas vagas e exibir as duas"() {
-        given:
-        EmpresaService empresaService = new EmpresaService(new CompetenciaValidation())
-        def empresa = empresaService.cadastrarEmpresa(
-                "Google",
-                "google@email.com",
-                "17.593.554/0001-42",
-                "Estados Unidos",
-                "Washington",
-                "12900000",
-                "Empresa WEB",
-                ["JAVA"]
-        )
-        def vaga1 = new Vaga("Dev Java", "Dev")
-        def vaga2 = new Vaga("Dev Python", "Dev")
-        when:
-        empresa.adicionarVaga(vaga1)
-        empresa.adicionarVaga(vaga2)
-        then:
-        empresaService.ListarVagasPorEmpresa(empresa) == [vaga1, vaga2]
-    }
-
-
-
-
-
-
-
 }

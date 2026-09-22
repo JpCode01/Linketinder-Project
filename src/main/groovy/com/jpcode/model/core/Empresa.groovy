@@ -1,16 +1,19 @@
-package com.jpcode.model
+package com.jpcode.model.core
 
 class Empresa extends Pessoa {
 
     String cnpj
-    String pais
     List<Vaga> vagas = []
     List<Candidato> candidatosCurtidos = []
 
-    Empresa(String nome, String email, String cnpj, String pais, String estado, String cep, String descricao) {
-        super(nome, email, estado, cep, descricao)
+    Empresa(String nome, String email, String senha, String cnpj, Long idPais, Long idEstado, String cep, String descricao) {
+        super(nome, email, senha, idEstado, cep, descricao, idPais)
         this.cnpj = cnpj
-        this.pais = pais
+    }
+
+    Empresa(Long id, String nome, String email, String senha, String cnpj, Long idPais, Long idEstado, String cep, String descricao, boolean ativo) {
+        super(nome, email, senha, idEstado, cep, descricao, idPais, id, ativo)
+        this.cnpj = cnpj
     }
 
     @Override
@@ -24,10 +27,7 @@ class Empresa extends Pessoa {
             Descricao: ${descricao}
             Email: ${email}
             CNPJ: ${cnpj}
-            Pais: ${pais}
-            Estado: ${estado}
             CEP: ${cep}
-            Competencia: ${competencias}
         """;
     }
 

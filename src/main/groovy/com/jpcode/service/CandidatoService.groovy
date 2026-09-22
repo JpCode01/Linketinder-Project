@@ -1,38 +1,147 @@
 package com.jpcode.service
 
-import com.jpcode.enums.CompetenciasEnum
-import com.jpcode.model.Candidato
-import com.jpcode.validation.CompetenciaValidation
+import com.jpcode.dao.candidato.CandidatoDAO
+import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
+import com.jpcode.dao.referencia.CompetenciaDAO
+import com.jpcode.dao.referencia.EstadoDAO
+import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.dto.competencia.RemoverCompetenciaDTO
+import com.jpcode.model.core.Candidato
+import com.jpcode.model.referencia.Competencia
+
+import java.time.LocalDate
 
 class CandidatoService {
-    final CompetenciaValidation validation
+    final PaisDAO paisDAO
+    final EstadoDAO estadoDAO
+    final CompetenciaDAO competenciaDAO
+    final CompetenciasCandidatoDAO competenciasCandidatoDAO
+    final CandidatoDAO candidatoDAO
 
-    CandidatoService(CompetenciaValidation validation) {
-        this.validation = validation
+    CandidatoService(PaisDAO paisDAO, EstadoDAO estadoDAO, CompetenciaDAO competenciaDAO, CompetenciasCandidatoDAO competenciasCandidatoDAO, CandidatoDAO candidatoDAO) {
+        this.paisDAO = paisDAO
+        this.estadoDAO = estadoDAO
+        this.competenciaDAO = competenciaDAO
+        this.competenciasCandidatoDAO = competenciasCandidatoDAO
+        this.candidatoDAO = candidatoDAO
     }
     
     Candidato cadastrarCandidato(String nome, 
+                                 String sobrenome,
                                  String email,
+                                 String senha,
                                  String cpf,
+                                 LocalDate dataNascimento,
+                                 String pais,
                                  int idade,
                                  String estado,
                                  String cep,
                                  String descricao,
                                  List<String> competencias) {
-        Candidato candidato = new Candidato(nome, email, cpf, idade, estado, cep, descricao)
+        Long paisId = paisDAO.buscarIdPorNome(pais)
+        Long estadoId = estadoDAO.buscarIdPorSigla(estado)
+        Candidato candidato = new Candidato(
+                nome,
+                sobrenome,
+                email,
+                senha,
+                cpf,
+                dataNascimento,
+                paisId,
+                idade,
+                estadoId,
+                cep,
+                descricao
 
-        competencias.each { competencia ->
-            String competenciaNormalizada = competencia.toUpperCase()
+        )
 
-            if (validation.validarCompetencia(
-                    competenciaNormalizada,
-                    candidato.competencias
-            )) {
-                candidato.adicionarCompetencia(
-                        CompetenciasEnum.valueOf(competenciaNormalizada)
-                )
-            }
+        Candidato candidatoSalvo = candidatoDAO.salvar(candidato)
+        
+        competencias.each {
+            competencia ->
+                Long idCompetenciaNormalizada = competenciaDAO.buscarIdPorNomeCompetencia(competencia)
+                if (idCompetenciaNormalizada != null) {
+                    competenciasCandidatoDAO.salvar(candidatoSalvo.id, idCompetenciaNormalizada)
+                }
         }
-        return candidato
+
+        return candidatoSalvo
     }
+
+    Candidato buscarCandidato(Long idCandidato) {
+        return candidatoDAO.buscarPorId(idCandidato)
+    }
+
+    Candidato logar(String email, String senha) {
+        Candidato candidatoEncontrado = null
+        if ((!email.isBlank()) && (!senha.isBlank())) {
+            candidatoEncontrado = candidatoDAO.buscarPorEmailESenha(email, senha)
+        }
+        return candidatoEncontrado
+    }
+
+    void desativarCandidato(Long idCandidato) {
+        candidatoDAO.desativar(idCandidato)
+    }
+    
+
+    void atualizarCandidato(
+            Long id,
+            String nome,
+            String sobrenome,
+            String email,
+            String senha,
+            String cpf,
+            LocalDate dataNascimento,
+            String pais,
+            int idade,
+            String estado,
+            String cep,
+            String descricao,
+            boolean ativo
+    ) {
+        Long paisId = paisDAO.buscarIdPorNome(pais)
+        Long estadoId = estadoDAO.buscarIdPorSigla(estado)
+
+        candidatoDAO.atualizarDados(
+                new Candidato(
+                        id,
+                        nome,
+                        sobrenome,
+                        email,
+                        senha,
+                        cpf,
+                        dataNascimento,
+                        paisId,
+                        idade,
+                        estadoId,
+                        cep,
+                        descricao,
+                        ativo
+                ))
+
+    }
+
+
+    void adicionarCompetencias(Long idCandidato, List<String> competenciasNovas) {
+        List<Competencia> converterParaCompetencia = []
+        competenciasNovas.each {competenciaString ->
+            converterParaCompetencia.add(
+                    competenciaDAO.buscarPorNome(competenciaString))
+        }
+        competenciasCandidatoDAO.atualizar(idCandidato, converterParaCompetencia)
+    }
+
+    void removerCompetencia(Long idCandidato, Long idCompetencia) {
+        competenciasCandidatoDAO.removerCompetencia(idCandidato, idCompetencia)
+    }
+
+    List<RemoverCompetenciaDTO> listaParaRemover(Long idCandidato) {
+        return competenciaDAO.converterCompetenciasParaDTO(competenciasCandidatoDAO.buscarPorCandidato(idCandidato))
+    }
+
+    List<String> competenciasEmString(Long idCandidato) {
+        return competenciasCandidatoDAO.buscarPorCandidatoString(idCandidato)
+    }
+    
 }
