@@ -1,9 +1,7 @@
 package com.jpcode.dao.candidato
 
 import com.jpcode.database.ConnectionFactory
-import com.jpcode.dto.candidato.CandidatoMatchDTO
 import com.jpcode.model.core.Candidato
-import com.jpcode.model.referencia.Competencia
 
 import java.sql.Date
 import java.sql.Statement
