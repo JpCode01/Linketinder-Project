@@ -2,10 +2,8 @@ package com.jpcode.dao.empresa
 
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.empresa.EmpresaMatchDTO
-import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Empresa
 
-import java.sql.Date
 import java.sql.Statement
 
 class EmpresaDAO {
@@ -80,47 +78,6 @@ class EmpresaDAO {
                     
                     
             ) 
-        }
-    }
-
-    EmpresaMatchDTO buscarPorIdParaMatch(Long id) {
-        String sql = """
-            SELECT
-            e.id, e.nome, e.cnpj,
-            e.email_corporativo,
-            e.descricao,
-            p.nome AS pais, e.cep,
-            es.sigla AS estado
-            FROM empresas e
-            JOIN pais p
-            ON p.id = e.id_pais
-            JOIN estados es
-            ON es.id = e.id_estado
-            WHERE e.id = ?
-        """
-
-        try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
-        ) {
-            statement.setLong(1, id)
-
-            def resultSet = statement.executeQuery()
-
-            if (!resultSet.next()) {
-                return null
-            }
-
-            return new EmpresaMatchDTO(
-                    resultSet.getLong("id"),
-                    resultSet.getString("nome"),
-                    resultSet.getString("cnpj"),
-                    resultSet.getString("email_corporativo"),
-                    resultSet.getString("descricao"),
-                    resultSet.getString("pais"),
-                    resultSet.getString("cep"),
-                    resultSet.getString("estado")
-            )
         }
     }
 
