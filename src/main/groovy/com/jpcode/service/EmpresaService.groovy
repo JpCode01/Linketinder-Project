@@ -9,9 +9,7 @@ import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
-import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Empresa
-import com.jpcode.model.core.Vaga
 import com.jpcode.validation.CompetenciaValidation
 
 class EmpresaService {
@@ -62,20 +60,6 @@ class EmpresaService {
             return empresaDAO.salvar(empresa)
         } else {
             return null
-        }
-    }
-
-    void curtirCandidato(Candidato candidato, Empresa empresa) {
-        empresa.adicionarCandidatoCurtido(candidato)
-    }
-
-    List<Vaga> ListarVagasPorEmpresa(Empresa empresa) {
-        empresa.vagas
-    }
-
-    void ListarCandidatosPorVaga(Vaga vaga) {
-        vaga.candidatosQueCurtiram.eachWithIndex { candidato, index ->
-            println "$index - Candidato anônimo ${index + 1}"
         }
     }
 
