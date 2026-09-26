@@ -8,7 +8,6 @@ class Candidato extends Pessoa {
     int idade
     String sobrenome
     LocalDate dataNascimento
-    List<Vaga> vagasCurtidas = []
 
     Candidato(String nome, String sobrenome, String email, String senha, String cpf, LocalDate dataNascimento,Long idPais, int idade, Long idEstado, String cep, String descricao) {
         super(nome, email, senha, idEstado, cep, descricao, idPais)
