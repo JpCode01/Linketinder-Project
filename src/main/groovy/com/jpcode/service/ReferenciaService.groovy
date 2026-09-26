@@ -19,6 +19,4 @@ class ReferenciaService {
     String converterIdEstadoParaString(Long idEstado) {
         return estadoDAO.buscarPorId(idEstado).sigla
     }
-
-
 }
