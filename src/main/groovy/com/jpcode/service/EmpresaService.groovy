@@ -10,10 +10,8 @@ import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.core.Empresa
-import com.jpcode.validation.CompetenciaValidation
 
 class EmpresaService {
-    final CompetenciaValidation validation
     final PaisDAO paisDAO
     final EstadoDAO estadoDAO
     final EmpresaDAO empresaDAO
@@ -22,7 +20,7 @@ class EmpresaService {
     final CompetenciasVagaDAO competenciasVagaDAO
     final CompetenciaDAO competenciaDAO
 
-    EmpresaService(CompetenciaValidation validation, PaisDAO paisDAO, EstadoDAO estadoDAO, EmpresaDAO empresaDAO, CandidatoCurtirDAO candidatoCurtirDAO, EmpresaCurtirDAO empresaCurtirDAO, CompetenciasVagaDAO competenciasVagaDAO, CompetenciaDAO competenciaDAO) {
+    EmpresaService(PaisDAO paisDAO, EstadoDAO estadoDAO, EmpresaDAO empresaDAO, CandidatoCurtirDAO candidatoCurtirDAO, EmpresaCurtirDAO empresaCurtirDAO, CompetenciasVagaDAO competenciasVagaDAO, CompetenciaDAO competenciaDAO) {
         this.validation = validation
         this.paisDAO = paisDAO
         this.estadoDAO = estadoDAO
