@@ -1,8 +1,6 @@
 package com.jpcode.model.core
 
-import com.jpcode.enums.CompetenciasEnum
-
-class Pessoa implements PessoaInterface {
+class Pessoa {
     Long id
     String nome
     String email
@@ -10,7 +8,6 @@ class Pessoa implements PessoaInterface {
     String cep
     String descricao
     Long idPais
-    List competencias = []
     String senha
     boolean ativo
 
@@ -35,16 +32,5 @@ class Pessoa implements PessoaInterface {
         this.id = id
         this.senha = senha
         this.ativo = ativo
-    }
-
-    String adicionarCompetencia(CompetenciasEnum competencia) {
-        competencias.add(competencia)
-        competencias.last()
-    }
-
-    void desativarUser() {
-        if (this.ativo == true) {
-            this.ativo = false
-        }
     }
 }
