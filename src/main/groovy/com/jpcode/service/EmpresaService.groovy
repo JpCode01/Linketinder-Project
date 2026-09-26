@@ -21,7 +21,6 @@ class EmpresaService {
     final CompetenciaDAO competenciaDAO
 
     EmpresaService(PaisDAO paisDAO, EstadoDAO estadoDAO, EmpresaDAO empresaDAO, CandidatoCurtirDAO candidatoCurtirDAO, EmpresaCurtirDAO empresaCurtirDAO, CompetenciasVagaDAO competenciasVagaDAO, CompetenciaDAO competenciaDAO) {
-        this.validation = validation
         this.paisDAO = paisDAO
         this.estadoDAO = estadoDAO
         this.empresaDAO = empresaDAO
