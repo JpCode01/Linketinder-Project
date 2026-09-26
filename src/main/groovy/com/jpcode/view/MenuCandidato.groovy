@@ -1,34 +1,25 @@
 package com.jpcode.view
 
-import com.jpcode.dao.candidato.CandidatoDAO
-import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
-import com.jpcode.dao.match.MatchDAO
-import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.referencia.EstadoDAO
-import com.jpcode.dao.referencia.PaisDAO
-import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
-import com.jpcode.dao.vaga.CompetenciasVagaDAO
-import com.jpcode.dao.vaga.VagaDAO
+import com.jpcode.config.DaoConfig
+import com.jpcode.config.ServiceConfig
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Vaga
-import com.jpcode.service.CandidatoService
-import com.jpcode.service.CompetenciaService
-import com.jpcode.service.MatchService
-import com.jpcode.service.ReferenciaService
-import com.jpcode.service.VagaService
+import com.jpcode.service.*
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class MenuCandidato {
     final Scanner scanner = new Scanner(System.in)
-    final CandidatoService candidatoService = new CandidatoService(new PaisDAO(),new EstadoDAO(), new CompetenciaDAO(), new CompetenciasCandidatoDAO(), new CandidatoDAO())
-    final VagaService vagaService = new VagaService(new CompetenciaDAO(), new CompetenciasVagaDAO(), new VagaDAO(), new CandidatoCurtirDAO())
-    final CompetenciaService competenciaService = new CompetenciaService(new CompetenciaDAO())
-    final ReferenciaService referenciaService = new ReferenciaService(new PaisDAO(), new EstadoDAO())
-    final MatchService matchService = new MatchService(new MatchDAO(new CompetenciasCandidatoDAO(), new CompetenciasVagaDAO()))
+    final DaoConfig daoConfig = new DaoConfig()
+    final ServiceConfig serviceConfig = new ServiceConfig(daoConfig)
 
+    final CandidatoService candidatoService = serviceConfig.candidatoService
+    final VagaService vagaService = serviceConfig.vagaService
+    final CompetenciaService competenciaService = serviceConfig.competenciaService
+    final ReferenciaService referenciaService = serviceConfig.referenciaService
+    final MatchService matchService = serviceConfig.matchService
 
     void inicio() {
         println("""
