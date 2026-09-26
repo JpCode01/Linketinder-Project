@@ -1,16 +1,8 @@
     package com.jpcode.view
 
-    import com.jpcode.dao.candidato.CandidatoDAO
-    import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
-    import com.jpcode.dao.empresa.EmpresaDAO
-    import com.jpcode.dao.match.MatchDAO
-    import com.jpcode.dao.referencia.CompetenciaDAO
-    import com.jpcode.dao.referencia.EstadoDAO
-    import com.jpcode.dao.referencia.PaisDAO
-    import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
-    import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
-    import com.jpcode.dao.vaga.CompetenciasVagaDAO
-    import com.jpcode.dao.vaga.VagaDAO
+    import com.jpcode.config.DaoConfig
+
+    import com.jpcode.config.ServiceConfig
     import com.jpcode.dto.vaga.VagaEmpresaDTO
     import com.jpcode.model.core.Empresa
     import com.jpcode.model.core.Vaga
@@ -18,13 +10,16 @@
 
     class MenuEmpresa {
         final Scanner scanner = new Scanner(System.in)
-        final EmpresaService empresaService = new EmpresaService(new PaisDAO(), new EstadoDAO(), new EmpresaDAO(), new CandidatoCurtirDAO(), new EmpresaCurtirDAO(), new CompetenciasVagaDAO(), new CompetenciaDAO())
-        final VagaService vagaService = new VagaService(new CompetenciaDAO(), new CompetenciasVagaDAO(), new VagaDAO(), new CandidatoCurtirDAO())
-        final CandidatoService candidatoService = new CandidatoService(new PaisDAO(), new EstadoDAO(), new CompetenciaDAO(), new CompetenciasCandidatoDAO(), new CandidatoDAO())
-        final MatchService matchService = new MatchService(new MatchDAO(new CompetenciasCandidatoDAO(), new CompetenciasVagaDAO()))
-        final CompetenciaService competenciaService = new CompetenciaService(new CompetenciaDAO())
-        final ReferenciaService referenciaService = new ReferenciaService(new PaisDAO(), new EstadoDAO())
-        
+        final DaoConfig daoConfig = new DaoConfig()
+        final ServiceConfig serviceConfig = new ServiceConfig(daoConfig)
+
+        final EmpresaService empresaService = serviceConfig.empresaService
+        final VagaService vagaService = serviceConfig.vagaService
+        final CandidatoService candidatoService = serviceConfig.candidatoService
+        final MatchService matchService = serviceConfig.matchService
+        final CompetenciaService competenciaService = serviceConfig.competenciaService
+        final ReferenciaService referenciaService = serviceConfig.referenciaService
+
         void inicio() {
             println("""
             1 - Cadastrar Empresa
