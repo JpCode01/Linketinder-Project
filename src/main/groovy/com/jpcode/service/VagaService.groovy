@@ -4,6 +4,7 @@ import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dao.vaga.VagaDAO
+import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
 import com.jpcode.model.core.Vaga
@@ -23,23 +24,17 @@ class VagaService {
         this.candidatoCurtirDAO = candidatoCurtirDAO
     }
 
-    void criarVaga(
-            String nome,
-            String descricao,
-            String local,
-            Long idEmpresa,
-            List<String> competencias
-    ) {
+    void criarVaga(CadastrarVagaDTO cadastrarVagaDTO) {
         Vaga vagaSalva =  vagaDAO.salvar(
                 new Vaga(
-                        nome,
-                        descricao,
-                        local,
-                        idEmpresa
+                        cadastrarVagaDTO.nome,
+                        cadastrarVagaDTO.descricao,
+                        cadastrarVagaDTO.local,
+                        cadastrarVagaDTO.idEmpresa
                 )
         )
 
-        competencias.each {
+        cadastrarVagaDTO.competencias.each {
             competencia ->
             Long idCompetenciaNormalizada =
                     competenciaDAO.buscarIdPorNomeCompetencia(competencia)
