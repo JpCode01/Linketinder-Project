@@ -11,8 +11,6 @@ import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.referencia.Competencia
 
-import java.time.LocalDate
-
 class CandidatoService {
     final PaisDAO paisDAO
     final EstadoDAO estadoDAO
