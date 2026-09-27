@@ -5,6 +5,7 @@ import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
 import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.EstadoDAO
 import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.core.Candidato
@@ -75,39 +76,25 @@ class CandidatoService {
     }
     
 
-    void atualizarCandidato(
-            Long id,
-            String nome,
-            String sobrenome,
-            String email,
-            String senha,
-            String cpf,
-            LocalDate dataNascimento,
-            String pais,
-            int idade,
-            String estado,
-            String cep,
-            String descricao,
-            boolean ativo
-    ) {
-        Long paisId = paisDAO.buscarIdPorNome(pais)
-        Long estadoId = estadoDAO.buscarIdPorSigla(estado)
+    void atualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
+        Long paisId = paisDAO.buscarIdPorNome(atualizarCandidatoDTO.pais)
+        Long estadoId = estadoDAO.buscarIdPorSigla(atualizarCandidatoDTO.estado)
 
         candidatoDAO.atualizarDados(
                 new Candidato(
-                        id,
-                        nome,
-                        sobrenome,
-                        email,
-                        senha,
-                        cpf,
-                        dataNascimento,
+                        atualizarCandidatoDTO.id,
+                        atualizarCandidatoDTO.nome,
+                        atualizarCandidatoDTO.sobrenome,
+                        atualizarCandidatoDTO.email,
+                        atualizarCandidatoDTO.senha,
+                        atualizarCandidatoDTO.cpf,
+                        atualizarCandidatoDTO.dataNascimento,
                         paisId,
-                        idade,
+                        atualizarCandidatoDTO.idade,
                         estadoId,
-                        cep,
-                        descricao,
-                        ativo
+                        atualizarCandidatoDTO.cep,
+                        atualizarCandidatoDTO.descricao,
+                        atualizarCandidatoDTO.ativo
                 ))
 
     }
