@@ -3,6 +3,7 @@
     import com.jpcode.config.DaoConfig
 
     import com.jpcode.config.ServiceConfig
+    import com.jpcode.dto.empresa.CadastrarEmpresaDTO
     import com.jpcode.dto.vaga.VagaEmpresaDTO
     import com.jpcode.model.core.Empresa
     import com.jpcode.model.core.Vaga
@@ -176,16 +177,17 @@
             println("Descricao:")
             String descricao = scanner.nextLine()
 
-            Empresa empresaCadastrada = empresaService.cadastrarEmpresa( nome,
-                    email,
-                    senha,
-                    cnpj,
-                    pais,
-                    estado,
-                    cep,
-                    descricao)
-            
-
+            Empresa empresaCadastrada = empresaService.cadastrarEmpresa( 
+                    new CadastrarEmpresaDTO(
+                            nome,
+                            email,
+                            senha,
+                            cnpj,
+                            pais,
+                            estado,
+                            cep,
+                            descricao
+                    ))
             if (empresaCadastrada == null) {
                 println("Não foi possível cadastrar empresa, Estado ou Pais inexistente em nossa base de dados")
             }
