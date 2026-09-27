@@ -9,6 +9,7 @@ import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
+import com.jpcode.dto.empresa.AtualizarEmpresaDTO
 import com.jpcode.dto.empresa.CadastrarEmpresaDTO
 import com.jpcode.model.core.Empresa
 
@@ -77,33 +78,22 @@ class EmpresaService {
         empresaDAO.desativar(idEmpresa)
     }
 
-    void atualizarEmpresa(
-            Long id,
-            String nome,
-            String email,
-            String senha,
-            String cnpj,
-            String pais,
-            String estado,
-            String cep,
-            String descricao,
-            boolean ativo
-    ) {
-        Long idPais = paisDAO.buscarIdPorNome(pais)
-        Long idEstado = estadoDAO.buscarIdPorSigla(estado)
+    void atualizarEmpresa(AtualizarEmpresaDTO atualizarEmpresaDTO) {
+        Long idPais = paisDAO.buscarIdPorNome(atualizarEmpresaDTO.pais)
+        Long idEstado = estadoDAO.buscarIdPorSigla(atualizarEmpresaDTO.estado)
 
         empresaDAO.atualizarDados(
                 new Empresa(
-                        id,
-                        nome,
-                        email,
-                        senha,
-                        cnpj,
+                        atualizarEmpresaDTO.id,
+                        atualizarEmpresaDTO.nome,
+                        atualizarEmpresaDTO.email,
+                        atualizarEmpresaDTO.senha,
+                        atualizarEmpresaDTO.cnpj,
                         idPais,
                         idEstado,
-                        cep,
-                        descricao,
-                        ativo
+                        atualizarEmpresaDTO.cep,
+                        atualizarEmpresaDTO.descricao,
+                        atualizarEmpresaDTO.ativo
                 )
         )
     }
