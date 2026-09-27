@@ -5,6 +5,7 @@ import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
 import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.EstadoDAO
 import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.referencia.Competencia
@@ -26,38 +27,27 @@ class CandidatoService {
         this.candidatoDAO = candidatoDAO
     }
     
-    Candidato cadastrarCandidato(String nome, 
-                                 String sobrenome,
-                                 String email,
-                                 String senha,
-                                 String cpf,
-                                 LocalDate dataNascimento,
-                                 String pais,
-                                 int idade,
-                                 String estado,
-                                 String cep,
-                                 String descricao,
-                                 List<String> competencias) {
-        Long paisId = paisDAO.buscarIdPorNome(pais)
-        Long estadoId = estadoDAO.buscarIdPorSigla(estado)
+    Candidato cadastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
+        Long paisId = paisDAO.buscarIdPorNome(cadastrarCandidatoDTO.pais)
+        Long estadoId = estadoDAO.buscarIdPorSigla(cadastrarCandidatoDTO.estado)
         Candidato candidato = new Candidato(
-                nome,
-                sobrenome,
-                email,
-                senha,
-                cpf,
-                dataNascimento,
+                cadastrarCandidatoDTO.nome,
+                cadastrarCandidatoDTO.sobrenome,
+                cadastrarCandidatoDTO.email,
+                cadastrarCandidatoDTO.senha,
+                cadastrarCandidatoDTO.cpf,
+                cadastrarCandidatoDTO.dataNascimento,
                 paisId,
-                idade,
+                cadastrarCandidatoDTO.idade,
                 estadoId,
-                cep,
-                descricao
+                cadastrarCandidatoDTO.cep,
+                cadastrarCandidatoDTO.descricao
 
         )
 
         Candidato candidatoSalvo = candidatoDAO.salvar(candidato)
         
-        competencias.each {
+        cadastrarCandidatoDTO.competencias.each {
             competencia ->
                 Long idCompetenciaNormalizada = competenciaDAO.buscarIdPorNomeCompetencia(competencia)
                 if (idCompetenciaNormalizada != null) {
