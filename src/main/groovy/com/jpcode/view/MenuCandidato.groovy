@@ -2,6 +2,7 @@ package com.jpcode.view
 
 import com.jpcode.config.DaoConfig
 import com.jpcode.config.ServiceConfig
+import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Vaga
@@ -177,18 +178,20 @@ class MenuCandidato {
         List<String> competencias = capturarCompetencias([])
 
         candidatoService.cadastrarCandidato(
-                nome,
-                sobrenome,
-                email,
-                senha,
-                cpf,
-                data,
-                pais,
-                idade,
-                estado,
-                cep,
-                descricao,
-                competencias
+                new CadastrarCandidatoDTO(
+                        nome,
+                        sobrenome,
+                        email,
+                        senha,
+                        cpf,
+                        data,
+                        pais,
+                        idade,
+                        estado,
+                        cep,
+                        descricao,
+                        competencias
+                )
         )
     }
 
