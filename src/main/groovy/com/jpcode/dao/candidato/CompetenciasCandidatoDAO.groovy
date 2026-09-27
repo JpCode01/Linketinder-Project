@@ -85,18 +85,6 @@ class CompetenciasCandidatoDAO {
         }
     }
 
-    List<RemoverCompetenciaDTO> converterCompetenciasParaDTO(List<Competencia> competencias) {
-        List<RemoverCompetenciaDTO> competenciasConvertidas = []
-        competencias.each {competencia ->
-            competenciasConvertidas.add(
-                    new RemoverCompetenciaDTO(competencia.id,
-                                            competencia.nome
-            ))
-        }
-
-        return competenciasConvertidas
-    }
-
 
     void removerCompetencia(Long idCandidato, Long idCompetencia) {
         String sql = """

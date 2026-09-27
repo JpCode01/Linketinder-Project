@@ -1,7 +1,6 @@
 package com.jpcode.dao.empresa
 
 import com.jpcode.database.ConnectionFactory
-import com.jpcode.dto.empresa.EmpresaMatchDTO
 import com.jpcode.model.core.Empresa
 
 import java.sql.Statement

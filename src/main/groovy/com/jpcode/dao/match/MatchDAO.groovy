@@ -37,32 +37,6 @@ class MatchDAO {
         }
     }
 
-    Match buscarPorId(Long id) {
-        String sql = """
-            SELECT id, id_candidato, id_empresa, id_vaga
-            FROM match
-            WHERE id = ?
-        """
-
-        try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
-        ) {
-            def resultSet = statement.executeQuery()
-
-            if (!resultSet.next()) {
-                return null
-            }
-
-            return new Match(
-                    resultSet.getLong("id"),
-                    resultSet.getLong("id_candidato"),
-                    resultSet.getLong("id_empresa"),
-                    resultSet.getLong("id_vaga"),
-            )
-        }
-    }
-
     List<MatchEncontradoDTO> buscarMatchesPorEmpresa(Long idEmpresa) {
 
         String sql = """
