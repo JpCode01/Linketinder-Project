@@ -8,6 +8,7 @@ import com.jpcode.dto.vaga.AtualizarVagaDTO
 import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
+import com.jpcode.exception.CompetenciaNaoEncontradaException
 import com.jpcode.model.core.Vaga
 import com.jpcode.model.referencia.Competencia
 
@@ -35,13 +36,17 @@ class VagaService {
                 )
         )
 
-        cadastrarVagaDTO.competencias.each {
-            competencia ->
-            Long idCompetenciaNormalizada =
-                    competenciaDAO.buscarIdPorNomeCompetencia(competencia)
-            if (idCompetenciaNormalizada != null) {
-                competenciasVagaDAO.salvar(vagaSalva.id, idCompetenciaNormalizada)
-            }
+        cadastrarVagaDTO.competencias.each {competencia ->
+            Long idCompetencia  = competenciaDAO
+                .buscarIdPorNomeCompetencia(competencia)
+                .orElseThrow(() ->
+                    new CompetenciaNaoEncontradaException(competencia)
+                )
+
+            competenciasVagaDAO.salvar(
+                    vagaSalva.id,
+                    idCompetencia
+            )
         }
     }
 

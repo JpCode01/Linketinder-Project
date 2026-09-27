@@ -8,6 +8,7 @@
     import com.jpcode.dto.vaga.AtualizarVagaDTO
     import com.jpcode.dto.vaga.CadastrarVagaDTO
     import com.jpcode.dto.vaga.VagaEmpresaDTO
+    import com.jpcode.exception.CompetenciaNaoEncontradaException
     import com.jpcode.exception.EstadoNaoEncontradoException
     import com.jpcode.exception.PaisNaoEncontradoException
     import com.jpcode.model.core.Empresa
@@ -255,7 +256,8 @@
             String local = scanner.nextLine()
 
             List<String> competencias = capturarCompetencias([])
-            vagaService.criarVaga(
+
+            tentarCriarVaga(
                     new CadastrarVagaDTO(
                             nome,
                             descricao, local,
@@ -263,6 +265,15 @@
                             competencias
                     )
             )
+        }
+
+        private void tentarCriarVaga(CadastrarVagaDTO cadastrarVagaDTO) {
+            try {
+                vagaService.criarVaga(cadastrarVagaDTO)
+                println("Vaga cadastrada com sucesso!")
+            } catch (CompetenciaNaoEncontradaException e) {
+                println(e.getMessage())
+            }
         }
 
         boolean apagarEmpresa(Empresa empresa) {

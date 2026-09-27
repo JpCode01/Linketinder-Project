@@ -59,7 +59,7 @@ class CompetenciaDAO {
         }
     }
 
-    Long buscarIdPorNomeCompetencia(String competencia) {
+    Optional<Long> buscarIdPorNomeCompetencia(String competencia) {
         String sql = """
             SELECT id
             FROM competencias
@@ -75,10 +75,10 @@ class CompetenciaDAO {
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next()) {
-                return null
+                return Optional.empty()
             }
 
-            return resultSet.getLong("id")
+            return Optional.of(resultSet.getLong("id"))
         }
     }
 
