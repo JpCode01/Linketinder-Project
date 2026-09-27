@@ -8,6 +8,8 @@
     import com.jpcode.dto.vaga.AtualizarVagaDTO
     import com.jpcode.dto.vaga.CadastrarVagaDTO
     import com.jpcode.dto.vaga.VagaEmpresaDTO
+    import com.jpcode.exception.EstadoNaoEncontradoException
+    import com.jpcode.exception.PaisNaoEncontradoException
     import com.jpcode.model.core.Empresa
     import com.jpcode.model.core.Vaga
     import com.jpcode.service.*
@@ -180,19 +182,24 @@
             println("Descricao:")
             String descricao = scanner.nextLine()
 
-            Empresa empresaCadastrada = empresaService.cadastrarEmpresa( 
-                    new CadastrarEmpresaDTO(
-                            nome,
-                            email,
-                            senha,
-                            cnpj,
-                            pais,
-                            estado,
-                            cep,
-                            descricao
-                    ))
-            if (empresaCadastrada == null) {
-                println("Não foi possível cadastrar empresa, Estado ou Pais inexistente em nossa base de dados")
+            tentarCadastrarEmpresa(new CadastrarEmpresaDTO(
+                    nome,
+                    email,
+                    senha,
+                    cnpj,
+                    pais,
+                    estado,
+                    cep,
+                    descricao
+            ))
+        }
+
+        private void tentarCadastrarEmpresa(CadastrarEmpresaDTO cadastrarEmpresaDTO) {
+            try {
+                empresaService.cadastrarEmpresa(cadastrarEmpresaDTO)
+                println("Empresa cadastrada com sucesso!")
+            } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
+                println(e.getMessage())
             }
         }
 

@@ -31,7 +31,7 @@ class EstadoDAO {
         }
     }
 
-    Long buscarIdPorSigla(String sigla) {
+    Optional<Long> buscarIdPorSigla(String sigla) {
         String sql = """
             SELECT id
             FROM estados
@@ -47,10 +47,10 @@ class EstadoDAO {
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next()) {
-                return null
+                Optional.empty()
             }
 
-            return resultSet.getLong("id")
+            return Optional.of(resultSet.getLong("id"))
         }
     }
 }

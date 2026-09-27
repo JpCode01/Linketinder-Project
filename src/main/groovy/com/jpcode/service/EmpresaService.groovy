@@ -11,6 +11,8 @@ import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.dto.empresa.AtualizarEmpresaDTO
 import com.jpcode.dto.empresa.CadastrarEmpresaDTO
+import com.jpcode.exception.EstadoNaoEncontradoException
+import com.jpcode.exception.PaisNaoEncontradoException
 import com.jpcode.model.core.Empresa
 
 class EmpresaService {
@@ -33,25 +35,28 @@ class EmpresaService {
     }
 
     Empresa cadastrarEmpresa(CadastrarEmpresaDTO cadastrarEmpresaDTO) {
+       
         Long paisId = paisDAO.buscarIdPorNome(cadastrarEmpresaDTO.pais)
+                .orElseThrow(() ->
+                    new PaisNaoEncontradoException(cadastrarEmpresaDTO.pais)
+                )
         Long estadoId = estadoDAO.buscarIdPorSigla(cadastrarEmpresaDTO.estado)
-      
-        if (paisId != null && estadoId != null) {
-
-            Empresa empresa = new Empresa(
-                    cadastrarEmpresaDTO.nome,
-                    cadastrarEmpresaDTO.email,
-                    cadastrarEmpresaDTO.senha,
-                    cadastrarEmpresaDTO.cnpj,
-                    paisId,
-                    estadoId,
-                    cadastrarEmpresaDTO.cep,
-                    cadastrarEmpresaDTO.descricao
-            )
-            return empresaDAO.salvar(empresa)
-        } else {
-            return null
-        }
+                .orElseThrow(() ->
+                    new EstadoNaoEncontradoException(cadastrarEmpresaDTO.estado)
+                )
+    
+        Empresa empresa = new Empresa(
+                cadastrarEmpresaDTO.nome,
+                cadastrarEmpresaDTO.email,
+                cadastrarEmpresaDTO.senha,
+                cadastrarEmpresaDTO.cnpj,
+                paisId,
+                estadoId,
+                cadastrarEmpresaDTO.cep,
+                cadastrarEmpresaDTO.descricao
+        )
+        
+        return empresaDAO.salvar(empresa)
     }
 
     Empresa logar(String email, String senha) {

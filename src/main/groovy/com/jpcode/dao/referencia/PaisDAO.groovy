@@ -5,34 +5,34 @@ import com.jpcode.model.referencia.Pais
 
 class PaisDAO {
 
-        Pais buscarPorId(Long id) {
-            String sql = """
-                SELECT id, nome
-                FROM pais
-                WHERE id = ?
-            """
-    
-            try (
-                def connection = ConnectionFactory.getConnection()
-                def statement = connection.prepareStatement(sql)
-            ) {
-                statement.setLong(1, id)
-    
-                def resultSet = statement.executeQuery()
-    
-                if (!resultSet.next()) {
-                    return null
-                }
-    
-                return new Pais(
-                        resultSet.getLong("id"),
-                        resultSet.getString("nome")
-                        
-                )
-            }
-        }
+    Pais buscarPorId(Long id) {
+        String sql = """
+            SELECT id, nome
+            FROM pais
+            WHERE id = ?
+        """
 
-    Long buscarIdPorNome(String nome) {
+        try (
+            def connection = ConnectionFactory.getConnection()
+            def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, id)
+
+            def resultSet = statement.executeQuery()
+
+            if (!resultSet.next()) {
+                return null
+            }
+
+            return new Pais(
+                    resultSet.getLong("id"),
+                    resultSet.getString("nome")
+                    
+            )
+        }
+    }
+
+    Optional<Long> buscarIdPorNome(String nome) {
         String sql = """
             SELECT id
             FROM pais
@@ -48,10 +48,10 @@ class PaisDAO {
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next()) {
-                return null
+                return Optional.empty()
             }
 
-            return resultSet.getLong("id")
+            return Optional.of(resultSet.getLong("id"))
         }
     }
 }
