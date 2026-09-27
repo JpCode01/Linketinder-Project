@@ -4,6 +4,7 @@ import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dao.vaga.VagaDAO
+import com.jpcode.dto.vaga.AtualizarVagaDTO
 import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
@@ -72,20 +73,14 @@ class VagaService {
         vagaDAO.deletar(idVaga)
     }
 
-    void atualizarVaga(
-            Long id,
-            String nome,
-            String descricao,
-            String local,
-            Long idEmpresa
-    ) {
+    void atualizarVaga(AtualizarVagaDTO atualizarVagaDTO) {
         vagaDAO.atualizarDados(
                 new Vaga(
-                        id,
-                        nome,
-                        descricao,
-                        local,
-                        idEmpresa
+                        atualizarVagaDTO.id,
+                        atualizarVagaDTO.nome,
+                        atualizarVagaDTO.descricao,
+                        atualizarVagaDTO.local,
+                        atualizarVagaDTO.idEmpresa
                 )
         )
     }
