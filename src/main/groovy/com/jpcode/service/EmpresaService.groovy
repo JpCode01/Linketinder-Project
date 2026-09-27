@@ -84,8 +84,14 @@ class EmpresaService {
     }
 
     void atualizarEmpresa(AtualizarEmpresaDTO atualizarEmpresaDTO) {
-        Long idPais = paisDAO.buscarIdPorNome(atualizarEmpresaDTO.pais)
-        Long idEstado = estadoDAO.buscarIdPorSigla(atualizarEmpresaDTO.estado)
+        Long paisId = paisDAO.buscarIdPorNome(atualizarEmpresaDTO.pais)
+                .orElseThrow(() ->
+                        new PaisNaoEncontradoException(atualizarEmpresaDTO.pais)
+                )
+        Long estadoId = estadoDAO.buscarIdPorSigla(atualizarEmpresaDTO.estado)
+                .orElseThrow(() ->
+                        new EstadoNaoEncontradoException(atualizarEmpresaDTO.estado)
+                )
 
         empresaDAO.atualizarDados(
                 new Empresa(
@@ -94,8 +100,8 @@ class EmpresaService {
                         atualizarEmpresaDTO.email,
                         atualizarEmpresaDTO.senha,
                         atualizarEmpresaDTO.cnpj,
-                        idPais,
-                        idEstado,
+                        paisId,
+                        estadoId,
                         atualizarEmpresaDTO.cep,
                         atualizarEmpresaDTO.descricao,
                         atualizarEmpresaDTO.ativo

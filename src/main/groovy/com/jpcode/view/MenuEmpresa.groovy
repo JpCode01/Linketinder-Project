@@ -316,7 +316,7 @@
                 empresa.senha = senha
             }
 
-            println("CPF:")
+            println("CNPJ:")
             String cnpj = scanner.nextLine()
             if (!cnpj.isEmpty()) {
                 empresa.cnpj = cnpj
@@ -349,7 +349,7 @@
                 empresa.descricao = descricao
             }
 
-            empresaService.atualizarEmpresa(
+            tentarAtualizarEmpresa(
                     new AtualizarEmpresaDTO(
                             empresa.id,
                             empresa.nome,
@@ -363,6 +363,16 @@
                             empresa.ativo
                     )
             )
+            
+        }
+
+        private void tentarAtualizarEmpresa(AtualizarEmpresaDTO atualizarEmpresaDTO) {
+            try {
+                empresaService.atualizarEmpresa(atualizarEmpresaDTO)
+                println("Empresa atualizada com sucesso!")
+            } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
+                println(e.getMessage())
+            }
         }
 
         void atualizarVaga(List<VagaEmpresaDTO> vagas) {
