@@ -5,6 +5,7 @@
     import com.jpcode.config.ServiceConfig
     import com.jpcode.dto.empresa.AtualizarEmpresaDTO
     import com.jpcode.dto.empresa.CadastrarEmpresaDTO
+    import com.jpcode.dto.vaga.AtualizarVagaDTO
     import com.jpcode.dto.vaga.CadastrarVagaDTO
     import com.jpcode.dto.vaga.VagaEmpresaDTO
     import com.jpcode.model.core.Empresa
@@ -383,11 +384,13 @@
                 }
 
                 vagaService.atualizarVaga(
-                        vagaEncontrada.id,
-                        vagaEncontrada.nome,
-                        vagaEncontrada.descricao,
-                        vagaEncontrada.local,
-                        vagaEncontrada.idEmpresa
+                        new AtualizarVagaDTO(
+                                vagaEncontrada.id,
+                                vagaEncontrada.nome,
+                                vagaEncontrada.descricao,
+                                vagaEncontrada.local,
+                                vagaEncontrada.idEmpresa
+                        )
                 )
             } else {
                 println("Vaga não encontrada!")
