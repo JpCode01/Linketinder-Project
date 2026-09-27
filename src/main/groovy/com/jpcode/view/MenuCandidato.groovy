@@ -2,6 +2,7 @@ package com.jpcode.view
 
 import com.jpcode.config.DaoConfig
 import com.jpcode.config.ServiceConfig
+import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.model.core.Candidato
@@ -266,19 +267,21 @@ class MenuCandidato {
         }
         
         candidatoService.atualizarCandidato(
-                candidato.id,
-                candidato.nome,
-                candidato.sobrenome,
-                candidato.email,
-                candidato.senha,
-                candidato.cpf,
-                candidato.dataNascimento,
-                pais,
-                candidato.idade,
-                estado,
-                candidato.cep,
-                candidato.descricao,
-                candidato.ativo
+                new AtualizarCandidatoDTO(
+                        candidato.id,
+                        candidato.nome,
+                        candidato.sobrenome,
+                        candidato.email,
+                        candidato.senha,
+                        candidato.cpf,
+                        candidato.dataNascimento,
+                        pais,
+                        candidato.idade,
+                        estado,
+                        candidato.cep,
+                        candidato.descricao,
+                        candidato.ativo
+                )
         )
     }
 
