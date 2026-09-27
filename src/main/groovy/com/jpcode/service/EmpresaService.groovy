@@ -9,6 +9,7 @@ import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
+import com.jpcode.dto.empresa.CadastrarEmpresaDTO
 import com.jpcode.model.core.Empresa
 
 class EmpresaService {
@@ -30,29 +31,21 @@ class EmpresaService {
         this.competenciaDAO = competenciaDAO
     }
 
-    Empresa cadastrarEmpresa(
-            String nome,
-            String email,
-            String senha,
-            String cnpj,
-            String pais,
-            String estado,
-            String cep,
-            String descricao
-    ) {
-        Long paisId = paisDAO.buscarIdPorNome(pais)
-        Long estadoId = estadoDAO.buscarIdPorSigla(estado)
+    Empresa cadastrarEmpresa(CadastrarEmpresaDTO cadastrarEmpresaDTO) {
+        Long paisId = paisDAO.buscarIdPorNome(cadastrarEmpresaDTO.pais)
+        Long estadoId = estadoDAO.buscarIdPorSigla(cadastrarEmpresaDTO.estado)
+      
         if (paisId != null && estadoId != null) {
 
             Empresa empresa = new Empresa(
-                    nome,
-                    email,
-                    senha,
-                    cnpj,
+                    cadastrarEmpresaDTO.nome,
+                    cadastrarEmpresaDTO.email,
+                    cadastrarEmpresaDTO.senha,
+                    cadastrarEmpresaDTO.cnpj,
                     paisId,
                     estadoId,
-                    cep,
-                    descricao
+                    cadastrarEmpresaDTO.cep,
+                    cadastrarEmpresaDTO.descricao
             )
             return empresaDAO.salvar(empresa)
         } else {
