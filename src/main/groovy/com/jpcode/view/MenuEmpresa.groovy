@@ -3,6 +3,7 @@
     import com.jpcode.config.DaoConfig
 
     import com.jpcode.config.ServiceConfig
+    import com.jpcode.dto.empresa.AtualizarEmpresaDTO
     import com.jpcode.dto.empresa.CadastrarEmpresaDTO
     import com.jpcode.dto.vaga.VagaEmpresaDTO
     import com.jpcode.model.core.Empresa
@@ -333,16 +334,18 @@
             }
 
             empresaService.atualizarEmpresa(
-                    empresa.id,
-                    empresa.nome,
-                    empresa.email,
-                    empresa.senha,
-                    empresa.cnpj,
-                    pais,
-                    estado,
-                    empresa.cep,
-                    empresa.descricao,
-                    empresa.ativo
+                    new AtualizarEmpresaDTO(
+                            empresa.id,
+                            empresa.nome,
+                            empresa.email,
+                            empresa.senha,
+                            empresa.cnpj,
+                            pais,
+                            estado,
+                            empresa.cep,
+                            empresa.descricao,
+                            empresa.ativo
+                    )
             )
         }
 
