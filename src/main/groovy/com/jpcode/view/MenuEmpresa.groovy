@@ -5,6 +5,7 @@
     import com.jpcode.config.ServiceConfig
     import com.jpcode.dto.empresa.AtualizarEmpresaDTO
     import com.jpcode.dto.empresa.CadastrarEmpresaDTO
+    import com.jpcode.dto.vaga.CadastrarVagaDTO
     import com.jpcode.dto.vaga.VagaEmpresaDTO
     import com.jpcode.model.core.Empresa
     import com.jpcode.model.core.Vaga
@@ -246,7 +247,14 @@
             String local = scanner.nextLine()
 
             List<String> competencias = capturarCompetencias([])
-            vagaService.criarVaga(nome, descricao, local, empresa.id, competencias)
+            vagaService.criarVaga(
+                    new CadastrarVagaDTO(
+                            nome,
+                            descricao, local,
+                            empresa.id,
+                            competencias
+                    )
+            )
         }
 
         boolean apagarEmpresa(Empresa empresa) {
