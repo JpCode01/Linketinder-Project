@@ -211,7 +211,6 @@ class MenuCandidato {
     private void atualizarCandidato(Candidato candidato) {
         scanner.nextLine()
 
-
         println("Nome:")
         String nome = scanner.nextLine()
         if (!nome.isEmpty()) {
@@ -278,7 +277,7 @@ class MenuCandidato {
             candidato.descricao = descricao
         }
         
-        candidatoService.atualizarCandidato(
+        tentarAtualizarCandidato(
                 new AtualizarCandidatoDTO(
                         candidato.id,
                         candidato.nome,
@@ -295,6 +294,15 @@ class MenuCandidato {
                         candidato.ativo
                 )
         )
+    }
+
+    private void tentarAtualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
+        try {
+            candidatoService.atualizarCandidato(atualizarCandidatoDTO)
+            println("Candidato atualizado com sucesso!")
+        } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
+            println(e.getMessage())
+        }
     }
 
 
