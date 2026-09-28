@@ -5,6 +5,9 @@ import com.jpcode.config.ServiceConfig
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
+import com.jpcode.exception.CompetenciaNaoEncontradaException
+import com.jpcode.exception.EstadoNaoEncontradoException
+import com.jpcode.exception.PaisNaoEncontradoException
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.core.Vaga
 import com.jpcode.service.*
@@ -177,8 +180,8 @@ class MenuCandidato {
         String descricao = scanner.nextLine()
 
         List<String> competencias = capturarCompetencias([])
-
-        candidatoService.cadastrarCandidato(
+        
+        tentarCandastrarCandidato(
                 new CadastrarCandidatoDTO(
                         nome,
                         sobrenome,
@@ -194,6 +197,15 @@ class MenuCandidato {
                         competencias
                 )
         )
+    }
+
+    private void tentarCandastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
+        try {
+            candidatoService.cadastrarCandidato(cadastrarCandidatoDTO)
+            println("Candidato cadastrado com sucesso!")
+        } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException | CompetenciaNaoEncontradaException e) {
+            println(e.getMessage())
+        }
     }
 
     private void atualizarCandidato(Candidato candidato) {
