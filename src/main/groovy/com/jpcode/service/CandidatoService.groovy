@@ -8,6 +8,9 @@ import com.jpcode.dao.referencia.PaisDAO
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
+import com.jpcode.exception.CompetenciaNaoEncontradaException
+import com.jpcode.exception.EstadoNaoEncontradoException
+import com.jpcode.exception.PaisNaoEncontradoException
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.referencia.Competencia
 
@@ -28,30 +31,42 @@ class CandidatoService {
     
     Candidato cadastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
         Long paisId = paisDAO.buscarIdPorNome(cadastrarCandidatoDTO.pais)
+                .orElseThrow(() ->
+                        new PaisNaoEncontradoException(cadastrarCandidatoDTO.pais)
+                )
         Long estadoId = estadoDAO.buscarIdPorSigla(cadastrarCandidatoDTO.estado)
-        Candidato candidato = new Candidato(
-                cadastrarCandidatoDTO.nome,
-                cadastrarCandidatoDTO.sobrenome,
-                cadastrarCandidatoDTO.email,
-                cadastrarCandidatoDTO.senha,
-                cadastrarCandidatoDTO.cpf,
-                cadastrarCandidatoDTO.dataNascimento,
-                paisId,
-                cadastrarCandidatoDTO.idade,
-                estadoId,
-                cadastrarCandidatoDTO.cep,
-                cadastrarCandidatoDTO.descricao
-
+                .orElseThrow(() ->
+                new EstadoNaoEncontradoException(cadastrarCandidatoDTO.estado)
         )
 
-        Candidato candidatoSalvo = candidatoDAO.salvar(candidato)
+        Candidato candidatoSalvo = candidatoDAO.salvar(
+                    new Candidato(
+                            cadastrarCandidatoDTO.nome,
+                            cadastrarCandidatoDTO.sobrenome,
+                            cadastrarCandidatoDTO.email,
+                            cadastrarCandidatoDTO.senha,
+                            cadastrarCandidatoDTO.cpf,
+                            cadastrarCandidatoDTO.dataNascimento,
+                            paisId,
+                            cadastrarCandidatoDTO.idade,
+                            estadoId,
+                            cadastrarCandidatoDTO.cep,
+                            cadastrarCandidatoDTO.descricao
+                    )
+            )
         
         cadastrarCandidatoDTO.competencias.each {
             competencia ->
-                Long idCompetenciaNormalizada = competenciaDAO.buscarIdPorNomeCompetencia(competencia)
-                if (idCompetenciaNormalizada != null) {
-                    competenciasCandidatoDAO.salvar(candidatoSalvo.id, idCompetenciaNormalizada)
-                }
+              Long idCompetencia = competenciaDAO
+                .buscarIdPorNomeCompetencia(competencia)
+                .orElseThrow(() ->
+                    new CompetenciaNaoEncontradaException(competencia)
+                )
+
+                competenciasCandidatoDAO.salvar(
+                    candidatoSalvo.id,
+                    idCompetencia
+                )
         }
 
         return candidatoSalvo
