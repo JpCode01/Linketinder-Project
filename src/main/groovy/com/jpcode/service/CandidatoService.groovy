@@ -91,7 +91,13 @@ class CandidatoService {
 
     void atualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
         Long paisId = paisDAO.buscarIdPorNome(atualizarCandidatoDTO.pais)
+                .orElseThrow(() ->
+                        new PaisNaoEncontradoException(atualizarCandidatoDTO.pais)
+                )
         Long estadoId = estadoDAO.buscarIdPorSigla(atualizarCandidatoDTO.estado)
+                .orElseThrow(() ->
+                        new EstadoNaoEncontradoException(atualizarCandidatoDTO.estado)
+                )
 
         candidatoDAO.atualizarDados(
                 new Candidato(
