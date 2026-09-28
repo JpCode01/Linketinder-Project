@@ -55,7 +55,7 @@ class CandidatoDAO {
         }
     }
 
-    Candidato buscarPorId(Long id) {
+    Optional<Candidato> buscarPorId(Long id) {
         String sql = """
             SELECT id, nome, sobrenome, email, data_nascimento, 
             cpf, idade, id_pais, cep, descricao, ativo, senha, id_estado
@@ -72,10 +72,10 @@ class CandidatoDAO {
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next()) {
-                return null
+                return Optional.empty()
             }
 
-            return new Candidato(
+            Candidato candidato = new Candidato(
                     resultSet.getLong("id"),
                     resultSet.getString("nome"),
                     resultSet.getString("sobrenome"),
@@ -91,6 +91,7 @@ class CandidatoDAO {
                     resultSet.getBoolean("ativo")
             )
 
+            return Optional.of(candidato)
         }
 
     }
