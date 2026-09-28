@@ -47,7 +47,7 @@ class EstadoDAO {
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next()) {
-                Optional.empty()
+                return Optional.empty()
             }
 
             return Optional.of(resultSet.getLong("id"))
