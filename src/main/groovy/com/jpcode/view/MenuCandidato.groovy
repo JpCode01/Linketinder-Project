@@ -116,6 +116,17 @@ class MenuCandidato {
         }
     }
 
+    private Long solicitarId(String mensagem) {
+        println(mensagem)
+
+        if (!scanner.hasNextLong()) {
+            scanner.nextLine()
+            throw new InputMismatchException("Digite um ID numérico.")
+        }
+
+        return scanner.nextLong()
+    }
+
     void curtirVaga(Candidato candidato, List<VagaAnonimaDTO> vagasDisponiveis) {
         if (vagasDisponiveis.isEmpty()) {
             println("Nao ha vagas disponiveis no momento!")
