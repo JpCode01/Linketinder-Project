@@ -89,10 +89,10 @@ class MenuCandidato {
                     println(vagasDisponiveis(vagasCurtidasEncontradas))
                     break
                 case 3:
-                    curtirVaga(candidato, vagasDisponiveis)
+                    curtirVaga(candidato.id)
                     break
                 case 4:
-                    if(apagarCandidato(candidato)) {
+                    if(apagarCandidato(candidato.id, candidato.senha)) {
                         return
                     }
                     break
@@ -375,11 +375,11 @@ class MenuCandidato {
         return competencias
     }
 
-    boolean apagarCandidato(Candidato candidato) {
+    boolean apagarCandidato(Long idCandidato, String senha) {
         scanner.nextLine()
         println("Digite sua senha para confirmar (Caso queira desistir, aperte enter): ")
-        if (scanner.nextLine() == candidato.senha) {
-            candidatoService.desativarCandidato(candidato.id)
+        if (scanner.nextLine() == senha) {
+            candidatoService.desativarCandidato(idCandidato)
             println("Conta deletada com sucesso")
             return true
         }
