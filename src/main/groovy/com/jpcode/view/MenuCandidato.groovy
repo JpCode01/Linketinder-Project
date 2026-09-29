@@ -157,7 +157,7 @@ class MenuCandidato {
         try {
             Long idVaga = solicitarId("Digite o ID da vaga: ")
 
-            if (!verificaSeExisteVaga(vagasDisponiveis)) {
+            if (!verificaSeExisteVaga(idVaga, vagasDisponiveis)) {
                 println("Vaga de ID ${idVaga} não encontrada!")
                 return
             }
