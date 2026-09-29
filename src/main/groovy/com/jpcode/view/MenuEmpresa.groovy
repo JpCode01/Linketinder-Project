@@ -1,15 +1,14 @@
     package com.jpcode.view
 
     import com.jpcode.config.DaoConfig
-
     import com.jpcode.config.ServiceConfig
     import com.jpcode.dto.candidato.CandidatoAnonimoDTO
+    import com.jpcode.dto.competencia.RemoverCompetenciaDTO
     import com.jpcode.dto.empresa.AtualizarEmpresaDTO
     import com.jpcode.dto.empresa.CadastrarEmpresaDTO
     import com.jpcode.dto.vaga.AtualizarVagaDTO
     import com.jpcode.dto.vaga.CadastrarVagaDTO
     import com.jpcode.dto.vaga.VagaEmpresaDTO
-    import com.jpcode.exception.CandidatoNaoEncontradoException
     import com.jpcode.exception.CompetenciaNaoEncontradaException
     import com.jpcode.exception.EstadoNaoEncontradoException
     import com.jpcode.exception.PaisNaoEncontradoException
@@ -73,7 +72,6 @@
 
         private menuEmpresa(Empresa empresa) {
             while(true) {
-                List<VagaEmpresaDTO> vagasEmpresa = vagaService.listarVagas(empresa.id)
                 println(empresa)
                 println("""
                 1 - Ver Vagas
@@ -91,39 +89,39 @@
                 """)
                 switch (scanner.nextInt()) {
                     case 1:
-                        println(vagasEmpresa)
+                        println(verVagasEmpresa(empresa.id))
                         break
                     case 2:
                         escolherCandidatoParaCurtir(empresa.id)
                         break
                     case 3:
-                        criarVaga(empresa)
+                        criarVaga(empresa.id)
                         break
                     case 4:
-                        verCandidatosCurtidos(empresa)
+                        verCandidatosCurtidos(empresa.id)
                         break
                     case 5:
-                        if (apagarEmpresa(empresa)) {
+                        if (apagarEmpresa(empresa.id, empresa.senha)) {
                             return
                         }
                         break
                     case 6:
-                        vagasEmpresa =  apagarVaga(vagasEmpresa)
+                        apagarVaga(empresa.id)
                         break
                     case 7:
                         atualizarEmpresa(empresa)
                         break
                     case 8:
-                        atualizarVaga(vagasEmpresa)
+                        atualizarVaga(empresa.id)
                         break
                     case 9:
-                        atualizarCompetencias(vagasEmpresa)
+                        atualizarCompetencias(empresa.id)
                         break
                     case 10:
-                        verMatches(empresa)
+                        verMatches(empresa.id)
                         break
                     case 11:
-                        removerCompetencia(vagasEmpresa)
+                        removerCompetencia(empresa.id)
                         break
                     case 12:
                         return
@@ -131,8 +129,8 @@
             }
         }
 
-        private verCandidatosCurtidos(Empresa empresa) {
-            println(empresaService.buscarCandidatosCurtidos(empresa.id))
+        private verCandidatosCurtidos(Long idEmpresa) {
+            println(empresaService.buscarCandidatosCurtidos(idEmpresa))
         }
 
         private List<VagaEmpresaDTO> verVagasEmpresa(Long idEmpresa) {
@@ -149,7 +147,7 @@
             return resposta == "s"
         }
 
-        private boolean tentarProcurarVaga(Long idVaga, List<VagaEmpresaDTO> vagasEmpresa) {
+        private boolean VerificaSeExisteVagaNaLista(Long idVaga, List<VagaEmpresaDTO> vagasEmpresa) {
             return vagasEmpresa.any {
                 VagaEmpresaDTO vaga -> vaga.id == idVaga
             }
@@ -163,7 +161,7 @@
             try {
                 Long idVaga = solicitarId("Digite o ID da vaga:")
 
-                if (!tentarProcurarVaga(idVaga, vagasEmpresa)) {
+                if (!VerificaSeExisteVagaNaLista(idVaga, vagasEmpresa)) {
                     println("Vaga de ID ${idVaga} não encontrada!")
                     return
                 }
@@ -189,6 +187,12 @@
 
         private Long solicitarId(String mensagem) {
             println(mensagem)
+
+            if (!scanner.hasNextLong()) {
+                scanner.nextLine()
+                throw new InputMismatchException("Digite um ID numérico.")
+            }
+
             return scanner.nextLong()
         }
 
@@ -296,7 +300,7 @@
             return competencias
         }
 
-        private void criarVaga(Empresa empresa) {
+        private void criarVaga(Long idEmpresa) {
             scanner.nextLine()
 
             println("Digite o nome da vaga:")
@@ -313,8 +317,9 @@
             tentarCriarVaga(
                     new CadastrarVagaDTO(
                             nome,
-                            descricao, local,
-                            empresa.id,
+                            descricao,
+                            local,
+                            idEmpresa,
                             competencias
                     )
             )
@@ -329,33 +334,39 @@
             }
         }
 
-        boolean apagarEmpresa(Empresa empresa) {
+        boolean apagarEmpresa(Long idEmpresa, String senhaEmpresa) {
             scanner.nextLine()
             println("Digite sua senha para confirmar (Caso queira desistir, aperte enter): ")
-            if (scanner.nextLine() == empresa.senha) {
-                empresaService.desativarEmpresa(empresa.id)
+            if (scanner.nextLine() == senhaEmpresa) {
+                empresaService.desativarEmpresa(idEmpresa)
                 println("Conta deletada com sucesso")
                 return true
             }
             return false
         }
 
-        List<VagaEmpresaDTO> apagarVaga(List<VagaEmpresaDTO> vagas) {
-            scanner.nextLine()
-            println(vagas)
-
-            println("Digite o ID da vaga desejada: (Enter para cancelar) ")
-            String idVaga = scanner.nextLine()
-
-            if (idVaga != "") {
-                Long id = Long.parseLong(idVaga)
-
-                vagaService.deletarVaga(id)
-
-                vagas.removeIf { vaga -> vaga.id == id }
+        void tentarDeletarVaga(Long idVaga) {
+            try {
+                vagaService.deletarVaga(idVaga)
+                println("Vaga deletada com sucesso!")
+            } catch (VagaNaoEncontradaException e) {
+                e.getMessage()
             }
+        }
 
-            return vagas
+        void apagarVaga(Long idEmpresa) {
+            scanner.nextLine()
+            List<VagaEmpresaDTO> vagasEmpresa = verVagasEmpresa(idEmpresa)
+            println(vagasEmpresa)
+
+            try {
+                Long idVaga = solicitarId("Digite o ID da vaga:")
+
+                tentarDeletarVaga(idVaga)
+            } catch (InputMismatchException e) {
+                scanner.nextLine()
+                println("Entrada inválida! Digite um ID numérico." + e.getMessage())
+            }
         }
 
         private void atualizarEmpresa(Empresa empresa) {
@@ -439,12 +450,22 @@
             }
         }
 
-        void atualizarVaga(List<VagaEmpresaDTO> vagas) {
-            println(vagas)
-            println("Digite o id da vaga: ")
-            Long idVaga = scanner.nextLong()
-            if (vagaService.buscarVaga(idVaga) != null) {
+        void atualizarVaga(Long idEmpresa) {
+            scanner.nextLine()
+            List<VagaEmpresaDTO> vagasEmpresa = verVagasEmpresa(idEmpresa)
+            println(vagasEmpresa)
+
+            try {
+                Long idVaga = solicitarId("Digite o ID da vaga:")
+
+
+                if (!VerificaSeExisteVagaNaLista(idVaga, vagasEmpresa)) {
+                        println("Vaga de ID ${idVaga} não encontrada!")
+                        return
+                }
+
                 Vaga vagaEncontrada = vagaService.buscarVaga(idVaga)
+
                 scanner.nextLine()
                 println("Nome:")
                 String nome = scanner.nextLine()
@@ -473,39 +494,75 @@
                                 vagaEncontrada.idEmpresa
                         )
                 )
-            } else {
-                println("Vaga não encontrada!")
+
+            } catch (InputMismatchException e) {
+                println("Entrada inválida! Digite um ID numérico." + e.getMessage())
             }
         }
 
-        void atualizarCompetencias(List<VagaEmpresaDTO> vagasEmpresa) {
+        void atualizarCompetencias(Long idEmpresa) {
+            scanner.nextLine()
+            
+            List<VagaEmpresaDTO> vagasEmpresa = verVagasEmpresa(idEmpresa)
             println(vagasEmpresa)
-            println("Digite o id da vaga: ")
-            Long idVaga = scanner.nextLong()
-            if (vagaService.buscarVaga(idVaga) != null) {
+
+            println("Digite o ID da vaga desejada: ")
+            try {
+                Long idVaga = scanner.nextLine()
+
+                if (!VerificaSeExisteVagaNaLista(idVaga, vagasEmpresa)) {
+                    println("Vaga de ID ${idVaga} não encontrada!")
+                    return
+                }
                 List<String> competencias = vagaService.competenciasEmString(idVaga)
                 vagaService.adicionarCompetencias(idVaga, capturarCompetencias(competencias))
-            } else {
-                println("Vaga não encontrada!")
+
+                println("Competencias da vaga atualizada com sucesso!")
+            } catch (InputMismatchException e) {
+                scanner.nextLine()
+                println("Entrada inválida! Digite um ID numérico." + e.getMessage())
             }
         }
 
-        void verMatches(Empresa empresa) {
-            println(matchService.verMatchesPorEmpresa(empresa.id))
+        void verMatches(Long idEmpresa) {
+            println(matchService.verMatchesPorEmpresa(idEmpresa))
         }
 
-        void removerCompetencia(List<VagaEmpresaDTO> vagasEmpresa) {
+        void removerCompetencia(Long idEmpresa) {
+            scanner.nextLine()
+            List<VagaEmpresaDTO> vagasEmpresa = verVagasEmpresa(idEmpresa)
             println(vagasEmpresa)
-            println("Digite o id da vaga: ")
-            Long idVaga = scanner.nextLong()
-            if (vagaService.buscarVaga(idVaga) != null) {
+
+            try {
+                Long idVaga = solicitarId("Digite o ID da vaga:")
+
+
+                if (!VerificaSeExisteVagaNaLista(idVaga, vagasEmpresa)) {
+                    println("Vaga de ID ${idVaga} não encontrada!")
+                    return
+                }
+
                 println(empresaService.listaParaRemover(idVaga))
                 println("Digite o ID da competencia: ")
                 Long idCompetencia = scanner.nextLong()
-                if (competenciaService.buscarCompetencia(idCompetencia) != null) {
-                    empresaService.removerCompetencia(idVaga, idCompetencia)
-                }
-            }
 
+                List<RemoverCompetenciaDTO> competenciasVaga = empresaService.listaParaRemover(idVaga)
+
+                if (!verificaSeExisteCompetenciaNaLista(idCompetencia, competenciasVaga)) {
+                    println("Competencia de ID ${idCompetencia} não encontrada na vaga de ID ${idVaga}!")
+                    return
+                }
+
+                empresaService.removerCompetencia(idVaga, idCompetencia)
+
+            } catch (InputMismatchException e) {
+                println("Entrada inválida! Digite um ID numérico." + e.getMessage())
+            }
+        }
+
+        private boolean verificaSeExisteCompetenciaNaLista(Long idCompetencia, List<RemoverCompetenciaDTO> competenciasVaga) {
+            return competenciasVaga.any {
+                RemoverCompetenciaDTO competencia -> competencia.id == idCompetencia
+            }
         }
     }
