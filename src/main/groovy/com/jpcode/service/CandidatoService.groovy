@@ -8,6 +8,7 @@ import com.jpcode.dao.referencia.PaisDAO
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
+import com.jpcode.exception.CandidatoNaoEncontradoException
 import com.jpcode.exception.CompetenciaNaoEncontradaException
 import com.jpcode.exception.EstadoNaoEncontradoException
 import com.jpcode.exception.PaisNaoEncontradoException
@@ -74,6 +75,8 @@ class CandidatoService {
 
     Candidato buscarCandidato(Long idCandidato) {
         return candidatoDAO.buscarPorId(idCandidato)
+        .orElseThrow(() ->
+                    new CandidatoNaoEncontradoException(idCandidato))
     }
 
     Candidato logar(String email, String senha) {

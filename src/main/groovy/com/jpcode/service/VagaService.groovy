@@ -9,6 +9,7 @@ import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
 import com.jpcode.exception.CompetenciaNaoEncontradaException
+import com.jpcode.exception.VagaNaoEncontradaException
 import com.jpcode.model.core.Vaga
 import com.jpcode.model.referencia.Competencia
 
@@ -54,12 +55,14 @@ class VagaService {
         candidatoCurtirDAO.salvar(idCandidato, idVaga)
     }
 
-    List<VagaEmpresaDTO>  listarVagas(Long idEmpresa) {
+    List<VagaEmpresaDTO> listarVagas(Long idEmpresa) {
         return vagaDAO.buscarVagasEmpresa(idEmpresa)
     }
 
     Vaga buscarVaga(Long idVaga) {
         return vagaDAO.buscarPorId(idVaga)
+        .orElseThrow(() ->
+        new VagaNaoEncontradaException(idVaga))
     }
 
     List<VagaAnonimaDTO> listarVagasCurtidas(long idCandidato) {

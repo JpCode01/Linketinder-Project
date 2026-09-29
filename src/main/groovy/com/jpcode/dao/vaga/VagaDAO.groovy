@@ -40,7 +40,7 @@ class VagaDAO {
 
     }
 
-    Vaga buscarPorId(Long id) {
+    Optional<Vaga> buscarPorId(Long id) {
         String sql = """
             SELECT id, nome, descricao, local, id_empresa
             FROM vagas
@@ -56,16 +56,18 @@ class VagaDAO {
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next()) {
-                return null
+                return Optional.empty()
             }
 
-            return new Vaga(
+            Vaga vaga = new Vaga(
                     resultSet.getLong("id"),
                     resultSet.getString("nome"),
                     resultSet.getString("descricao"),
                     resultSet.getString("local"),
                     resultSet.getLong("id_empresa")
             )
+
+            return Optional.of(vaga)
 
         }
     }

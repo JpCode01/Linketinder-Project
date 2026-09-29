@@ -3,14 +3,17 @@
     import com.jpcode.config.DaoConfig
 
     import com.jpcode.config.ServiceConfig
+    import com.jpcode.dto.candidato.CandidatoAnonimoDTO
     import com.jpcode.dto.empresa.AtualizarEmpresaDTO
     import com.jpcode.dto.empresa.CadastrarEmpresaDTO
     import com.jpcode.dto.vaga.AtualizarVagaDTO
     import com.jpcode.dto.vaga.CadastrarVagaDTO
     import com.jpcode.dto.vaga.VagaEmpresaDTO
+    import com.jpcode.exception.CandidatoNaoEncontradoException
     import com.jpcode.exception.CompetenciaNaoEncontradaException
     import com.jpcode.exception.EstadoNaoEncontradoException
     import com.jpcode.exception.PaisNaoEncontradoException
+    import com.jpcode.exception.VagaNaoEncontradaException
     import com.jpcode.model.core.Empresa
     import com.jpcode.model.core.Vaga
     import com.jpcode.service.*
@@ -74,7 +77,7 @@
                 println(empresa)
                 println("""
                 1 - Ver Vagas
-                2 - Ver Candidatos em vagas
+                2 - Curtir Candidatos em Vaga
                 3 - Criar Vaga
                 4 - Ver Candidatos Curtidos
                 5 - Desativar Conta
@@ -91,7 +94,7 @@
                         println(vagasEmpresa)
                         break
                     case 2:
-                        verVagasCandidatos(empresa, vagasEmpresa)
+                        escolherCandidatoParaCurtir(empresa.id)
                         break
                     case 3:
                         criarVaga(empresa)
@@ -132,27 +135,77 @@
             println(empresaService.buscarCandidatosCurtidos(empresa.id))
         }
 
-        private verVagasCandidatos(Empresa empresa, List<VagaEmpresaDTO> vagasEmpresa) {
+        private List<VagaEmpresaDTO> verVagasEmpresa(Long idEmpresa) {
+            return vagaService.listarVagas(idEmpresa)
+        }
+
+        private boolean confirmarCurtida() {
             scanner.nextLine()
+
+            println("Deseja curtir o candidato? (s/n)")
+
+            String resposta = scanner.nextLine().trim().toLowerCase()
+
+            return resposta == "s"
+        }
+
+        private boolean tentarProcurarVaga(Long idVaga, List<VagaEmpresaDTO> vagasEmpresa) {
+            return vagasEmpresa.any {
+                VagaEmpresaDTO vaga -> vaga.id == idVaga
+            }
+        }
+
+        private void escolherCandidatoParaCurtir(Long idEmpresa) {
+            scanner.nextLine()
+            List<VagaEmpresaDTO> vagasEmpresa = verVagasEmpresa(idEmpresa)
             println(vagasEmpresa)
-            println("Digite o id da vaga: ")
-            Long idVaga = scanner.nextLong()
-            if (vagaService.buscarVaga(idVaga) != null) {
-                println(empresaService.buscarCandidatosQueCurtiram(idVaga))
-                println("Digite o ID do Candidato: ")
-                Long idCandidatoAnonimo = scanner.nextLong()
-                if (candidatoService.buscarCandidato(idCandidatoAnonimo) != null) {
-                    scanner.nextLine()
-                    println("Desja curtir o Candidado s/n?")
-                    if (scanner.nextLine().toLowerCase() == "s") {
-                        empresaService.curtirCandidato(empresa.id, idCandidatoAnonimo)
-                        matchService.salvar(idCandidatoAnonimo, empresa.id, idVaga)
-                    }
-                } else {
-                    println("Canidadato não encontrado!")
+
+            try {
+                Long idVaga = solicitarId("Digite o ID da vaga:")
+
+                if (!tentarProcurarVaga(idVaga, vagasEmpresa)) {
+                    println("Vaga de ID ${idVaga} não encontrada!")
+                    return
                 }
-            } else {
-                println("Vaga não encontrada!")
+                
+                List<CandidatoAnonimoDTO> candidatosQueCurtiram = empresaService.buscarCandidatosQueCurtiram(idVaga)
+                println(candidatosQueCurtiram)
+                
+                Long idCandidato = solicitarId("Digite o ID do candidato:")
+
+                if (!tentarProcurarCandidato(idCandidato, candidatosQueCurtiram)) {
+                    println("Candidato de ID ${idCandidato} não encontrado!")
+                    return
+                }
+
+                if (confirmarCurtida()) {
+                    curtirCandidato(idCandidato, idEmpresa, idVaga)
+                }
+            } catch (InputMismatchException e) {
+                scanner.nextLine()
+                println("Entrada inválida! Digite um ID numérico." + e.getMessage())
+            }
+        }
+
+        private Long solicitarId(String mensagem) {
+            println(mensagem)
+            return scanner.nextLong()
+        }
+
+        private void curtirCandidato(
+                Long idCandidato,
+                Long idEmpresa,
+                Long idVaga) {
+
+            empresaService.curtirCandidato(idEmpresa, idCandidato)
+            matchService.salvar(idCandidato, idEmpresa, idVaga)
+
+            println("Curtida registrada com sucesso!")
+        }
+
+        private boolean tentarProcurarCandidato(Long idCandidato, List<CandidatoAnonimoDTO> candidatosEncontrados) {
+            return candidatosEncontrados.any {
+                CandidatoAnonimoDTO candidatoAnonimoDTO -> candidatoAnonimoDTO.id == idCandidato
             }
         }
 
