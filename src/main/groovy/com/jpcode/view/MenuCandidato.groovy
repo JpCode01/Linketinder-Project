@@ -88,7 +88,8 @@ class MenuCandidato {
                     println(vagasAnonimasCurtidas(candidato.id))
                     break
                 case 2:
-                    println(vagasDisponiveis)
+                    List<VagaAnonimaDTO> vagasCurtidasEncontradas = vagasAnonimasCurtidas(candidato.id)
+                    println(vagasDisponiveis(vagasCurtidasEncontradas))
                     break
                 case 3:
                     curtirVaga(candidato, vagasDisponiveis)
