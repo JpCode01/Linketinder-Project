@@ -14,6 +14,7 @@ import com.jpcode.service.*
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 class MenuCandidato {
     final Scanner scanner = new Scanner(System.in)
@@ -139,7 +140,7 @@ class MenuCandidato {
 
     private boolean verificaSeExisteVaga(Long idVaga, List<VagaAnonimaDTO> vagasDisponiveis) {
         return vagasDisponiveis.any {
-            VagaAnonimaDTO vaga -> vaga.id = idVaga
+            VagaAnonimaDTO vaga -> vaga.id == idVaga
         }
     }
 
@@ -271,13 +272,18 @@ class MenuCandidato {
             candidato.cpf = cpf
         }
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-
         println("Data de nascimento (dd/MM/yyyy):")
         String dataInput = scanner.nextLine()
 
         if (!dataInput.isEmpty()) {
-            candidato.dataNascimento = LocalDate.parse(dataInput, formatter)
+            candidato.dataNascimento = validarDataNascimento(dataInput)
+        }
+
+        println("Idade: ")
+        String idade = scanner.nextLine()
+
+        if (!idade.isEmpty()) {
+            candidato.idade = validarIdade(idade)
         }
 
         println("Pais:")
@@ -326,6 +332,34 @@ class MenuCandidato {
         )
     }
 
+    private LocalDate validarDataNascimento(String dataInput) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+        while (true) {
+            try {
+                return LocalDate.parse(dataInput, formatter)
+            } catch (DateTimeParseException e) {
+                println("Data inválida! Digite uma data no formato dd/MM/yyyy.")
+                dataInput = scanner.nextLine()
+            }
+        }
+    }
+
+    private int validarIdade(String idadeInput) {
+        while (true) {
+            try {
+                int idade = Integer.parseInt(idadeInput)
+                return idade
+            } catch (NumberFormatException e) {
+                println("Idade inválida! Digite um número inteiro.")
+                idadeInput = scanner.nextLine()
+            }
+        }
+    }
+
+
+
+
     private void tentarAtualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
         try {
             candidatoService.atualizarCandidato(atualizarCandidatoDTO)
@@ -340,7 +374,7 @@ class MenuCandidato {
         List<String> todasCompetencias = competenciaService.listarCompetencias()
 
         while (true) {
-            if (todasCompetencias - competencias == []) {
+            if ((todasCompetencias - competencias).isEmpty()) {
                 break
             }
 
@@ -396,7 +430,7 @@ class MenuCandidato {
         println(matchService.verMatchesPorCandidato(idCandidato))
     }
     
-    private boolean tentarRemoverCompetencia(Long idCandidato, Long idCompetencia) {
+    private void tentarRemoverCompetencia(Long idCandidato, Long idCompetencia) {
         try {
             candidatoService.removerCompetencia(idCandidato, idCompetencia)
             println("Competencia removida com sucesso!")
@@ -412,11 +446,6 @@ class MenuCandidato {
             tentarRemoverCompetencia(idCandidato, idCompetencia)
         } catch (InputMismatchException e) {
             println("Entrada inválida! Digite um ID numérico." + e.getMessage())
-        }
-        println("Digite o ID da competencia: ")
-        Long idCompetencia = scanner.nextLong()
-        if (competenciaService.buscarCompetencia(idCompetencia) != null) {
-            candidatoService.removerCompetencia(candidato.id, idCompetencia)
         }
     }
 }
