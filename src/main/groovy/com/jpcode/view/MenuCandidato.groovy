@@ -137,28 +137,37 @@ class MenuCandidato {
         return scanner.nextLong()
     }
 
-    void curtirVaga(Candidato candidato, List<VagaAnonimaDTO> vagasDisponiveis) {
+    private boolean verificaSeExisteVaga(Long idVaga, List<VagaAnonimaDTO> vagasDisponiveis) {
+        return vagasDisponiveis.any {
+            VagaAnonimaDTO vaga -> vaga.id = idVaga
+        }
+    }
+
+    void curtirVaga(Long idCandidato) {
+        List<VagaAnonimaDTO> vagasCurtidasCandidato = vagasAnonimasCurtidas(idCandidato)
+        List<VagaAnonimaDTO> vagasDisponiveis = vagasDisponiveis(vagasCurtidasCandidato)
+
         if (vagasDisponiveis.isEmpty()) {
             println("Nao ha vagas disponiveis no momento!")
             return
         }
+
         println(vagasDisponiveis)
-        println("Escolha uma vaga por ID: ")
-        int idVaga = scanner.nextInt()
-        scanner.nextLine()
-        Vaga vagaBuscada = vagaService.buscarVaga(idVaga)
 
-        if (vagaBuscada != null) {
+        try {
+            Long idVaga = solicitarId("Digite o ID da vaga: ")
 
-            println("Competencias exigidas: " + vagaService.buscarCompetenciasDeVaga(idVaga))
-            println("Desja Curtir a vaga: (s/n)? ")
-
-            if (scanner.nextLine().toLowerCase() == "s") {
-                vagaService.curtir(candidato.id, idVaga)
+            if (!verificaSeExisteVaga(vagasDisponiveis)) {
+                println("Vaga de ID ${idVaga} não encontrada!")
+                return
             }
-            
-        } else {
-            println("Vaga não encontrada, talvez voce tenha digitado o ID incorretamente")
+
+            vagaService.curtir(idCandidato, idVaga)
+            println("Vaga Curtida com sucesso!")
+
+
+        } catch (InputMismatchException e) {
+            println("Entrada inválida! Digite um ID numérico." + e.getMessage())
         }
     }
 
