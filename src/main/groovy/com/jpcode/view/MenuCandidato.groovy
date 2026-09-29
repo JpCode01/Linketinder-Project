@@ -102,7 +102,7 @@ class MenuCandidato {
                     atualizarCandidato(candidato)
                     break
                 case 7:
-                    verMatches(candidato)
+                    verMatches(candidato.id)
                     break
                 case 8:
                     removerCompetencia(candidato)
@@ -391,8 +391,8 @@ class MenuCandidato {
         candidatoService.adicionarCompetencias(idCandidato, novasCompetencias)
     }
 
-    void verMatches(Candidato candidato) {
-        println(matchService.verMatchesPorCandidato(candidato.id))
+    void verMatches(Long idCandidato) {
+        println(matchService.verMatchesPorCandidato(idCandidato))
     }
 
     void removerCompetencia(Candidato candidato) {
