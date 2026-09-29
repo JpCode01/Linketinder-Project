@@ -5,6 +5,7 @@ import com.jpcode.config.ServiceConfig
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
+import com.jpcode.exception.CandidatoNaoEncontradoException
 import com.jpcode.exception.CompetenciaNaoEncontradaException
 import com.jpcode.exception.EstadoNaoEncontradoException
 import com.jpcode.exception.PaisNaoEncontradoException
@@ -394,9 +395,24 @@ class MenuCandidato {
     void verMatches(Long idCandidato) {
         println(matchService.verMatchesPorCandidato(idCandidato))
     }
+    
+    private boolean tentarRemoverCompetencia(Long idCandidato, Long idCompetencia) {
+        try {
+            candidatoService.removerCompetencia(idCandidato, idCompetencia)
+            println("Competencia removida com sucesso!")
+        } catch (CandidatoNaoEncontradoException e) {
+            e.getMessage()
+        }
+    }
 
-    void removerCompetencia(Candidato candidato) {
-        println(candidatoService.listaParaRemover(candidato.id))
+    void removerCompetencia(Long idCandidato) {
+        println(candidatoService.listaParaRemover(idCandidato))
+        try {
+            Long idCompetencia = solicitarId("Digite o ID do candidato: ")
+            tentarRemoverCompetencia(idCandidato, idCompetencia)
+        } catch (InputMismatchException e) {
+            println("Entrada inválida! Digite um ID numérico." + e.getMessage())
+        }
         println("Digite o ID da competencia: ")
         Long idCompetencia = scanner.nextLong()
         if (competenciaService.buscarCompetencia(idCompetencia) != null) {
