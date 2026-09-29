@@ -9,7 +9,6 @@ import com.jpcode.exception.CompetenciaNaoEncontradaException
 import com.jpcode.exception.EstadoNaoEncontradoException
 import com.jpcode.exception.PaisNaoEncontradoException
 import com.jpcode.model.core.Candidato
-import com.jpcode.model.core.Vaga
 import com.jpcode.service.*
 
 import java.time.LocalDate
@@ -97,7 +96,7 @@ class MenuCandidato {
                     }
                     break
                 case 5:
-                    atualizarCompetencias(candidato, competencias)
+                    atualizarCompetencias(candidato.id)
                     break
                 case 6:
                     atualizarCandidato(candidato)
@@ -386,9 +385,10 @@ class MenuCandidato {
         return false
     }
 
-    void atualizarCompetencias(Candidato candidato, List<String> competenciasCandidato) {
+    void atualizarCompetencias(Long idCandidato) {
+        List<String> competenciasCandidato = competenciasCandidato(idCandidato)
         List<String> novasCompetencias = capturarCompetencias(competenciasCandidato)
-        candidatoService.adicionarCompetencias(candidato.id, novasCompetencias)
+        candidatoService.adicionarCompetencias(idCandidato, novasCompetencias)
     }
 
     void verMatches(Candidato candidato) {
