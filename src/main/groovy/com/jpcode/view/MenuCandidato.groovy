@@ -106,7 +106,7 @@ class MenuCandidato {
                     verMatches(candidato.id)
                     break
                 case 8:
-                    removerCompetencia(candidato)
+                    removerCompetencia(candidato.id)
                     break
                 case 9:
                     return
