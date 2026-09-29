@@ -68,9 +68,6 @@ class MenuCandidato {
 
     private void menuCandidato(Candidato candidato) {
         while (true) {
-            List<VagaAnonimaDTO> vagasCurtidas = vagaService.listarVagasCurtidas(candidato.id)
-            List<VagaAnonimaDTO> vagasDisponiveis = vagaService.buscarTodasAsVagas() - vagasCurtidas
-            List<String> competencias = candidatoService.competenciasEmString(candidato.id)
             println(candidato)
             println("""
                         1 - Ver vagas curtidas
@@ -115,6 +112,10 @@ class MenuCandidato {
                     return
             }
         }
+    }
+
+    private List<String> competenciasCandidato(Long idCandidato) {
+        return candidatoService.competenciasEmString(idCandidato)
     }
 
     private List<VagaAnonimaDTO> vagasDisponiveis(List<VagaAnonimaDTO> vagasAnonimasCurtidas) {
