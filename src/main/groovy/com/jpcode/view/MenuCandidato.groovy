@@ -85,7 +85,7 @@ class MenuCandidato {
                         """)
             switch (scanner.nextInt()) {
                 case 1:
-                    println(vagasCurtidas)
+                    println(vagasAnonimasCurtidas(candidato.id))
                     break
                 case 2:
                     println(vagasDisponiveis)
@@ -114,6 +114,10 @@ class MenuCandidato {
                     return
             }
         }
+    }
+
+    private List<VagaAnonimaDTO> vagasAnonimasCurtidas(Long idCandidato) {
+        return vagaService.listarVagasCurtidas(idCandidato)
     }
 
     private Long solicitarId(String mensagem) {
