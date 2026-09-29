@@ -5,7 +5,7 @@ import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.referencia.Competencia
 
 class CompetenciaDAO {
-    Competencia buscarPorId(Long id) {
+    Optional<Competencia> buscarPorId(Long id) {
         String sql = """
             SELECT id, nome_competencia
             FROM competencias
@@ -21,13 +21,15 @@ class CompetenciaDAO {
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next()) {
-                return null
+                return Optional.empty()
             }
 
-            return new Competencia(
+            Competencia competencia = new Competencia(
                     resultSet.getLong("id"),
                     resultSet.getString("nome_competencia")
             )
+
+            return Optional.of(competencia)
 
         }
     }
