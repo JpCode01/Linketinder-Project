@@ -116,6 +116,10 @@ class MenuCandidato {
         }
     }
 
+    private List<VagaAnonimaDTO> vagasDisponiveis(List<VagaAnonimaDTO> vagasAnonimasCurtidas) {
+        return vagaService.buscarTodasAsVagas() - vagasAnonimasCurtidas
+    }
+
     private List<VagaAnonimaDTO> vagasAnonimasCurtidas(Long idCandidato) {
         return vagaService.listarVagasCurtidas(idCandidato)
     }
