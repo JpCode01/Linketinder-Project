@@ -4,7 +4,6 @@ import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.Match.MatchEncontradoDTO
-import com.jpcode.model.core.Match
 import com.jpcode.model.referencia.Competencia
 
 class MatchDAO {
