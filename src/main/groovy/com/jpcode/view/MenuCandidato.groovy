@@ -5,7 +5,8 @@ import com.jpcode.config.ServiceConfig
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
-import com.jpcode.exception.CandidatoNaoEncontradoException
+import com.jpcode.exception.CandidatoLoginException
+import com.jpcode.exception.CandidatoNaoEncontradoPorIdException
 import com.jpcode.exception.CompetenciaNaoEncontradaException
 import com.jpcode.exception.EstadoNaoEncontradoException
 import com.jpcode.exception.PaisNaoEncontradoException
@@ -28,11 +29,11 @@ class MenuCandidato {
     final MatchService matchService = serviceConfig.matchService
 
     void inicio() {
-        println("""
+        int opcao = capturarEscolha("""
         1 - Cadastre-se 
         2 - Fazer Login
         """)
-        switch (scanner.nextInt()) {
+        switch (opcao) {
             case 1:
                 cadastrarCandidato()
                 break
@@ -43,26 +44,31 @@ class MenuCandidato {
     }
 
     private void login() {
-        while (true) {
-            scanner.nextLine()
             println("Digite o email do candidato: ")
             String email = scanner.nextLine()
             println("Digite a senha do candidato: ")
             String senha = scanner.nextLine()
+            tentarLogarCandidato(email, senha)
+    }
+
+    private void tentarLogarCandidato(String email, String senha) {
+        try {
             Candidato candidatoEncontrado = candidatoService.logar(email, senha)
-            if (candidatoEncontrado) {
-                menuCandidato(candidatoEncontrado)
-                break
-            } else {
-                println("""
-                Email ou Senha incorretos
-                
-                1 - Tente Novamente
-                Qualquer Tecla - Sair
-                """)
-                if (scanner.nextLine() != "1") {
-                    break
-                }
+            println("Candidato Logado com sucesso!")
+            menuCandidato(candidatoEncontrado)
+        } catch (CandidatoLoginException e) {
+            println(e.getMessage())
+        }
+    }
+
+    private int capturarEscolha(String mensagem) {
+        while (true) {
+            println(mensagem)
+            String opcaoUsuario = scanner.nextLine()
+            try {
+                return Integer.parseInt(opcaoUsuario)
+            } catch (NumberFormatException e) {
+                println("Erro, Digite uma opção númerica inteira!")
             }
         }
     }
@@ -70,7 +76,7 @@ class MenuCandidato {
     private void menuCandidato(Candidato candidato) {
         while (true) {
             println(candidato)
-            println("""
+            int escolha = capturarEscolha("""
                         1 - Ver vagas curtidas
                         2 - Ver vagas disponiveis
                         3 - Curtir Vaga
@@ -81,7 +87,7 @@ class MenuCandidato {
                         8 - Remover Competencia
                         9 - Sair
                         """)
-            switch (scanner.nextInt()) {
+            switch (escolha) {
                 case 1:
                     println(vagasAnonimasCurtidas(candidato.id))
                     break
@@ -173,8 +179,6 @@ class MenuCandidato {
     }
 
     private CadastrarCandidatoDTO capturarDadosCadastrar() {
-        scanner.nextLine()
-
         println("Nome:")
         String nome = scanner.nextLine()
 
@@ -241,8 +245,6 @@ class MenuCandidato {
     }
 
     private void atualizarCandidato(Candidato candidato) {
-        scanner.nextLine()
-
         println("Nome:")
         String nome = scanner.nextLine()
         if (!nome.isEmpty()) {
@@ -431,7 +433,7 @@ class MenuCandidato {
         try {
             candidatoService.removerCompetencia(idCandidato, idCompetencia)
             println("Competencia removida com sucesso!")
-        } catch (CandidatoNaoEncontradoException e) {
+        } catch (CandidatoNaoEncontradoPorIdException e) {
             e.getMessage()
         }
     }
