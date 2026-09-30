@@ -172,7 +172,7 @@ class MenuCandidato {
         }
     }
 
-    private void cadastrarCandidato() {
+    private CadastrarCandidatoDTO capturarDadosCadastrar() {
         scanner.nextLine()
 
         println("Nome:")
@@ -191,12 +191,10 @@ class MenuCandidato {
         String cpf = scanner.nextLine()
 
         println("Data de nascimento (dd/MM/yyyy): ")
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        LocalDate data = LocalDate.parse(scanner.nextLine(), formatter)
+        LocalDate data = validarDataNascimento(scanner.nextLine())
 
         println("Idade:")
-        int idade = scanner.nextInt()
-        scanner.nextLine()
+        int idade = validarIdade(scanner.nextLine())
 
         println("Pais:")
         String pais = scanner.nextLine()
@@ -211,23 +209,26 @@ class MenuCandidato {
         String descricao = scanner.nextLine()
 
         List<String> competencias = capturarCompetencias([])
-        
-        tentarCandastrarCandidato(
-                new CadastrarCandidatoDTO(
-                        nome,
-                        sobrenome,
-                        email,
-                        senha,
-                        cpf,
-                        data,
-                        pais,
-                        idade,
-                        estado,
-                        cep,
-                        descricao,
-                        competencias
-                )
+
+        return new CadastrarCandidatoDTO(
+                nome,
+                sobrenome,
+                email,
+                senha,
+                cpf,
+                data,
+                pais,
+                idade,
+                estado,
+                cep,
+                descricao,
+                competencias
         )
+    }
+
+    private void cadastrarCandidato() {
+        CadastrarCandidatoDTO candidato = capturarDadosCadastrar()
+        tentarCandastrarCandidato(candidato)
     }
 
     private void tentarCandastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
@@ -357,9 +358,6 @@ class MenuCandidato {
         }
     }
 
-
-
-
     private void tentarAtualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
         try {
             candidatoService.atualizarCandidato(atualizarCandidatoDTO)
@@ -368,7 +366,6 @@ class MenuCandidato {
             println(e.getMessage())
         }
     }
-
 
     private List<String> capturarCompetencias(List<String> competencias) {
         List<String> todasCompetencias = competenciaService.listarCompetencias()
