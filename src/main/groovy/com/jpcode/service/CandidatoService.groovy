@@ -8,11 +8,11 @@ import com.jpcode.dao.referencia.PaisDAO
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
-import com.jpcode.exception.CandidatoLoginException
-import com.jpcode.exception.CandidatoNaoEncontradoPorIdException
-import com.jpcode.exception.CompetenciaNaoEncontradaException
-import com.jpcode.exception.EstadoNaoEncontradoException
-import com.jpcode.exception.PaisNaoEncontradoException
+import com.jpcode.exception.candidato.CandidatoLoginException
+import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
+import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
+import com.jpcode.exception.referencia.EstadoNaoEncontradoException
+import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.referencia.Competencia
 
@@ -31,7 +31,7 @@ class CandidatoService {
         this.candidatoDAO = candidatoDAO
     }
     
-    Candidato cadastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
+    void cadastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
         Long paisId = paisDAO.buscarIdPorNome(cadastrarCandidatoDTO.pais)
                 .orElseThrow(() ->
                         new PaisNaoEncontradoException(cadastrarCandidatoDTO.pais)
@@ -55,23 +55,24 @@ class CandidatoService {
                             cadastrarCandidatoDTO.cep,
                             cadastrarCandidatoDTO.descricao
                     )
-            )
-        
-        cadastrarCandidatoDTO.competencias.each {
+        )
+        salvarCompetencias(cadastrarCandidatoDTO.competencias, candidatoSalvo.id)
+    }
+
+    private salvarCompetencias(List<String> competencias, Long idCandidato) {
+        competencias.each {
             competencia ->
-              Long idCompetencia = competenciaDAO
-                .buscarIdPorNomeCompetencia(competencia)
-                .orElseThrow(() ->
-                    new CompetenciaNaoEncontradaException(competencia)
-                )
+                Long idCompetencia = competenciaDAO
+                        .buscarIdPorNomeCompetencia(competencia)
+                        .orElseThrow(() ->
+                                new CompetenciaNaoEncontradaException(competencia)
+                        )
 
                 competenciasCandidatoDAO.salvar(
-                    candidatoSalvo.id,
-                    idCompetencia
+                        idCandidato,
+                        idCompetencia
                 )
         }
-
-        return candidatoSalvo
     }
 
     Candidato buscarCandidato(Long idCandidato) {
@@ -90,7 +91,6 @@ class CandidatoService {
         candidatoDAO.desativar(idCandidato)
     }
     
-
     void atualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
         Long paisId = paisDAO.buscarIdPorNome(atualizarCandidatoDTO.pais)
                 .orElseThrow(() ->

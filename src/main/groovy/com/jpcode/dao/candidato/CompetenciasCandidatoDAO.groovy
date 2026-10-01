@@ -1,7 +1,6 @@
 package com.jpcode.dao.candidato
 
 import com.jpcode.database.ConnectionFactory
-import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.referencia.Competencia
 
 class CompetenciasCandidatoDAO {

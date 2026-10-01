@@ -1,4 +1,4 @@
-package com.jpcode.exception
+package com.jpcode.exception.referencia
 
 class EstadoNaoEncontradoException extends RuntimeException {
 

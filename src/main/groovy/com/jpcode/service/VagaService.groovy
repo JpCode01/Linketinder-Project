@@ -8,8 +8,8 @@ import com.jpcode.dto.vaga.AtualizarVagaDTO
 import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
-import com.jpcode.exception.CompetenciaNaoEncontradaException
-import com.jpcode.exception.VagaNaoEncontradaException
+import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
+import com.jpcode.exception.referencia.VagaNaoEncontradaException
 import com.jpcode.model.core.Vaga
 import com.jpcode.model.referencia.Competencia
 

@@ -11,8 +11,9 @@ import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.dto.empresa.AtualizarEmpresaDTO
 import com.jpcode.dto.empresa.CadastrarEmpresaDTO
-import com.jpcode.exception.EstadoNaoEncontradoException
-import com.jpcode.exception.PaisNaoEncontradoException
+import com.jpcode.exception.empresa.EmpresaLoginException
+import com.jpcode.exception.referencia.EstadoNaoEncontradoException
+import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Empresa
 
 class EmpresaService {
@@ -60,11 +61,9 @@ class EmpresaService {
     }
 
     Empresa logar(String email, String senha) {
-        Empresa empresaEncontrada = null
-        if ((!email.isBlank()) && (!senha.isBlank())) {
-            empresaEncontrada = empresaDAO.buscarPorEmailESenha(email, senha)
-        }
-        return empresaEncontrada
+        return empresaDAO.buscarPorEmailESenha(email, senha)
+        .orElseThrow(() ->
+        new EmpresaLoginException(email, senha))
     }
     
     List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Long idVaga) {

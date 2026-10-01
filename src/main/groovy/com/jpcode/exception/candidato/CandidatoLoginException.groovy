@@ -1,4 +1,4 @@
-package com.jpcode.exception
+package com.jpcode.exception.candidato
 
 class CandidatoLoginException extends RuntimeException {
 

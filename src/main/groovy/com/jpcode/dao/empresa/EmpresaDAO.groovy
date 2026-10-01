@@ -80,7 +80,7 @@ class EmpresaDAO {
         }
     }
 
-    Empresa buscarPorEmailESenha(String emailCorporativo, String senha) {
+    Optional<Empresa> buscarPorEmailESenha(String emailCorporativo, String senha) {
         String sql = """
             SELECT id, nome, cnpj, email_corporativo, descricao, 
             id_pais, cep, id_estado, ativo, senha
@@ -99,10 +99,10 @@ class EmpresaDAO {
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next() || !resultSet.getBoolean("ativo")) {
-                return null
+                return Optional.empty()
             }
             
-            return new Empresa(
+            Empresa empresa = new Empresa(
                     resultSet.getLong("id"),
                     resultSet.getString("nome"),
                     resultSet.getString("email_corporativo"),
@@ -113,10 +113,9 @@ class EmpresaDAO {
                     resultSet.getString("cep"),
                     resultSet.getString("descricao"),
                     resultSet.getBoolean("ativo")
-
-
-
             )
+
+            return Optional.of(empresa)
         }
     }
 

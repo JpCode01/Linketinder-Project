@@ -5,11 +5,11 @@ import com.jpcode.config.ServiceConfig
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
-import com.jpcode.exception.CandidatoLoginException
-import com.jpcode.exception.CandidatoNaoEncontradoPorIdException
-import com.jpcode.exception.CompetenciaNaoEncontradaException
-import com.jpcode.exception.EstadoNaoEncontradoException
-import com.jpcode.exception.PaisNaoEncontradoException
+import com.jpcode.exception.candidato.CandidatoLoginException
+import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
+import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
+import com.jpcode.exception.referencia.EstadoNaoEncontradoException
+import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Candidato
 import com.jpcode.service.*
 
@@ -134,14 +134,15 @@ class MenuCandidato {
     }
 
     private Long solicitarId(String mensagem) {
-        println(mensagem)
-
-        if (!scanner.hasNextLong()) {
-            scanner.nextLine()
-            throw new InputMismatchException("Digite um ID numérico.")
+        while (true) {
+            println(mensagem)
+            String idEscolhido = scanner.nextLine()
+            try {
+                return Long.parseLong(idEscolhido)
+            } catch (NumberFormatException e) {
+                println("Erro, digite um ID númerico!")
+            }
         }
-
-        return scanner.nextLong()
     }
 
     private boolean verificaSeExisteVaga(Long idVaga, List<VagaAnonimaDTO> vagasDisponiveis) {

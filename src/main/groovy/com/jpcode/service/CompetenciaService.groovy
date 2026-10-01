@@ -1,7 +1,7 @@
 package com.jpcode.service
 
 import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.exception.CompetenciaNaoEncontradaException
+import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 import com.jpcode.model.referencia.Competencia
 
 class CompetenciaService {
