@@ -7,11 +7,11 @@ interface IPessoa {
 }
 
 export class Pessoa implements IPessoa{
-    constructor(protected _nome:string, 
-                protected _email:string,
-                protected _estado:string, 
-                protected _cep:string,
-                protected _descricao:string
+    constructor(private _nome:string, 
+                private _email:string,
+                private _estado:string, 
+                private _cep:string,
+                private _descricao:string
     ) {
 
     }

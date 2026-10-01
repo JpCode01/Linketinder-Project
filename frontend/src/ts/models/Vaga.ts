@@ -1,39 +1,21 @@
-import { Candidato, ICandidatoCurtidaJSON } from "./Candidato"
-import { Empresa } from "./Empresa"
 import { Competencia } from "./Competencia"
 
-
-interface IVaga {
-    nome: string
-    descricao: string
-    empresa: string
-    tipo: string
-    localização: string
-}
-
-export interface IVagaJSON {
-    _nome: string
-    _descricao: string
-    _empresa: string
-    _tipo: string
-    _localizacao: string
-    competencias: Competencia[]
-    candidatosQueCurtiram: ICandidatoCurtidaJSON[]
-}
-
-export class Vaga implements IVaga {
+export class Vaga {
     private competencias: Competencia[]
-    private candidatosQueCurtiram: Candidato[]
 
     constructor(
+        private _id: number,
         private _nome: string,
         private _descricao: string,
-        private _empresa: string,
         private _tipo: string,
-        private _localizacao: string
+        private _localizacao: string,
+        private _idEmpresa: number
     ) {
         this.competencias = []
-        this.candidatosQueCurtiram = []
+    }
+
+    get id(): number {
+        return this._id
     }
 
     get nome(): string {
@@ -42,10 +24,6 @@ export class Vaga implements IVaga {
 
     get descricao(): string {
         return this._descricao
-    }
-
-    get empresa(): string {
-        return this._empresa
     }
 
     get tipo(): string {
@@ -60,16 +38,8 @@ export class Vaga implements IVaga {
         return this.competencias
     }
 
-    get getCandidatosQueCurtiram(): Candidato[] {
-        return this.candidatosQueCurtiram
-    }
-
-    addCandidatoQueCurtiu(candidato: Candidato) {
-        if (candidato != null) {
-            this.candidatosQueCurtiram.push(candidato)
-        } else {
-            throw "Candidato não pode ser nulo"
-        }
+    get idEmpresa(): Number {
+        return this._idEmpresa
     }
 
     addCompetencia(competencia: Competencia) {
@@ -82,9 +52,5 @@ export class Vaga implements IVaga {
 
     setCompetencias(competencias: Competencia[]) {
         this.competencias = competencias
-    }
-
-    setCandidatosQueCurtiram(candidatos: Candidato[]) {
-        this.candidatosQueCurtiram = candidatos
     }
 }

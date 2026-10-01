@@ -300,8 +300,6 @@ export class EmpresaService {
             }
         )
         
-
-
         empresaConvertida.setVagas(vagasConvertidas)
 
         empresaConvertida.setCandidatosCurtidos(candidatosConvertidos)
