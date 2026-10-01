@@ -1,7 +1,7 @@
 export class CurtidaVaga {
 
     constructor(
-        public _idCandidato: number,
-        public _idVaga: number
+        public idCandidato: number,
+        public idVaga: number
     ) {}
 }

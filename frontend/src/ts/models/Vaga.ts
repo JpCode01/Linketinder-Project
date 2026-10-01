@@ -4,12 +4,12 @@ export class Vaga {
     public competencias: Competencia[]
 
     constructor(
-        public _id: number,
-        public _nome: string,
-        public _descricao: string,
-        public _tipo: string,
-        public _localizacao: string,
-        public _idEmpresa: number
+        public id: number,
+        public nome: string,
+        public descricao: string,
+        public tipo: string,
+        public localizacao: string,
+        public idEmpresa: number
     ) {
         this.competencias = []
     }
