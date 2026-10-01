@@ -1,80 +1,25 @@
-import { Candidato } from "../models/Candidato";
-import { IVagaJSON, Vaga } from "../models/Vaga"
-import { Competencia } from "../models/Competencia"
+import { Vaga } from "../models/Vaga"
+import { VagaRepository } from "../repository/VagaRepository"
 
 export class VagaService {
-    cadastrar(vaga: Vaga): void {
-        const vagasSalvas = localStorage.getItem("vagas")
 
-        const vagas: Vaga[] =
-            vagasSalvas ? JSON.parse(vagasSalvas)
-            : []
+    constructor(
+        private vagaRepository: VagaRepository
+    ) {}
 
-        vagas.push(vaga)
-
-        localStorage.setItem(
-            "vagas",
-            JSON.stringify(vagas)
-        )
-
+    salvar(vaga: Vaga): void {
+        this.vagaRepository.salvar(vaga)
     }
 
-    adicionarCompetencia(vaga: Vaga, competencia: Competencia): void {
-         if (vaga != null && competencia != null) {
-            vaga.addCompetencia(competencia)
-        } else {
-            throw "Vaga ou competência não podem ser nulos"
-        }
+    buscarTodos(): Vaga[] {
+        return this.vagaRepository.buscarTodos()
     }
 
-    verificarCompetenciasEConverter(
-    competenciasRecebidas: string): Competencia[] | null {
-
-        const competencias = competenciasRecebidas
-            .split(",")
-            .map(competencia => competencia.trim().toUpperCase())
-
-        const competenciasConvertidas: Competencia[] = []
-
-        for (const competencia of competencias) {
-
-            if (!(competencia in Competencia)) {
-                return null
-            }
-
-            const competenciaConvertida =
-                Competencia[competencia as keyof typeof Competencia]
-
-            competenciasConvertidas.push(competenciaConvertida)
-        }
-
-        return competenciasConvertidas
+    buscarPorId(id: number): Vaga | undefined {
+        return this.vagaRepository.buscarPorId(id)
     }
 
-    exibirVagasEConverter(): Vaga[] {
-        const vagasSalvas = localStorage.getItem("vagas")
-        if (vagasSalvas == null) {
-            return []
-        }
-
-        const vagasJSON: IVagaJSON[] = JSON.parse(vagasSalvas)
-
-        const vagas: Vaga[] = vagasJSON.map(
-        vagaJSON => {
-            const vaga = new Vaga(
-                vagaJSON._nome,
-                vagaJSON._descricao,
-                vagaJSON._empresa,
-                vagaJSON._tipo,
-                vagaJSON._localizacao
-            )
-
-            vaga.setCompetencias(vagaJSON.competencias)
-
-            return vaga
-        })
-
-        return vagas
+    buscarPorEmpresa(idEmpresa: number): Vaga[] {
+        return this.vagaRepository.buscarPorEmpresa(idEmpresa)
     }
-
 }
