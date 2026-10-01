@@ -43,4 +43,12 @@ export class EmpresaRepository {
             empresa => empresa.email === email
         )
     }
+
+    buscarPorCnpj(cnpj: string): Empresa | undefined {
+        const empresas = this.buscarTodos()
+
+        return empresas.find(
+            empresa => empresa.cnpj === cnpj
+        )
+    }
 }

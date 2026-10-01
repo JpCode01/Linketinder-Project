@@ -43,4 +43,12 @@ export class CandidatoRepository {
             candidato => candidato.email === email
         )
     }
+
+    buscarPorCpf(cpf: string): Candidato | undefined {
+        const candidatos = this.buscarTodos()
+
+        return candidatos.find(
+            candidato => candidato.cpf === cpf
+        )
+    }
 }
