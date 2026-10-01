@@ -1,13 +1,22 @@
 import { Vaga } from "../models/Vaga"
 import { VagaRepository } from "../repository/VagaRepository"
+import { EmpresaRepository } from "../repository/EmpresaRepository"
+import { EmpresaNaoEncontradaException } from "../exceptions/EmpresaNaoEncontradaException"
 
 export class VagaService {
 
     constructor(
-        private vagaRepository: VagaRepository
+        private vagaRepository: VagaRepository,
+        private empresaRepository: EmpresaRepository
     ) {}
 
     salvar(vaga: Vaga): void {
+        const empresa = this.empresaRepository.buscarPorId(vaga.idEmpresa)
+
+        if (empresa == undefined) {
+            throw new EmpresaNaoEncontradaException(vaga.idEmpresa)
+        }
+
         this.vagaRepository.salvar(vaga)
     }
 

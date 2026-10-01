@@ -1,13 +1,35 @@
 import { Candidato } from "../models/Candidato"
 import { CandidatoRepository } from "../repository/CandidatoRepository"
+import { EmpresaRepository } from "../repository/EmpresaRepository"
+import { EmailJaCadastradoException } from "../exceptions/EmailJaCadastradoException"
+import { CpfJaCadastradoException } from "../exceptions/CpfJaCadastradoException"
 
 export class CandidatoService {
 
     constructor(
-        private candidatoRepository: CandidatoRepository
+        private candidatoRepository: CandidatoRepository,
+        private empresaRepository: EmpresaRepository
     ) {}
 
     salvar(candidato: Candidato): void {
+
+        const candidatoPorEmail =
+            this.candidatoRepository.buscarPorEmail(candidato.email)
+
+        const empresaPorEmail =
+            this.empresaRepository.buscarPorEmail(candidato.email)
+
+        const candidatoPorCpf =
+            this.candidatoRepository.buscarPorCpf(candidato.cpf)
+
+        if ((candidatoPorEmail != undefined) || (empresaPorEmail != undefined)) {
+            throw new EmailJaCadastradoException()
+        }
+
+        if (candidatoPorCpf != undefined) {
+            throw new CpfJaCadastradoException()
+        }
+
         this.candidatoRepository.salvar(candidato)
     }
 
