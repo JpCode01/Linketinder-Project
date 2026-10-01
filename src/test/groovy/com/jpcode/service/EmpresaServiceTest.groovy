@@ -9,14 +9,16 @@ import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
+import com.jpcode.dto.empresa.AtualizarEmpresaDTO
+import com.jpcode.dto.empresa.CadastrarEmpresaDTO
 import com.jpcode.model.core.Empresa
-import com.jpcode.validation.CompetenciaValidation
 import spock.lang.Specification
-import spock.lang.Unroll
+import com.jpcode.exception.referencia.EstadoNaoEncontradoException
+import com.jpcode.exception.referencia.PaisNaoEncontradoException
+import com.jpcode.exception.empresa.EmpresaLoginException
 
 class EmpresaServiceTest extends Specification {
 
-    CompetenciaValidation validation = Mock()
     PaisDAO paisDAO = Mock()
     EstadoDAO estadoDAO = Mock()
     EmpresaDAO empresaDAO = Mock()
@@ -29,7 +31,6 @@ class EmpresaServiceTest extends Specification {
 
     def setup() {
         service = new EmpresaService(
-                validation,
                 paisDAO,
                 estadoDAO,
                 empresaDAO,
@@ -42,6 +43,17 @@ class EmpresaServiceTest extends Specification {
 
     def "deve cadastrar empresa"() {
         given:
+        CadastrarEmpresaDTO cadastrarEmpresaDTO = new CadastrarEmpresaDTO(
+                "Empresa Teste",
+                "empresa@email.com",
+                "123",
+                "12345678000100",
+                "BRASIL",
+                "SP",
+                "12900000",
+                "Empresa de tecnologia"
+        )
+
         Empresa empresaSalva = new Empresa(
                 1L,
                 "Empresa Teste",
@@ -55,11 +67,20 @@ class EmpresaServiceTest extends Specification {
                 true
         )
 
-        paisDAO.buscarIdPorNome("BRASIL") >> 1L
-        estadoDAO.buscarIdPorSigla("SP") >> 2L
+        paisDAO.buscarIdPorNome("BRASIL") >> Optional.of(1L)
+        estadoDAO.buscarIdPorSigla("SP") >> Optional.of(2L)
 
         when:
-        def resultado = service.cadastrarEmpresa(
+        Empresa resultado = service.cadastrarEmpresa(cadastrarEmpresaDTO)
+
+        then:
+        1 * empresaDAO.salvar(_) >> empresaSalva
+        resultado == empresaSalva
+    }
+
+    def "deve lançar exceção quando país não existir"() {
+        given:
+        CadastrarEmpresaDTO cadastrarEmpresaDTO = new CadastrarEmpresaDTO(
                 "Empresa Teste",
                 "empresa@email.com",
                 "123",
@@ -70,38 +91,38 @@ class EmpresaServiceTest extends Specification {
                 "Empresa de tecnologia"
         )
 
-        then:
-        1 * empresaDAO.salvar(_) >> empresaSalva
-        resultado == empresaSalva
-    }
-
-    @Unroll
-    def "não deve cadastrar empresa quando país ou estado não existir"() {
-        given:
-        paisDAO.buscarIdPorNome(pais) >> idPais
-        estadoDAO.buscarIdPorSigla(estado) >> idEstado
+        paisDAO.buscarIdPorNome("BRASIL") >> Optional.empty()
 
         when:
-        def resultado = service.cadastrarEmpresa(
+        service.cadastrarEmpresa(cadastrarEmpresaDTO)
+
+        then:
+        thrown(PaisNaoEncontradoException)
+        0 * empresaDAO.salvar(_)
+    }
+
+    def "deve lançar exceção quando estado não existir"() {
+        given:
+        CadastrarEmpresaDTO cadastrarEmpresaDTO = new CadastrarEmpresaDTO(
                 "Empresa Teste",
                 "empresa@email.com",
                 "123",
                 "12345678000100",
-                pais,
-                estado,
+                "BRASIL",
+                "SP",
                 "12900000",
                 "Empresa de tecnologia"
         )
 
-        then:
-        resultado == null
-        0 * empresaDAO.salvar(_)
+        paisDAO.buscarIdPorNome("BRASIL") >> Optional.of(1L)
+        estadoDAO.buscarIdPorSigla("SP") >> Optional.empty()
 
-        where:
-        pais     | estado | idPais | idEstado
-        "BRASIL" | "SP"   | null   | 2L
-        "BRASIL" | "SP"   | 1L    | null
-        "BRASIL" | "SP"   | null   | null
+        when:
+        service.cadastrarEmpresa(cadastrarEmpresaDTO)
+
+        then:
+        thrown(EstadoNaoEncontradoException)
+        0 * empresaDAO.salvar(_)
     }
 
     def "deve realizar login"() {
@@ -120,27 +141,27 @@ class EmpresaServiceTest extends Specification {
         empresaDAO.buscarPorEmailESenha(
                 "empresa@email.com",
                 "123"
-        ) >> empresa
+        ) >> Optional.of(empresa)
 
         expect:
         service.logar("empresa@email.com", "123") == empresa
     }
 
-    @Unroll
-    def "não deve realizar login quando email ou senha estiver vazio"() {
+    def "deve lançar exceção quando login da empresa não for encontrado"() {
+        given:
+        empresaDAO.buscarPorEmailESenha(
+                "empresa@email.com",
+                "123"
+        ) >> Optional.empty()
+
         when:
-        def resultado = service.logar(email, senha)
+        service.logar("empresa@email.com", "123")
 
         then:
-        resultado == null
-        0 * empresaDAO.buscarPorEmailESenha(_, _)
-
-        where:
-        email               | senha
-        ""                  | "123"
-        "empresa@email.com" | ""
-        ""                  | ""
+        thrown(EmpresaLoginException)
     }
+
+
 
     def "deve buscar candidatos que curtiram uma vaga"() {
         given:
@@ -180,11 +201,7 @@ class EmpresaServiceTest extends Specification {
 
     def "deve atualizar empresa"() {
         given:
-        paisDAO.buscarIdPorNome("BRASIL") >> 1L
-        estadoDAO.buscarIdPorSigla("SP") >> 2L
-
-        when:
-        service.atualizarEmpresa(
+        AtualizarEmpresaDTO atualizarEmpresaDTO = new AtualizarEmpresaDTO(
                 1L,
                 "Empresa Atualizada",
                 "empresa@email.com",
@@ -196,6 +213,12 @@ class EmpresaServiceTest extends Specification {
                 "Nova descricao",
                 true
         )
+
+        paisDAO.buscarIdPorNome("BRASIL") >> Optional.of(1L)
+        estadoDAO.buscarIdPorSigla("SP") >> Optional.of(2L)
+
+        when:
+        service.atualizarEmpresa(atualizarEmpresaDTO)
 
         then:
         1 * empresaDAO.atualizarDados(_)
