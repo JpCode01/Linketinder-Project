@@ -10,6 +10,10 @@ export class EmpresaRepository {
                 ? JSON.parse(empresasSalvas)
                 : []
 
+        empresa.id = empresas.length > 0
+        ? Math.max(...empresas.map(empresa => empresa.id)) + 1
+        : 1
+
         empresas.push(empresa)
 
         localStorage.setItem(

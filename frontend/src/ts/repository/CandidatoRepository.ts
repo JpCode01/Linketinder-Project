@@ -10,6 +10,10 @@ export class CandidatoRepository {
                 ? JSON.parse(candidatosSalvos)
                 : []
 
+        candidato.id = candidatos.length > 0
+        ? Math.max(...candidatos.map(candidato => candidato.id)) + 1
+        : 1
+
         candidatos.push(candidato)
 
         localStorage.setItem(

@@ -2,8 +2,8 @@ import { Pessoa } from "./Pessoa"
 
 
 export class Empresa extends Pessoa {
-
-    constructor(public id: number,
+    public id: number
+    constructor(
                 public cnpj: string,
                 public pais: string,
                 nome: string,
@@ -13,6 +13,7 @@ export class Empresa extends Pessoa {
                 descricao: string
     ) {
         super(nome, email, estado, cep, descricao)
+        this.id = 0
     }
 }
 
