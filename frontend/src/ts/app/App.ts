@@ -1,7 +1,8 @@
-import { procurar, abrirCadastro } from "../pages/LoginPage"
+import { loginCandidato, loginEmpresa } from "../pages/LoginPage"
+import { abrirCadastro } from "../pages/LoginPage"
 import { cadastrarCandidato, cadastrarEmpresa } from "../pages/CadastroPage"
 import { exibirPageCandidato } from "../pages/CandidatoPage"
-import { exibirPageEmpresa, criarVaga } from "../pages/EmpresaPage";
+import { exibirPageEmpresa, criarVaga } from "../pages/EmpresaPage"
 
 export class App {
 
@@ -11,7 +12,8 @@ export class App {
         console.log("Página:", paginaAtual)
 
         if (paginaAtual.endsWith("/index.html")) {
-            procurar()
+            loginCandidato()
+            loginEmpresa()
             abrirCadastro()
         }
 

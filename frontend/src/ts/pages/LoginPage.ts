@@ -1,107 +1,93 @@
-import { Candidato } from "../models/Candidato"
-import { Empresa } from "../models/Empresa"
-
 import { CandidatoService } from "../services/CandidatoService"
 import { EmpresaService } from "../services/EmpresaService"
+import { RepositoryConfig } from "../config/RepositoryConfig"
+import { ServiceConfig } from "../config/ServiceConfig"
 
-// import { candidatos, empresas } from "../data/DadosIniciais"
+const repositoryConfig: RepositoryConfig = new RepositoryConfig()
+const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
 
-var candidatoService: CandidatoService = new CandidatoService
-var empresaService: EmpresaService = new EmpresaService
+const candidatoService: CandidatoService =
+    serviceConfig.criarCandidatoService()
 
+const empresaService: EmpresaService =
+    serviceConfig.criarEmpresaService()
 
-export function procurar():void {
+export function loginCandidato(): void {
 
     document.getElementById("login-candidato")!.onclick = (): void => {
-        const inputNome = document.getElementById("nome") as HTMLInputElement
 
-        inputNome.classList.remove("input-error")
-        document.getElementById("erro-nome")?.remove()
+        const inputEmail = document.getElementById("email") as HTMLInputElement
 
-        const candidatoEncontrado: Candidato | undefined = candidatoService.buscarCandidato(inputNome.value)
+        limparErroEmail(inputEmail)
 
-        if (candidatoEncontrado !== undefined) {
+        try {
+            const candidato =
+                candidatoService.buscarPorEmail(inputEmail.value)
 
-            localStorage.setItem("candidatoLogado",
-                JSON.stringify(candidatoEncontrado))
+            adicionarNaSessao(candidato.id, "CANDIDATO")
 
             window.location.href = "./candidato.html"
 
-        } else {
+        } catch {
 
-            inputNome.classList.add("input-error")
-
-            const mensagemErro = document.createElement("span")
-
-            mensagemErro.id = "erro-nome"
-            mensagemErro.classList.add("error-message")
-            mensagemErro.textContent = "Candidato não encontrado."
-
-            inputNome.parentElement!.appendChild(mensagemErro)
+            mostrarErroEmail(inputEmail, "Candidato não encontrado.")
         }
-    };
+    }
+}
+
+
+export function loginEmpresa(): void {
 
     document.getElementById("login-empresa")!.onclick = (): void => {
 
-        const inputNome = document.getElementById("nome") as HTMLInputElement
+        const inputEmail =
+            document.getElementById("email") as HTMLInputElement
 
-        inputNome.classList.remove("input-error")
-        document.getElementById("erro-nome")?.remove()
+        limparErroEmail(inputEmail)
 
-        const empresaEncontrada: Empresa | undefined = empresaService.buscarEmpresa(inputNome.value)
+        try {
 
-        if (empresaEncontrada !== undefined) {
+            const empresa =
+                empresaService.buscarPorEmail(inputEmail.value)
 
-            localStorage.setItem("empresaLogada",
-                JSON.stringify(empresaEncontrada))
+            adicionarNaSessao(empresa.id, "EMPRESA")
 
             window.location.href = "./empresa.html"
 
-        } else {
+        } catch {
 
-            inputNome.classList.add("input-error")
-
-            const mensagemErro = document.createElement("span")
-
-            mensagemErro.id = "erro-nome"
-            mensagemErro.classList.add("error-message")
-            mensagemErro.textContent = "Empresa não encontrada."
-
-            inputNome.parentElement!.appendChild(mensagemErro)
+            mostrarErroEmail(
+                inputEmail,
+                "Empresa não encontrada."
+            )
         }
-    };
-   
-    // Versão com Lista, sem Local Storage
-    // document.getElementById("login-candidato")!.onclick = (): void => {
+    }
+}
 
-    //     const inputNome = document.getElementById("nome") as HTMLInputElement
+function adicionarNaSessao(id: number, tipo: string): void {
+    localStorage.setItem(
+        "sessao",
+        JSON.stringify({
+            id: id,
+            tipo: tipo
+        })
+    )
+}
 
-    //     inputNome.classList.remove("input-error")
-    //     document.getElementById("erro-nome")?.remove()
+function limparErroEmail(inputEmail: HTMLInputElement): void {
+    inputEmail.classList.remove("input-error")
+    document.getElementById("erro-email")?.remove()
+}
 
-    //     const candidatoEncontrado: Candidato | undefined =
-    //         candidatos.find((n) => n.nome === inputNome.value)
+function mostrarErroEmail(inputEmail: HTMLInputElement, mensagem: string): void {
+    inputEmail.classList.add("input-error")
 
-    //     if (candidatoEncontrado !== undefined) {
+    const mensagemErro = document.createElement("span")
+    mensagemErro.id = "erro-email"
+    mensagemErro.classList.add("error-message")
+    mensagemErro.textContent = mensagem
 
-    //         window.location.href = "./candidato.html"
-
-    //     } else {
-
-    //         inputNome.classList.add("input-error")
-
-    //         const mensagemErro = document.createElement("span")
-
-    //         mensagemErro.id = "erro-nome"
-    //         mensagemErro.classList.add("error-message")
-    //         mensagemErro.textContent = "Candidato não encontrado."
-
-    //         inputNome.parentElement!.appendChild(mensagemErro)
-    //     }
-    // };
-    
-    
-
+    inputEmail.parentElement!.appendChild(mensagemErro)
 }
 
 export function abrirCadastro(): void {
