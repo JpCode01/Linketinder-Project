@@ -3,6 +3,7 @@ import { CandidatoRepository } from "../repository/CandidatoRepository"
 import { EmpresaRepository } from "../repository/EmpresaRepository"
 import { EmailJaCadastradoException } from "../exceptions/EmailJaCadastradoException"
 import { CpfJaCadastradoException } from "../exceptions/CpfJaCadastradoException"
+import { CandidatoNaoEncontradoException } from "../exceptions/candidato/CandidatoNaoEncontradoException"
 
 export class CandidatoService {
 
@@ -37,11 +38,19 @@ export class CandidatoService {
         return this.candidatoRepository.buscarTodos()
     }
 
-    buscarPorId(id: number): Candidato | undefined {
-        return this.candidatoRepository.buscarPorId(id)
+    buscarPorId(id: number): Candidato {
+        const candidatoPorId = this.candidatoRepository.buscarPorId(id)
+        if (candidatoPorId == undefined) {
+            throw new CandidatoNaoEncontradoException(id)
+        }
+        return candidatoPorId
     }
 
-    buscarPorEmail(email: string): Candidato | undefined {
-        return this.candidatoRepository.buscarPorEmail(email)
+    buscarPorEmail(email: string): Candidato {
+        const candidatoPorEmail = this.candidatoRepository.buscarPorEmail(email)
+        if (candidatoPorEmail == undefined) {
+            throw new CandidatoNaoEncontradoException(email)
+        }
+        return candidatoPorEmail
     }
 }

@@ -3,6 +3,7 @@ import { EmpresaRepository } from "../repository/EmpresaRepository"
 import { CandidatoRepository } from "../repository/CandidatoRepository"
 import { EmailJaCadastradoException } from "../exceptions/EmailJaCadastradoException"
 import { CnpjJaCadastradoException } from "../exceptions/CnpjJaCadastradoException"
+import { EmpresaNaoEncontradaException } from "../exceptions/empresa/EmpresaNaoEncontradaException";
 
 export class EmpresaService {
 
@@ -12,7 +13,6 @@ export class EmpresaService {
     ) {}
 
     salvar(empresa: Empresa): void {
-
         const empresaPorEmail =
             this.empresaRepository.buscarPorEmail(empresa.email)
 
@@ -37,11 +37,23 @@ export class EmpresaService {
         return this.empresaRepository.buscarTodos()
     }
 
-    buscarPorId(id: number): Empresa | undefined {
-        return this.empresaRepository.buscarPorId(id)
+    buscarPorId(id: number): Empresa {
+        const empresa = this.empresaRepository.buscarPorId(id)
+
+        if (empresa == undefined) {
+            throw new EmpresaNaoEncontradaException(id)
+        }
+
+        return empresa
     }
 
-    buscarPorEmail(email: string): Empresa | undefined {
-        return this.empresaRepository.buscarPorEmail(email)
+    buscarPorEmail(email: string): Empresa {
+        const empresa = this.empresaRepository.buscarPorEmail(email)
+    
+        if (empresa == undefined) {
+            throw new EmpresaNaoEncontradaException(email)
+        }
+
+        return empresa
     }
 }

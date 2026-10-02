@@ -2,9 +2,9 @@ import { CurtidaCandidato } from "../models/CurtidaCandidato"
 import { CurtidaCandidatoRepository } from "../repository/CurtidaCandidatoRepository"
 import { EmpresaRepository } from "../repository/EmpresaRepository"
 import { CandidatoRepository } from "../repository/CandidatoRepository"
-import { EmpresaNaoEncontradaException } from "../exceptions/EmpresaNaoEncontradaException"
-import { CandidatoNaoEncontradoException } from "../exceptions/CandidatoNaoEncontradoException"
-import { CandidatoJaCurtidoException } from "../exceptions/CandidatoJaCurtidoException"
+import { EmpresaNaoEncontradaException } from "../exceptions/empresa/EmpresaNaoEncontradaException"
+import { CandidatoNaoEncontradoException } from "../exceptions/candidato/CandidatoNaoEncontradoException"
+import { CandidatoJaCurtidoException } from "../exceptions/candidato/CandidatoJaCurtidoException"
 
 export class CurtidaCandidatoService {
 
@@ -46,14 +46,22 @@ export class CurtidaCandidatoService {
     }
 
     buscarPorEmpresa(idEmpresa: number): CurtidaCandidato[] {
-        return this.curtidaCandidatoRepository.buscarPorEmpresa(
-            idEmpresa
-        )
+        const empresaProcurada = this.empresaRepository.buscarPorId(idEmpresa)
+
+        if (empresaProcurada == undefined) {
+            throw new EmpresaNaoEncontradaException(idEmpresa)
+        }
+
+        return this.curtidaCandidatoRepository.buscarPorEmpresa(idEmpresa)
     }
 
     buscarPorCandidato(idCandidato: number): CurtidaCandidato[] {
-        return this.curtidaCandidatoRepository.buscarPorCandidato(
-            idCandidato
-        )
+        const candidatoProcurado = this.candidatoRepository.buscarPorId(idCandidato)
+
+        if (candidatoProcurado == undefined) {
+            throw new CandidatoNaoEncontradoException(idCandidato)
+        }
+
+        return this.curtidaCandidatoRepository.buscarPorCandidato(idCandidato)
     }
 }

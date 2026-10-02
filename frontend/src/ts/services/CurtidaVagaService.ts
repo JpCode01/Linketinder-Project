@@ -2,9 +2,9 @@ import { CurtidaVaga } from "../models/CurtidaVaga"
 import { CurtidaVagaRepository } from "../repository/CurtidaVagaRepository"
 import { CandidatoRepository } from "../repository/CandidatoRepository"
 import { VagaRepository } from "../repository/VagaRepository"
-import { CandidatoNaoEncontradoException } from "../exceptions/CandidatoNaoEncontradoException"
-import { VagaNaoEncontradaException } from "../exceptions/VagaNaoEncontradaException"
-import { VagaJaCurtidaException } from "../exceptions/VagaJaCurtidaException"
+import { CandidatoNaoEncontradoException } from "../exceptions/candidato/CandidatoNaoEncontradoException"
+import { VagaNaoEncontradaException } from "../exceptions/vaga/VagaNaoEncontradaException"
+import { VagaJaCurtidaException } from "../exceptions/vaga/VagaJaCurtidaException"
 
 export class CurtidaVagaService {
 
@@ -40,14 +40,22 @@ export class CurtidaVagaService {
     }
 
     buscarPorCandidato(idCandidato: number): CurtidaVaga[] {
-        return this.curtidaVagaRepository.buscarPorCandidato(
-            idCandidato
-        )
+        const candidatoProcurado = this.candidatoRepository.buscarPorId(idCandidato)
+
+        if (candidatoProcurado == undefined) {
+            throw new CandidatoNaoEncontradoException(idCandidato)
+        }
+
+        return this.curtidaVagaRepository.buscarPorCandidato(idCandidato)
     }
 
     buscarPorVaga(idVaga: number): CurtidaVaga[] {
-        return this.curtidaVagaRepository.buscarPorVaga(
-            idVaga
-        )
+        const vagaPrcurada = this.vagaRepository.buscarPorId(idVaga)
+
+        if (vagaPrcurada == undefined) {
+            throw new VagaNaoEncontradaException(idVaga)
+        }
+
+        return this.curtidaVagaRepository.buscarPorVaga(idVaga)
     }
 }

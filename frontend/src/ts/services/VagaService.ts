@@ -1,7 +1,8 @@
 import { Vaga } from "../models/Vaga"
 import { VagaRepository } from "../repository/VagaRepository"
 import { EmpresaRepository } from "../repository/EmpresaRepository"
-import { EmpresaNaoEncontradaException } from "../exceptions/EmpresaNaoEncontradaException"
+import { EmpresaNaoEncontradaException } from "../exceptions/empresa/EmpresaNaoEncontradaException"
+import { VagaNaoEncontradaException } from "../exceptions/vaga/VagaNaoEncontradaException";
 
 export class VagaService {
 
@@ -24,11 +25,23 @@ export class VagaService {
         return this.vagaRepository.buscarTodos()
     }
 
-    buscarPorId(id: number): Vaga | undefined {
-        return this.vagaRepository.buscarPorId(id)
+    buscarPorId(id: number): Vaga {
+        const procurarVaga = this.vagaRepository.buscarPorId(id)
+
+        if (procurarVaga == undefined) {
+            throw new VagaNaoEncontradaException(id)
+        }
+
+        return procurarVaga
     }
 
     buscarPorEmpresa(idEmpresa: number): Vaga[] {
+        const empresaProcurada = this.empresaRepository.buscarPorId(idEmpresa)
+
+        if (empresaProcurada == undefined) {
+            throw new EmpresaNaoEncontradaException(idEmpresa)
+        }
+        
         return this.vagaRepository.buscarPorEmpresa(idEmpresa)
     }
 }
