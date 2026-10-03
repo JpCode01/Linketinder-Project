@@ -3,6 +3,7 @@ import { EmpresaService } from "../services/EmpresaService"
 import { VagaService } from "../services/VagaService"
 import { CurtidaVagaService } from "../services/CurtidaVagaService"
 import { CurtidaCandidatoService } from "../services/CurtidaCandidatoService"
+import { RelatorioCompetenciasService } from "../services/RelatorioCompetenciasService"
 
 import { RepositoryConfig } from "./RepositoryConfig"
 
@@ -14,6 +15,14 @@ export class ServiceConfig {
         return new CandidatoService(
             this.repositoryConfig.candidatoRepository,
             this.repositoryConfig.empresaRepository
+        )
+    }
+
+    criarRelatorioCompetenciasService(): RelatorioCompetenciasService {
+        return new RelatorioCompetenciasService(
+            this.criarVagaService(),
+            this.criarCurtidaVagaService(),
+            this.criarCandidatoService()
         )
     }
 

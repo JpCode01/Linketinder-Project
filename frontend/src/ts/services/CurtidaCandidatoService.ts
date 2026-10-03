@@ -14,7 +14,7 @@ export class CurtidaCandidatoService {
         private candidatoRepository: CandidatoRepository
     ) {}
 
-    curtir(idEmpresa: number, idCandidato: number): void {
+    curtir(idEmpresa: number, idCandidato: number, idVaga: number): void {
        const empresa = this.empresaRepository.buscarPorId(idEmpresa)
 
         if (empresa == undefined) {
@@ -30,7 +30,8 @@ export class CurtidaCandidatoService {
         const curtidaExistente =
             this.curtidaCandidatoRepository.buscar(
                 idEmpresa,
-                idCandidato
+                idCandidato,
+                idVaga
             )
 
         if (curtidaExistente != undefined) {
@@ -39,7 +40,8 @@ export class CurtidaCandidatoService {
 
         const curtida = new CurtidaCandidato(
             idEmpresa,
-            idCandidato
+            idCandidato,
+            idVaga
         )
 
         this.curtidaCandidatoRepository.salvar(curtida)

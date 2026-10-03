@@ -44,13 +44,14 @@ export class CurtidaCandidatoRepository {
         )
     }
 
-    buscar(idEmpresa: number, idCandidato: number): CurtidaCandidato | undefined {
+    buscar(idEmpresa: number, idCandidato: number, idVaga: number): CurtidaCandidato | undefined {
         const curtidas = this.buscarTodos()
 
         return curtidas.find(
             curtida =>
                 curtida.idEmpresa === idEmpresa &&
-                curtida.idCandidato === idCandidato
+                curtida.idCandidato === idCandidato &&
+                curtida.idVaga === idVaga
         )
     }
 }

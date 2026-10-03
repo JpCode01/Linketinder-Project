@@ -10,6 +10,8 @@ import { CurtidaVagaService } from "../services/CurtidaVagaService"
 import { EmpresaService } from "../services/EmpresaService"
 import { CurtidaCandidatoService } from "../services/CurtidaCandidatoService"
 import { CandidatoJaCurtidoException } from "../exceptions/candidato/CandidatoJaCurtidoException"
+import { RelatorioCompetenciasService } from "../services/RelatorioCompetenciasService";
+import { criarGraficoCompetencias } from "../charts/CompetenciaChart"
 
 interface Sessao {
     id: number
@@ -42,6 +44,9 @@ const curtidaVagaService: CurtidaVagaService =
 const curtidaCandidatoService: CurtidaCandidatoService =
     serviceConfig.criarCurtidaCandidatoService()
 
+const relatorioCompetenciasService: RelatorioCompetenciasService =
+    serviceConfig.criarRelatorioCompetenciasService()
+
 export function exibirPageEmpresa(): void {
     const sessao = obterSessao()
 
@@ -57,6 +62,10 @@ export function exibirPageEmpresa(): void {
     exibirVagasEmpresa(empresa.id)
     exibirCandidatosEmpresa(empresa.id)
     exibirCandidatosCurtidos(empresa.id)
+
+    const contagem = relatorioCompetenciasService.contarCompetencias(empresa.id)
+
+    criarGraficoCompetencias(contagem)
 }
 
 function obterSessao(): Sessao | undefined {
@@ -258,14 +267,15 @@ function exibirCandidatosEmpresa(idEmpresa: number): void {
             const candidato = candidatoService.buscarPorId(curtida.idCandidato)
 
             const candidatoJaCurtido = curtidasCandidatos.some(
-                curtida => curtida.idCandidato === candidato.id
+                curtida => curtida.idCandidato === candidato.id &&
+                curtida.idVaga === vaga.id
             )
 
             const card = criarCardCandidato(
                 candidato,
                 vaga,
                 candidatoJaCurtido,
-                () => curtirCandidato(idEmpresa, candidato.id, card)
+                () => curtirCandidato(idEmpresa, candidato.id, vaga.id, card)
             )
 
             listaCandidatos.appendChild(card)
@@ -395,10 +405,11 @@ function criarRodapeCandidato(candidatoJaCurtido: boolean, aoCurtir: () => void)
 function curtirCandidato(
     idEmpresa: number,
     idCandidato: number,
+    idVaga: number,
     card: HTMLElement
 ): void {
     try {
-        curtidaCandidatoService.curtir(idEmpresa, idCandidato)
+        curtidaCandidatoService.curtir(idEmpresa, idCandidato, idVaga)
         atualizarCardCandidatoCurtido(card)
     } catch (erro) {
         if (erro instanceof CandidatoJaCurtidoException) {
@@ -477,7 +488,10 @@ function exibirCandidatosCurtidos(idEmpresa: number): void {
                 curtida => curtida.idCandidato === candidato.id
             )
 
-            if (candidatoCurtiuVaga) {
+            const empresaCurtiuCandidatoParaVaga =
+                curtidaCandidato.idVaga === vaga.id
+
+            if (candidatoCurtiuVaga && empresaCurtiuCandidatoParaVaga) {
                 const card = criarCardCandidatoCurtido(
                     candidato,
                     vaga

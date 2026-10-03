@@ -1,96 +1,57 @@
-// import {
-//     Chart,
-//     BarController,
-//     BarElement,
-//     CategoryScale,
-//     LinearScale
-// } from "chart.js"
 
-// import { Empresa } from "../models/Empresa"
+import {
+    Chart,
+    BarController,
+    BarElement,
+    CategoryScale,
+    LinearScale
+} from "chart.js"
 
-// Chart.register(
-//     BarController,
-//     BarElement,
-//     CategoryScale,
-//     LinearScale
-// )
+Chart.register(
+    BarController,
+    BarElement,
+    CategoryScale,
+    LinearScale
+)
 
+export function criarGraficoCompetencias(
+    contagem: Map<string, number>
+): void {
 
-// function contarCompetencias(
-//     empresa: Empresa
-// ): Map<string, number> {
+    const canvas = document.getElementById(
+        "competencia-chart"
+    ) as HTMLCanvasElement | null
 
-//     const competencias = new Map<string, number>()
+    if (canvas == null) {
+        return
+    }
+    
+    Chart.getChart(canvas)?.destroy()
 
-//     for (const vaga of empresa.getVagas) {
+    const labels = Array.from(contagem.keys())
+    const valores = Array.from(contagem.values())
 
-//         for (const candidato of vaga.getCandidatosQueCurtiram) {
-
-//             for (const competencia of candidato.getCompetencias) {
-
-//                 const quantidade =
-//                     competencias.get(competencia) ?? 0
-
-//                 competencias.set(
-//                     competencia,
-//                     quantidade + 1
-//                 )
-//             }
-//         }
-//     }
-
-//     return competencias
-// }
-
-
-// export function criarGraficoCompetencias(
-//     empresa: Empresa
-// ): void {
-
-//     const canvas = document.getElementById(
-//         "competencia-chart"
-//     ) as HTMLCanvasElement
-
-//     if (canvas == null) {
-//         return
-//     }
-
-//     const contagem = contarCompetencias(empresa)
-
-//     const labels = Array.from(contagem.keys())
-
-//     const valores = Array.from(contagem.values())
-
-//     new Chart(canvas, {
-
-//         type: "bar",
-
-//         data: {
-
-//             labels: labels,
-
-//             datasets: [
-//                 {
-//                     label: "Candidatos",
-//                     data: valores
-//                 }
-//             ]
-//         },
-
-//         options: {
-
-//             responsive: true,
-
-//             scales: {
-
-//                 y: {
-//                     beginAtZero: true,
-
-//                     ticks: {
-//                         stepSize: 1
-//                     }
-//                 }
-//             }
-//         }
-//     })
-// }
+    new Chart(canvas, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Candidatos",
+                    data: valores
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    })
+}
