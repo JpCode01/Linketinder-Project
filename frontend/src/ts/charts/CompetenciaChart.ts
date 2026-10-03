@@ -1,96 +1,96 @@
-import {
-    Chart,
-    BarController,
-    BarElement,
-    CategoryScale,
-    LinearScale
-} from "chart.js"
+// import {
+//     Chart,
+//     BarController,
+//     BarElement,
+//     CategoryScale,
+//     LinearScale
+// } from "chart.js"
 
-import { Empresa } from "../models/Empresa"
+// import { Empresa } from "../models/Empresa"
 
-Chart.register(
-    BarController,
-    BarElement,
-    CategoryScale,
-    LinearScale
-)
-
-
-function contarCompetencias(
-    empresa: Empresa
-): Map<string, number> {
-
-    const competencias = new Map<string, number>()
-
-    for (const vaga of empresa.getVagas) {
-
-        for (const candidato of vaga.getCandidatosQueCurtiram) {
-
-            for (const competencia of candidato.getCompetencias) {
-
-                const quantidade =
-                    competencias.get(competencia) ?? 0
-
-                competencias.set(
-                    competencia,
-                    quantidade + 1
-                )
-            }
-        }
-    }
-
-    return competencias
-}
+// Chart.register(
+//     BarController,
+//     BarElement,
+//     CategoryScale,
+//     LinearScale
+// )
 
 
-export function criarGraficoCompetencias(
-    empresa: Empresa
-): void {
+// function contarCompetencias(
+//     empresa: Empresa
+// ): Map<string, number> {
 
-    const canvas = document.getElementById(
-        "competencia-chart"
-    ) as HTMLCanvasElement
+//     const competencias = new Map<string, number>()
 
-    if (canvas == null) {
-        return
-    }
+//     for (const vaga of empresa.getVagas) {
 
-    const contagem = contarCompetencias(empresa)
+//         for (const candidato of vaga.getCandidatosQueCurtiram) {
 
-    const labels = Array.from(contagem.keys())
+//             for (const competencia of candidato.getCompetencias) {
 
-    const valores = Array.from(contagem.values())
+//                 const quantidade =
+//                     competencias.get(competencia) ?? 0
 
-    new Chart(canvas, {
+//                 competencias.set(
+//                     competencia,
+//                     quantidade + 1
+//                 )
+//             }
+//         }
+//     }
 
-        type: "bar",
+//     return competencias
+// }
 
-        data: {
 
-            labels: labels,
+// export function criarGraficoCompetencias(
+//     empresa: Empresa
+// ): void {
 
-            datasets: [
-                {
-                    label: "Candidatos",
-                    data: valores
-                }
-            ]
-        },
+//     const canvas = document.getElementById(
+//         "competencia-chart"
+//     ) as HTMLCanvasElement
 
-        options: {
+//     if (canvas == null) {
+//         return
+//     }
 
-            responsive: true,
+//     const contagem = contarCompetencias(empresa)
 
-            scales: {
+//     const labels = Array.from(contagem.keys())
 
-                y: {
-                    beginAtZero: true,
+//     const valores = Array.from(contagem.values())
 
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            }
-        }
-    })
-}
+//     new Chart(canvas, {
+
+//         type: "bar",
+
+//         data: {
+
+//             labels: labels,
+
+//             datasets: [
+//                 {
+//                     label: "Candidatos",
+//                     data: valores
+//                 }
+//             ]
+//         },
+
+//         options: {
+
+//             responsive: true,
+
+//             scales: {
+
+//                 y: {
+//                     beginAtZero: true,
+
+//                     ticks: {
+//                         stepSize: 1
+//                     }
+//                 }
+//             }
+//         }
+//     })
+// }

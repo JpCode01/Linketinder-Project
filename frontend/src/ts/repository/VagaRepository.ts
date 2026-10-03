@@ -10,6 +10,10 @@ export class VagaRepository {
                 ? JSON.parse(vagasSalvas)
                 : []
 
+        vaga.id = vagas.length > 0
+        ? Math.max(...vagas.map(vagaSalva => vagaSalva.id   )) + 1
+        : 1
+
         vagas.push(vaga)
 
         localStorage.setItem(

@@ -117,6 +117,9 @@ function carregarOpcoesCompetencias(): void {
         document.getElementById("skills-options")!
 
     for (const competencia of Object.values(Competencia)) {
+        const opcaoCompetencia = document.createElement("div")
+        opcaoCompetencia.classList.add("skill-option")
+
         const checkbox = document.createElement("input")
         checkbox.type = "checkbox"
         checkbox.name = "competencias"
@@ -127,8 +130,10 @@ function carregarOpcoesCompetencias(): void {
         label.htmlFor = checkbox.id
         label.textContent = competencia
 
-        containerCompetencias.appendChild(checkbox)
-        containerCompetencias.appendChild(label)
+        opcaoCompetencia.appendChild(checkbox)
+        opcaoCompetencia.appendChild(label)
+
+        containerCompetencias.appendChild(opcaoCompetencia)
     }
 }
 
