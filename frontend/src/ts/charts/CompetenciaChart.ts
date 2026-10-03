@@ -1,3 +1,4 @@
+
 import {
     Chart,
     BarController,
@@ -6,8 +7,6 @@ import {
     LinearScale
 } from "chart.js"
 
-import { Empresa } from "../models/Empresa"
-
 Chart.register(
     BarController,
     BarElement,
@@ -15,60 +14,27 @@ Chart.register(
     LinearScale
 )
 
-
-function contarCompetencias(
-    empresa: Empresa
-): Map<string, number> {
-
-    const competencias = new Map<string, number>()
-
-    for (const vaga of empresa.getVagas) {
-
-        for (const candidato of vaga.getCandidatosQueCurtiram) {
-
-            for (const competencia of candidato.getCompetencias) {
-
-                const quantidade =
-                    competencias.get(competencia) ?? 0
-
-                competencias.set(
-                    competencia,
-                    quantidade + 1
-                )
-            }
-        }
-    }
-
-    return competencias
-}
-
-
 export function criarGraficoCompetencias(
-    empresa: Empresa
+    contagem: Map<string, number>
 ): void {
 
     const canvas = document.getElementById(
         "competencia-chart"
-    ) as HTMLCanvasElement
+    ) as HTMLCanvasElement | null
 
     if (canvas == null) {
         return
     }
-
-    const contagem = contarCompetencias(empresa)
+    
+    Chart.getChart(canvas)?.destroy()
 
     const labels = Array.from(contagem.keys())
-
     const valores = Array.from(contagem.values())
 
     new Chart(canvas, {
-
         type: "bar",
-
         data: {
-
             labels: labels,
-
             datasets: [
                 {
                     label: "Candidatos",
@@ -76,16 +42,11 @@ export function criarGraficoCompetencias(
                 }
             ]
         },
-
         options: {
-
             responsive: true,
-
             scales: {
-
                 y: {
                     beginAtZero: true,
-
                     ticks: {
                         stepSize: 1
                     }

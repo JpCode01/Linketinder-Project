@@ -1,80 +1,47 @@
-import { Candidato } from "../models/Candidato";
-import { IVagaJSON, Vaga } from "../models/Vaga"
-import { Competencia } from "../models/Competencia"
+import { Vaga } from "../models/Vaga"
+import { VagaRepository } from "../repository/VagaRepository"
+import { EmpresaRepository } from "../repository/EmpresaRepository"
+import { EmpresaNaoEncontradaException } from "../exceptions/empresa/EmpresaNaoEncontradaException"
+import { VagaNaoEncontradaException } from "../exceptions/vaga/VagaNaoEncontradaException";
 
 export class VagaService {
-    cadastrar(vaga: Vaga): void {
-        const vagasSalvas = localStorage.getItem("vagas")
 
-        const vagas: Vaga[] =
-            vagasSalvas ? JSON.parse(vagasSalvas)
-            : []
+    constructor(
+        private vagaRepository: VagaRepository,
+        private empresaRepository: EmpresaRepository
+    ) {}
 
-        vagas.push(vaga)
+    salvar(vaga: Vaga): void {
+        const empresa = this.empresaRepository.buscarPorId(vaga.idEmpresa)
 
-        localStorage.setItem(
-            "vagas",
-            JSON.stringify(vagas)
-        )
-
-    }
-
-    adicionarCompetencia(vaga: Vaga, competencia: Competencia): void {
-         if (vaga != null && competencia != null) {
-            vaga.addCompetencia(competencia)
-        } else {
-            throw "Vaga ou competência não podem ser nulos"
-        }
-    }
-
-    verificarCompetenciasEConverter(
-    competenciasRecebidas: string): Competencia[] | null {
-
-        const competencias = competenciasRecebidas
-            .split(",")
-            .map(competencia => competencia.trim().toUpperCase())
-
-        const competenciasConvertidas: Competencia[] = []
-
-        for (const competencia of competencias) {
-
-            if (!(competencia in Competencia)) {
-                return null
-            }
-
-            const competenciaConvertida =
-                Competencia[competencia as keyof typeof Competencia]
-
-            competenciasConvertidas.push(competenciaConvertida)
+        if (empresa == undefined) {
+            throw new EmpresaNaoEncontradaException(vaga.idEmpresa)
         }
 
-        return competenciasConvertidas
+        this.vagaRepository.salvar(vaga)
     }
 
-    exibirVagasEConverter(): Vaga[] {
-        const vagasSalvas = localStorage.getItem("vagas")
-        if (vagasSalvas == null) {
-            return []
+    buscarTodos(): Vaga[] {
+        return this.vagaRepository.buscarTodos()
+    }
+
+    buscarPorId(id: number): Vaga {
+        const procurarVaga = this.vagaRepository.buscarPorId(id)
+
+        if (procurarVaga == undefined) {
+            throw new VagaNaoEncontradaException(id)
         }
 
-        const vagasJSON: IVagaJSON[] = JSON.parse(vagasSalvas)
-
-        const vagas: Vaga[] = vagasJSON.map(
-        vagaJSON => {
-            const vaga = new Vaga(
-                vagaJSON._nome,
-                vagaJSON._descricao,
-                vagaJSON._empresa,
-                vagaJSON._tipo,
-                vagaJSON._localizacao
-            )
-
-            vaga.setCompetencias(vagaJSON.competencias)
-
-            return vaga
-        })
-
-        return vagas
+        return procurarVaga
     }
 
+    buscarPorEmpresa(idEmpresa: number): Vaga[] {
+        const empresaProcurada = this.empresaRepository.buscarPorId(idEmpresa)
+
+        if (empresaProcurada == undefined) {
+            throw new EmpresaNaoEncontradaException(idEmpresa)
+        }
+        
+        return this.vagaRepository.buscarPorEmpresa(idEmpresa)
+    }
 }

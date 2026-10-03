@@ -146,17 +146,8 @@
 
 
             <div class="input-group">
-
-                <label for="skills">
-                    Competências
-                </label>
-
-                <input
-                    type="text"
-                    id="skills"
-                    placeholder="Java, Python, Spring"
-                >
-
+                <span class="skills-title">Competências</span>
+                <div id="skills-options" class="skills-options"></div>
             </div>
 
 
@@ -351,6 +342,38 @@
     </div>
 
 </section>
+
+<!-- CANDIDATOS CURTIDOS -->
+
+<section class="section">
+
+    <div class="content-header">
+
+        <div>
+
+            <span class="section-label">
+                MATCH
+            </span>
+
+            <h2>Candidatos Curtidos (Match Encontrado)</h2>
+
+        </div>
+
+        <span class="result-count" id="liked-candidate-count">
+            0 candidatos
+        </span>
+
+    </div>
+
+
+    <div class="candidate-grid" id="liked-candidate-grid">
+
+        <!-- CANDIDATOS CURTIDOS SERÃO INSERIDOS AQUI -->
+
+    </div>
+
+</section>
+
 </main>
 
 <script src="../js/bundle.js"></script>

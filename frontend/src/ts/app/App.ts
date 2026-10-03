@@ -1,7 +1,9 @@
-import { procurar, abrirCadastro } from "../pages/LoginPage"
-import { cadastrarCandidato, cadastrarEmpresa } from "../pages/CadastroPage"
+import { loginCandidato, loginEmpresa } from "../pages/LoginPage"
+import { abrirCadastro } from "../pages/LoginPage"
+import { cadastrarCandidato } from "../pages/CadastroCandidatoPage"
+import { cadastrarEmpresa } from "../pages/CadastroEmpresaPage"
 import { exibirPageCandidato } from "../pages/CandidatoPage"
-import { exibirPageEmpresa, criarVaga } from "../pages/EmpresaPage";
+import { exibirPageEmpresa } from "../pages/EmpresaPage"
 
 export class App {
 
@@ -11,7 +13,8 @@ export class App {
         console.log("Página:", paginaAtual)
 
         if (paginaAtual.endsWith("/index.html")) {
-            procurar()
+            loginCandidato()
+            loginEmpresa()
             abrirCadastro()
         }
 
@@ -29,7 +32,6 @@ export class App {
 
         if (paginaAtual.endsWith("/empresa.html")) {
             exibirPageEmpresa()
-            criarVaga()
         }
     }
 }
