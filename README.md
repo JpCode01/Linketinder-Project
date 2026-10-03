@@ -25,7 +25,7 @@ O projeto atualmente possui duas partes principais:
 * **Backend:** desenvolvido em Groovy, inicialmente como MVP executado pelo terminal e posteriormente integrado a um banco de dados PostgreSQL;
 * **Frontend:** interface web desenvolvida em TypeScript.
 
-O frontend possui armazenamento próprio utilizando o **LocalStorage**, permitindo executar as funcionalidades da interface sem depender do servidor.
+O frontend possui armazenamento próprio utilizando o **LocalStorage**, permitindo executar as funcionalidades da interface sem depender do servidor. A implementação atual utiliza uma arquitetura baseada em **Models, Repositories, Services e Pages**, com configurações centralizadas para criação de repositórios e serviços.
 
 ---
 
@@ -511,26 +511,6 @@ As operações de associação também utilizam `ON CONFLICT DO NOTHING` quando 
 
 ---
 
-# Idade
-
-A idade dos candidatos não é armazenada diretamente como uma coluna no banco.
-
-O banco armazena a:
-
-```text
-data_nascimento
-```
-
-e as consultas calculam a idade quando necessário utilizando PostgreSQL:
-
-```sql
-EXTRACT(YEAR FROM AGE(c.data_nascimento))
-```
-
-Dessa maneira, a idade não precisa ser atualizada manualmente conforme o tempo passa.
-
----
-
 # Testes
 
 O backend possui testes unitários utilizando **Spock Framework**.
@@ -668,23 +648,35 @@ Contém as classes responsáveis pela representação dos objetos do sistema, co
 * Vaga
 * Competencia
 
+### Repositories
+
+Contém as operações de acesso e persistência dos dados no **LocalStorage**, mantendo essa responsabilidade separada das regras de negócio.
+
+Entre os repositórios estão:
+
+* `CandidatoRepository`
+* `EmpresaRepository`
+* `VagaRepository`
+* `CurtidaVagaRepository`
+* `CurtidaCandidatoRepository`
+
 ### Services
 
-Contém as operações relacionadas às regras do frontend, como:
+Contém as regras de negócio e a orquestração das operações do frontend, utilizando os repositórios para acessar os dados.
 
-* Cadastro de candidatos;
-* Cadastro de empresas;
-* Cadastro de vagas;
-* Busca de candidatos e empresas;
-* Curtidas;
-* Conversão dos dados armazenados no LocalStorage;
-* Validação de competências.
+Entre os serviços estão:
 
-Entre os principais serviços estão:
+* `CandidatoService`
+* `EmpresaService`
+* `VagaService`
+* `CurtidaVagaService`
+* `CurtidaCandidatoService`
 
-* CandidatoService
-* EmpresaService
-* VagaService
+Os serviços validam operações como a existência de candidatos, empresas e vagas e impedem determinadas operações duplicadas, lançando exceções específicas quando necessário.
+
+### Configuração de dependências
+
+As classes `RepositoryConfig` e `ServiceConfig` centralizam a criação dos repositórios e serviços e a passagem de suas dependências através dos construtores.
 
 ### Pages
 
@@ -775,10 +767,11 @@ Ela apresenta:
 * Formulário para criação de vagas;
 * Lista de vagas cadastradas pela empresa;
 * Quantidade de candidatos interessados em cada vaga;
-* Lista de candidatos que demonstraram interesse nas vagas;
+* Lista de candidatos que demonstraram interesse em cada vaga;
 * Competências dos candidatos;
-* Formação dos candidatos;
-* Gráfico de candidatos por competência.
+* Formação dos candidatos.
+
+A implementação do gráfico de competências está em processo de refatoração e ainda precisa ser integrada à nova `EmpresaPage`. A proposta é separar o cálculo dos dados, em `RelatorioCompetenciasService`, da renderização em `charts/CompetenciaCharts.ts`.
 
 ---
 
@@ -816,41 +809,34 @@ Quando uma vaga é curtida:
 
 ### Empresa
 
-A empresa pode curtir candidatos que demonstraram interesse em suas vagas.
+A empresa pode demonstrar interesse em um candidato **para uma vaga específica**.
 
-Quando uma empresa curte um candidato:
+Quando uma empresa curte um candidato para determinada vaga:
 
-* O candidato é adicionado à lista de candidatos curtidos pela empresa;
-* O botão é alterado para indicar que o candidato já foi curtido.
-
----
-
-# Anonimato
-
-O frontend respeita a regra de anonimato definida no desafio.
-
-Antes de existir um *match*, as informações de identificação devem permanecer restritas.
-
-Na visão da empresa, os candidatos são apresentados com informações como:
-
-* Formação;
-* Competências;
-* Vaga de interesse;
-* Descrição.
-
-Na visão do candidato, as vagas apresentam as informações necessárias para avaliar a oportunidade.
-
-A lógica completa de *match* não é o foco desta etapa, conforme definido no enunciado.
+* A curtida registra o ID da empresa, o ID do candidato e o ID da vaga;
+* O botão correspondente àquela combinação de candidato e vaga indica que o candidato já foi curtido para essa oportunidade;
+* O mesmo candidato pode ser considerado para outra vaga da mesma empresa de forma independente.
 
 ---
 
-# Gráfico de candidatos por competência
+# Matches no frontend
 
-O perfil da empresa possui um **gráfico de barras** que apresenta a quantidade de candidatos que possuem cada competência.
+O frontend verifica o interesse mútuo por **vaga específica**. Para uma combinação ser exibida como match, o candidato precisa ter curtido a vaga e a empresa precisa ter curtido aquele candidato para a mesma vaga.
 
-O gráfico é gerado dinamicamente a partir dos candidatos disponíveis e suas respectivas competências.
+Assim, uma curtida da empresa relacionada a uma vaga não transforma automaticamente em match todas as outras vagas da mesma empresa que o candidato tenha curtido.
 
-A visualização utiliza a biblioteca **Chart.js**.
+---
+
+# Gráfico de competências
+
+O projeto utiliza **Chart.js** para a visualização de dados. O gráfico de competências da empresa está em processo de refatoração e ainda não está integrado à nova `EmpresaPage`.
+
+A refatoração planejada separa as responsabilidades em dois arquivos:
+
+* `services/RelatorioCompetenciasService.ts` — consulta as vagas da empresa, recupera as curtidas de cada vaga, busca os candidatos e contabiliza suas competências;
+* `charts/CompetenciaCharts.ts` — recebe as quantidades calculadas e renderiza o gráfico de barras.
+
+A contagem proposta mantém o comportamento legado: as competências de um candidato são contabilizadas novamente quando ele curte outra vaga da mesma empresa. Essa implementação só deve ser considerada concluída depois de os arquivos serem criados e a chamada ser integrada à `EmpresaPage`.
 
 ---
 
@@ -860,11 +846,14 @@ Como o frontend ainda não possui comunicação com o backend, os dados são arm
 
 Entre as informações armazenadas estão:
 
-* candidatos
-* empresas
-* vagas
-* candidatoLogado
-* empresaLogada
+* `candidatos`;
+* `empresas`;
+* `vagas`;
+* `curtidasVagas`;
+* `curtidasCandidatos`;
+* `sessao`, contendo o identificador e o tipo de usuário autenticado.
+
+Os nomes acima correspondem às chaves utilizadas na implementação descrita neste README; se as chaves forem alteradas no código, esta seção também deverá ser atualizada.
 
 O fluxo utilizado é baseado em:
 
@@ -931,9 +920,12 @@ O backend está organizado em pacotes para separar as responsabilidades:
 
 O frontend utiliza uma organização baseada em responsabilidades:
 
-* models - classes e interfaces que representam os dados;
-* services - operações e regras do frontend;
-* pages - lógica de cada página;
+* `models` - classes e interfaces que representam os dados;
+* `repository` - acesso e persistência dos dados no LocalStorage;
+* `services` - regras de negócio e orquestração;
+* `config` - criação e injeção manual das dependências por meio de `RepositoryConfig` e `ServiceConfig`;
+* `pages` - lógica de cada página;
+* `charts` - visualizações gráficas com Chart.js;
 * data - dados iniciais;
 * app - inicialização e controle da aplicação;
 * html - páginas da aplicação;
@@ -1224,12 +1216,13 @@ Quando uma vaga é curtida:
 
 ### Empresa
 
-A empresa pode curtir candidatos que demonstraram interesse em suas vagas.
+A empresa pode demonstrar interesse em um candidato **para uma vaga específica**.
 
-Quando uma empresa curte um candidato:
+Quando uma empresa curte um candidato para determinada vaga:
 
-* O candidato é adicionado à lista de candidatos curtidos pela empresa;
-* O botão é alterado para indicar que o candidato já foi curtido.
+* A curtida registra o ID da empresa, o ID do candidato e o ID da vaga;
+* O botão correspondente àquela combinação de candidato e vaga indica que o candidato já foi curtido para essa oportunidade;
+* O mesmo candidato pode ser considerado para outra vaga da mesma empresa de forma independente.
 
 ---
 
@@ -1248,17 +1241,20 @@ Na visão da empresa, os candidatos são apresentados com informações como:
 
 Na visão do candidato, as vagas apresentam as informações necessárias para avaliar a oportunidade.
 
-A lógica completa de *match* não é o foco desta etapa, conforme definido no enunciado.
+O frontend identifica matches por vaga específica, conforme descrito na seção “Matches no frontend”.
 
 ---
 
-# Gráfico de candidatos por competência
+# Gráfico de competências
 
-O perfil da empresa possui um **gráfico de barras** que apresenta a quantidade de candidatos que possuem cada competência.
+O projeto utiliza **Chart.js** para a visualização de dados. O gráfico de competências da empresa está em processo de refatoração e ainda não está integrado à nova `EmpresaPage`.
 
-O gráfico é gerado dinamicamente a partir dos candidatos disponíveis e suas respectivas competências.
+A refatoração planejada separa as responsabilidades em dois arquivos:
 
-A visualização utiliza a biblioteca **Chart.js**.
+* `services/RelatorioCompetenciasService.ts` — consulta as vagas da empresa, recupera as curtidas de cada vaga, busca os candidatos e contabiliza suas competências;
+* `charts/CompetenciaCharts.ts` — recebe as quantidades calculadas e renderiza o gráfico de barras.
+
+A contagem proposta mantém o comportamento legado: as competências de um candidato são contabilizadas novamente quando ele curte outra vaga da mesma empresa. Essa implementação só deve ser considerada concluída depois de os arquivos serem criados e a chamada ser integrada à `EmpresaPage`.
 
 ---
 
