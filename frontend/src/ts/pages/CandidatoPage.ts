@@ -1,5 +1,6 @@
 import { Candidato } from "../models/Candidato"
 import { Vaga } from "../models/Vaga"
+import { CurtidaVaga } from "../models/CurtidaVaga"
 import { CandidatoService } from "../services/CandidatoService"
 import { VagaService } from "../services/VagaService"
 import { CurtidaVagaService } from "../services/CurtidaVagaService"
@@ -48,16 +49,7 @@ function exibirVagasCurtidas(candidato: Candidato): void {
         return
     }
 
-    const curtidas = curtidaVagaService.buscarPorCandidato(candidato.id)
-    const vagasCurtidas: Vaga[] = []
-
-    for (const curtida of curtidas) {
-        const vaga = vagaService.buscarPorId(curtida.idVaga)
-
-        if (vaga != undefined) {
-            vagasCurtidas.push(vaga)
-        }
-    }
+    const vagasCurtidas = buscarVagasCurtidas(candidato)
 
     listaVagas.innerHTML = ""
 
@@ -73,6 +65,24 @@ function exibirVagasCurtidas(candidato: Candidato): void {
 
         listaVagas.appendChild(card)
     }
+}
+
+
+function buscarVagasCurtidas(candidato: Candidato): Vaga[] {
+    const curtidas =
+        curtidaVagaService.buscarPorCandidato(candidato.id)
+
+    const vagasCurtidas: Vaga[] = []
+
+    for (const curtida of curtidas) {
+        const vaga = vagaService.buscarPorId(curtida.idVaga)
+
+        if (vaga != undefined) {
+            vagasCurtidas.push(vaga)
+        }
+    }
+
+    return vagasCurtidas
 }
 
 function obterSessao(): Sessao | undefined {
@@ -141,17 +151,16 @@ function exibirVagas(candidato: Candidato): void {
     const curtidas = curtidaVagaService.buscarPorCandidato(candidato.id)
 
     listaVagas.innerHTML = ""
+
     atualizarContador({
-    contador: contador,
-    quantidade: vagas.length,
-    singular: "vaga",
-    plural: "vagas"
+        contador: contador,
+        quantidade: vagas.length,
+        singular: "vaga",
+        plural: "vagas"
     })
 
     for (const vaga of vagas) {
-        const vagaJaCurtida = curtidas.some(
-            curtida => curtida.idVaga === vaga.id
-        )
+        const vagaJaCurtida = vagaFoiCurtida(vaga, curtidas)
         
         const card = criarCardVaga(
             vaga, 
@@ -164,60 +173,83 @@ function exibirVagas(candidato: Candidato): void {
 }
 
 function criarCardVaga(vaga: Vaga, vagaJaCurtida: boolean, aoCurtir?: () => void): HTMLElement {
-    const card = document.createElement("article") 
-    card.classList.add("job-card") 
+    const card = document.createElement("article")
+    card.classList.add("job-card")
 
-    const topo = document.createElement("div") 
-    topo.classList.add("job-top") 
-    
-    const tipo = document.createElement("span") 
-    tipo.classList.add("job-type")
-    tipo.textContent = vaga.tipo 
-    
-    const empresa = document.createElement("span") 
-    empresa.classList.add("anonymous") 
-    empresa.textContent = "Empresa"
-    
-    topo.appendChild(tipo)
-    topo.appendChild(empresa)
-    
+    card.appendChild(criarTopoVaga(vaga))
+
     const nome = document.createElement("h3")
     nome.textContent = vaga.nome
-    
+
     const descricao = document.createElement("p")
     descricao.classList.add("job-description")
     descricao.textContent = vaga.descricao
-    
+
+    card.appendChild(nome)
+    card.appendChild(descricao)
+    card.appendChild(criarCompetenciasVaga(vaga))
+    card.appendChild(
+        criarRodapeVaga(vaga, vagaJaCurtida, aoCurtir)
+    )
+
+    return card
+}
+
+function criarRodapeVaga(vaga: Vaga, vagaJaCurtida: boolean, aoCurtir?: () => void): HTMLElement {
+    const rodape = document.createElement("div")
+    rodape.classList.add("job-footer")
+
+    const localizacao = document.createElement("span")
+    localizacao.classList.add("job-location")
+    localizacao.textContent = vaga.localizacao
+
+    rodape.appendChild(localizacao)
+
+    if (aoCurtir != undefined) {
+        const botao = criarBotaoCurtir(
+            vagaJaCurtida,
+            aoCurtir
+        )
+
+        rodape.appendChild(botao)
+    }
+
+    return rodape
+}
+
+function criarCompetenciasVaga(vaga: Vaga): HTMLElement {
     const competencias = document.createElement("div")
     competencias.classList.add("job-tags")
 
     for (const competencia of vaga.competencias) {
         const competenciaElement = document.createElement("span")
-        competenciaElement.textContent = competencia 
-        competencias.appendChild(competenciaElement) 
-    } 
-    
-    const rodape = document.createElement("div") 
-    rodape.classList.add("job-footer") 
-    
-    const localizacao = document.createElement("span") 
+        competenciaElement.textContent = competencia
 
-    localizacao.classList.add("job-location") 
-    localizacao.textContent = vaga.localizacao
-    
-    rodape.appendChild(localizacao) 
-    if (aoCurtir != undefined) { 
-        const botao = criarBotaoCurtir(vagaJaCurtida, aoCurtir) 
-        rodape.appendChild(botao) 
-    } 
+        competencias.appendChild(competenciaElement)
+    }
 
-    card.appendChild(topo) 
-    card.appendChild(nome) 
-    card.appendChild(descricao) 
-    card.appendChild(competencias) 
-    card.appendChild(rodape) 
-    return card 
+    return competencias
 }
+
+function criarTopoVaga(vaga: Vaga): HTMLElement {
+    const topo = document.createElement("div")
+    topo.classList.add("job-top")
+
+    const tipo = document.createElement("span")
+    tipo.classList.add("job-type")
+    tipo.textContent = vaga.tipo
+
+    const empresa = document.createElement("span")
+    empresa.classList.add("anonymous")
+    empresa.textContent = "Empresa"
+
+    topo.appendChild(tipo)
+    topo.appendChild(empresa)
+
+    return topo
+}
+
+
 
 function curtirVaga(idCandidato: number, vaga: Vaga, card: HTMLElement ): void {
     try { 
@@ -267,4 +299,10 @@ function atualizarContador(dadosContador : DadosContador ): void {
     dadosContador.contador.textContent = dadosContador.quantidade + " " + (
         dadosContador.quantidade === 1 
         ? dadosContador.singular : dadosContador.plural) 
+}
+
+function vagaFoiCurtida(vaga: Vaga, curtidas: CurtidaVaga[]): boolean {
+    return curtidas.some(
+        curtida => curtida.idVaga === vaga.id
+    )
 }
