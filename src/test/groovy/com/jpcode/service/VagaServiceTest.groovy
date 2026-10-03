@@ -4,11 +4,15 @@ import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dao.vaga.VagaDAO
+import com.jpcode.dto.vaga.AtualizarVagaDTO
+import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
 import com.jpcode.model.core.Vaga
 import com.jpcode.model.referencia.Competencia
 import spock.lang.Specification
+import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
+import com.jpcode.exception.referencia.VagaNaoEncontradaException
 
 class VagaServiceTest extends Specification {
 
@@ -30,18 +34,7 @@ class VagaServiceTest extends Specification {
 
     def "deve criar vaga"() {
         given:
-        Vaga vagaSalva = new Vaga(
-                1L,
-                "Desenvolvedor Java",
-                "Desenvolvimento de APIs",
-                "São Paulo",
-                10L
-        )
-
-        vagaDAO.salvar(_) >> vagaSalva
-
-        when:
-        service.criarVaga(
+        CadastrarVagaDTO cadastrarVagaDTO = new CadastrarVagaDTO(
                 "Desenvolvedor Java",
                 "Desenvolvimento de APIs",
                 "São Paulo",
@@ -49,12 +42,6 @@ class VagaServiceTest extends Specification {
                 []
         )
 
-        then:
-        1 * vagaDAO.salvar(_) >> vagaSalva
-    }
-
-    def "deve criar vaga e cadastrar competencias"() {
-        given:
         Vaga vagaSalva = new Vaga(
                 1L,
                 "Desenvolvedor Java",
@@ -63,13 +50,17 @@ class VagaServiceTest extends Specification {
                 10L
         )
 
-        vagaDAO.salvar(_) >> vagaSalva
-
-        competenciaDAO.buscarIdPorNomeCompetencia("JAVA") >> 1L
-        competenciaDAO.buscarIdPorNomeCompetencia("SPRING") >> 2L
-
         when:
-        service.criarVaga(
+        service.criarVaga(cadastrarVagaDTO)
+
+        then:
+        1 * vagaDAO.salvar(_) >> vagaSalva
+        0 * competenciasVagaDAO.salvar(_, _)
+    }
+
+    def "deve criar vaga e cadastrar competencias"() {
+        given:
+        CadastrarVagaDTO cadastrarVagaDTO = new CadastrarVagaDTO(
                 "Desenvolvedor Java",
                 "Desenvolvimento de APIs",
                 "São Paulo",
@@ -77,13 +68,6 @@ class VagaServiceTest extends Specification {
                 ["JAVA", "SPRING"]
         )
 
-        then:
-        1 * competenciasVagaDAO.salvar(1L, 1L)
-        1 * competenciasVagaDAO.salvar(1L, 2L)
-    }
-
-    def "não deve cadastrar competencia inexistente"() {
-        given:
         Vaga vagaSalva = new Vaga(
                 1L,
                 "Desenvolvedor Java",
@@ -92,12 +76,21 @@ class VagaServiceTest extends Specification {
                 10L
         )
 
-        vagaDAO.salvar(_) >> vagaSalva
-
-        competenciaDAO.buscarIdPorNomeCompetencia("JAVA") >> null
+        competenciaDAO.buscarIdPorNomeCompetencia("JAVA") >> Optional.of(1L)
+        competenciaDAO.buscarIdPorNomeCompetencia("SPRING") >> Optional.of(2L)
 
         when:
-        service.criarVaga(
+        service.criarVaga(cadastrarVagaDTO)
+
+        then:
+        1 * vagaDAO.salvar(_) >> vagaSalva
+        1 * competenciasVagaDAO.salvar(1L, 1L)
+        1 * competenciasVagaDAO.salvar(1L, 2L)
+    }
+
+    def "deve lançar exceção quando competencia não existir"() {
+        given:
+        CadastrarVagaDTO cadastrarVagaDTO = new CadastrarVagaDTO(
                 "Desenvolvedor Java",
                 "Desenvolvimento de APIs",
                 "São Paulo",
@@ -105,7 +98,51 @@ class VagaServiceTest extends Specification {
                 ["JAVA"]
         )
 
+        Vaga vagaSalva = new Vaga(
+                1L,
+                "Desenvolvedor Java",
+                "Desenvolvimento de APIs",
+                "São Paulo",
+                10L
+        )
+
+        competenciaDAO.buscarIdPorNomeCompetencia("JAVA") >> Optional.empty()
+
+        when:
+        service.criarVaga(cadastrarVagaDTO)
+
         then:
+        1 * vagaDAO.salvar(_) >> vagaSalva
+        thrown(CompetenciaNaoEncontradaException)
+        0 * competenciasVagaDAO.salvar(_, _)
+    }
+
+    def "deve lançar exceção quando competencia não existir"() {
+        given:
+        CadastrarVagaDTO cadastrarVagaDTO = new CadastrarVagaDTO(
+                "Desenvolvedor Java",
+                "Desenvolvimento de APIs",
+                "São Paulo",
+                10L,
+                ["JAVA"]
+        )
+
+        Vaga vagaSalva = new Vaga(
+                1L,
+                "Desenvolvedor Java",
+                "Desenvolvimento de APIs",
+                "São Paulo",
+                10L
+        )
+
+        competenciaDAO.buscarIdPorNomeCompetencia("JAVA") >> Optional.empty()
+
+        when:
+        service.criarVaga(cadastrarVagaDTO)
+
+        then:
+        1 * vagaDAO.salvar(_) >> vagaSalva
+        thrown(CompetenciaNaoEncontradaException)
         0 * competenciasVagaDAO.salvar(_, _)
     }
 
@@ -137,10 +174,21 @@ class VagaServiceTest extends Specification {
                 10L
         )
 
-        vagaDAO.buscarPorId(1L) >> vaga
+        vagaDAO.buscarPorId(1L) >> Optional.of(vaga)
 
         expect:
         service.buscarVaga(1L) == vaga
+    }
+
+    def "deve lançar exceção quando vaga não for encontrada pelo id"() {
+        given:
+        vagaDAO.buscarPorId(1L) >> Optional.empty()
+
+        when:
+        service.buscarVaga(1L)
+
+        then:
+        thrown(VagaNaoEncontradaException)
     }
 
     def "deve listar vagas curtidas pelo candidato"() {
@@ -185,14 +233,17 @@ class VagaServiceTest extends Specification {
     }
 
     def "deve atualizar vaga"() {
-        when:
-        service.atualizarVaga(
+        given:
+        AtualizarVagaDTO atualizarVagaDTO = new AtualizarVagaDTO(
                 1L,
                 "Desenvolvedor Java Senior",
                 "Desenvolvimento de APIs REST",
                 "São Paulo",
                 10L
         )
+
+        when:
+        service.atualizarVaga(atualizarVagaDTO)
 
         then:
         1 * vagaDAO.atualizarDados(_)

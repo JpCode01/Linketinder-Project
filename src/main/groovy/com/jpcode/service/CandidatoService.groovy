@@ -5,11 +5,16 @@ import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
 import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.EstadoDAO
 import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.dto.candidato.AtualizarCandidatoDTO
+import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
+import com.jpcode.exception.candidato.CandidatoLoginException
+import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
+import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
+import com.jpcode.exception.referencia.EstadoNaoEncontradoException
+import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.referencia.Competencia
-
-import java.time.LocalDate
 
 class CandidatoService {
     final PaisDAO paisDAO
@@ -26,98 +31,91 @@ class CandidatoService {
         this.candidatoDAO = candidatoDAO
     }
     
-    Candidato cadastrarCandidato(String nome, 
-                                 String sobrenome,
-                                 String email,
-                                 String senha,
-                                 String cpf,
-                                 LocalDate dataNascimento,
-                                 String pais,
-                                 int idade,
-                                 String estado,
-                                 String cep,
-                                 String descricao,
-                                 List<String> competencias) {
-        Long paisId = paisDAO.buscarIdPorNome(pais)
-        Long estadoId = estadoDAO.buscarIdPorSigla(estado)
-        Candidato candidato = new Candidato(
-                nome,
-                sobrenome,
-                email,
-                senha,
-                cpf,
-                dataNascimento,
-                paisId,
-                idade,
-                estadoId,
-                cep,
-                descricao
-
+    void cadastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
+        Long paisId = paisDAO.buscarIdPorNome(cadastrarCandidatoDTO.pais)
+                .orElseThrow(() ->
+                        new PaisNaoEncontradoException(cadastrarCandidatoDTO.pais)
+                )
+        Long estadoId = estadoDAO.buscarIdPorSigla(cadastrarCandidatoDTO.estado)
+                .orElseThrow(() ->
+                new EstadoNaoEncontradoException(cadastrarCandidatoDTO.estado)
         )
 
-        Candidato candidatoSalvo = candidatoDAO.salvar(candidato)
-        
+        Candidato candidatoSalvo = candidatoDAO.salvar(
+                    new Candidato(
+                            cadastrarCandidatoDTO.nome,
+                            cadastrarCandidatoDTO.sobrenome,
+                            cadastrarCandidatoDTO.email,
+                            cadastrarCandidatoDTO.senha,
+                            cadastrarCandidatoDTO.cpf,
+                            cadastrarCandidatoDTO.dataNascimento,
+                            paisId,
+                            cadastrarCandidatoDTO.idade,
+                            estadoId,
+                            cadastrarCandidatoDTO.cep,
+                            cadastrarCandidatoDTO.descricao
+                    )
+        )
+        salvarCompetencias(cadastrarCandidatoDTO.competencias, candidatoSalvo.id)
+    }
+
+    private salvarCompetencias(List<String> competencias, Long idCandidato) {
         competencias.each {
             competencia ->
-                Long idCompetenciaNormalizada = competenciaDAO.buscarIdPorNomeCompetencia(competencia)
-                if (idCompetenciaNormalizada != null) {
-                    competenciasCandidatoDAO.salvar(candidatoSalvo.id, idCompetenciaNormalizada)
-                }
-        }
+                Long idCompetencia = competenciaDAO
+                        .buscarIdPorNomeCompetencia(competencia)
+                        .orElseThrow(() ->
+                                new CompetenciaNaoEncontradaException(competencia)
+                        )
 
-        return candidatoSalvo
+                competenciasCandidatoDAO.salvar(
+                        idCandidato,
+                        idCompetencia
+                )
+        }
     }
 
     Candidato buscarCandidato(Long idCandidato) {
         return candidatoDAO.buscarPorId(idCandidato)
+        .orElseThrow(() ->
+                    new CandidatoNaoEncontradoPorIdException(idCandidato))
     }
 
     Candidato logar(String email, String senha) {
-        Candidato candidatoEncontrado = null
-        if ((!email.isBlank()) && (!senha.isBlank())) {
-            candidatoEncontrado = candidatoDAO.buscarPorEmailESenha(email, senha)
-        }
-        return candidatoEncontrado
+        return candidatoDAO.buscarPorEmailESenha(email, senha)
+        .orElseThrow(() ->
+        new CandidatoLoginException(email, senha))
     }
 
     void desativarCandidato(Long idCandidato) {
         candidatoDAO.desativar(idCandidato)
     }
     
-
-    void atualizarCandidato(
-            Long id,
-            String nome,
-            String sobrenome,
-            String email,
-            String senha,
-            String cpf,
-            LocalDate dataNascimento,
-            String pais,
-            int idade,
-            String estado,
-            String cep,
-            String descricao,
-            boolean ativo
-    ) {
-        Long paisId = paisDAO.buscarIdPorNome(pais)
-        Long estadoId = estadoDAO.buscarIdPorSigla(estado)
+    void atualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
+        Long paisId = paisDAO.buscarIdPorNome(atualizarCandidatoDTO.pais)
+                .orElseThrow(() ->
+                        new PaisNaoEncontradoException(atualizarCandidatoDTO.pais)
+                )
+        Long estadoId = estadoDAO.buscarIdPorSigla(atualizarCandidatoDTO.estado)
+                .orElseThrow(() ->
+                        new EstadoNaoEncontradoException(atualizarCandidatoDTO.estado)
+                )
 
         candidatoDAO.atualizarDados(
                 new Candidato(
-                        id,
-                        nome,
-                        sobrenome,
-                        email,
-                        senha,
-                        cpf,
-                        dataNascimento,
+                        atualizarCandidatoDTO.id,
+                        atualizarCandidatoDTO.nome,
+                        atualizarCandidatoDTO.sobrenome,
+                        atualizarCandidatoDTO.email,
+                        atualizarCandidatoDTO.senha,
+                        atualizarCandidatoDTO.cpf,
+                        atualizarCandidatoDTO.dataNascimento,
                         paisId,
-                        idade,
+                        atualizarCandidatoDTO.idade,
                         estadoId,
-                        cep,
-                        descricao,
-                        ativo
+                        atualizarCandidatoDTO.cep,
+                        atualizarCandidatoDTO.descricao,
+                        atualizarCandidatoDTO.ativo
                 ))
 
     }

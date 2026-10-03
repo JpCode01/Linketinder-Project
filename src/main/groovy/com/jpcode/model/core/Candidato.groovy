@@ -8,7 +8,6 @@ class Candidato extends Pessoa {
     int idade
     String sobrenome
     LocalDate dataNascimento
-    List<Vaga> vagasCurtidas = []
 
     Candidato(String nome, String sobrenome, String email, String senha, String cpf, LocalDate dataNascimento,Long idPais, int idade, Long idEstado, String cep, String descricao) {
         super(nome, email, senha, idEstado, cep, descricao, idPais)
@@ -26,17 +25,6 @@ class Candidato extends Pessoa {
         this.dataNascimento = dataNascimento
     }
 
-    void exibirParaEmpresa() {
-        println """
-            ----------------------------------------------------------------
-
-            CANDIDATO:
-            
-            NOME: CANDIDATO ANONIMO
-            DESCRIÇÃO: ${descricao}
-        """
-    }
-
     @Override
     String toString() {
         return """
@@ -51,9 +39,5 @@ class Candidato extends Pessoa {
             CPF: ${cpf}
             CEP: ${cep}
         """;
-    }
-
-    void adicionarVagaCurtida(Vaga vaga) {
-        vagasCurtidas.add(vaga)
     }
 }

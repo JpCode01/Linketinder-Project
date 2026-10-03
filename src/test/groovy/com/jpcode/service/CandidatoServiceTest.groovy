@@ -5,10 +5,13 @@ import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
 import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.EstadoDAO
 import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.dto.candidato.CadastrarCandidatoDTO
+import com.jpcode.exception.candidato.CandidatoLoginException
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.referencia.Competencia
 import spock.lang.Specification
 import spock.lang.Unroll
+import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 
 import java.time.LocalDate
 
@@ -48,10 +51,21 @@ class CandidatoServiceTest extends Specification {
                 "Desenvolvedor"
         )
 
-        candidatoDAO.buscarPorId(1L) >> candidato
+        candidatoDAO.buscarPorId(1L) >> Optional.of(candidato)
 
         expect:
         service.buscarCandidato(1L) == candidato
+    }
+
+    def "deve lançar exceção quando candidato não for encontrado pelo id"() {
+        given:
+        candidatoDAO.buscarPorId(1L) >> Optional.empty()
+
+        when:
+        service.buscarCandidato(1L)
+
+        then:
+        thrown(CandidatoNaoEncontradoPorIdException)
     }
 
     def "deve desativar candidato"() {
@@ -63,13 +77,15 @@ class CandidatoServiceTest extends Specification {
     }
 
     @Unroll
-    def "não deve realizar login quando email ou senha estiver vazio"() {
+    def "deve lançar exceção quando login não for encontrado para email '#email' e senha informados"() {
+        given:
+        candidatoDAO.buscarPorEmailESenha(email, senha) >> Optional.empty()
+
         when:
-        def resultado = service.logar(email, senha)
+        service.logar(email, senha)
 
         then:
-        resultado == null
-        0 * candidatoDAO.buscarPorEmailESenha(_, _)
+        thrown(CandidatoLoginException)
 
         where:
         email            | senha
@@ -94,82 +110,15 @@ class CandidatoServiceTest extends Specification {
                 "Desenvolvedor"
         )
 
-        candidatoDAO.buscarPorEmailESenha("joao@email.com", "123") >> candidato
+        candidatoDAO.buscarPorEmailESenha("joao@email.com", "123") >> Optional.of(candidato)
 
         expect:
         service.logar("joao@email.com", "123") == candidato
     }
 
-    def "deve cadastrar candidato"() {
+    def "deve cadastrar o candidato"() {
         given:
-        Candidato candidatoSalvo = new Candidato(
-                1L,
-                "João",
-                "Pedro",
-                "joao@email.com",
-                "123",
-                "12345678900",
-                LocalDate.of(2000, 10, 10),
-                1L,
-                25,
-                2L,
-                "12900000",
-                "Desenvolvedor",
-                true
-        )
-
-        paisDAO.buscarIdPorNome("BRASIL") >> 1L
-        estadoDAO.buscarIdPorSigla("SP") >> 2L
-        candidatoDAO.salvar(_) >> candidatoSalvo
-
-        when:
-        def resultado = service.cadastrarCandidato(
-                "João",
-                "Pedro",
-                "joao@email.com",
-                "123",
-                "12345678900",
-                LocalDate.of(2000, 10, 10),
-                "BRASIL",
-                25,
-                "SP",
-                "12900000",
-                "Desenvolvedor",
-                []
-        )
-
-        then:
-        1 * candidatoDAO.salvar(_) >> candidatoSalvo
-        resultado == candidatoSalvo
-    }
-
-    def "deve cadastrar competencias do candidato"() {
-        given:
-        Candidato candidatoSalvo = new Candidato(
-                1L,
-                "João",
-                "Pedro",
-                "joao@email.com",
-                "123",
-                "12345678900",
-                LocalDate.of(2000, 10, 10),
-                1L,
-                25,
-                2L,
-                "12900000",
-                "Desenvolvedor",
-                true
-        )
-
-        paisDAO.buscarIdPorNome("BRASIL") >> 1L
-        estadoDAO.buscarIdPorSigla("SP") >> 2L
-        candidatoDAO.salvar(_) >> candidatoSalvo
-
-        competenciaDAO.buscarIdPorNomeCompetencia("JAVA") >> 10L
-        competenciaDAO.buscarIdPorNomeCompetencia("SPRING") >> 20L
-
-        when:
-        service.cadastrarCandidato(
+        CadastrarCandidatoDTO cadastrarCandidatoDTO = new CadastrarCandidatoDTO(
                 "João",
                 "Pedro",
                 "joao@email.com",
@@ -184,9 +133,59 @@ class CandidatoServiceTest extends Specification {
                 ["JAVA", "SPRING"]
         )
 
+        Candidato candidatoSalvo = new Candidato(
+                1L,
+                "João",
+                "Pedro",
+                "joao@email.com",
+                "123",
+                "12345678900",
+                LocalDate.of(2000, 10, 10),
+                1L,
+                25,
+                2L,
+                "12900000",
+                "Desenvolvedor",
+                true
+        )
+
+        paisDAO.buscarIdPorNome("BRASIL") >> Optional.of(1L)
+        estadoDAO.buscarIdPorSigla("SP") >> Optional.of(2L)
+
+        competenciaDAO.buscarIdPorNomeCompetencia("JAVA") >>
+                Optional.of(10L)
+
+        competenciaDAO.buscarIdPorNomeCompetencia("SPRING") >>
+                Optional.of(20L)
+
+        when:
+        service.cadastrarCandidato(cadastrarCandidatoDTO)
+
         then:
+        1 * candidatoDAO.salvar(_) >> candidatoSalvo
         1 * competenciasCandidatoDAO.salvar(1L, 10L)
         1 * competenciasCandidatoDAO.salvar(1L, 20L)
+    }
+
+    def "deve cadastrar competencias do candidato"() {
+        given:
+        Competencia java = new Competencia(1L, "JAVA")
+        Competencia spring = new Competencia(2L, "SPRING")
+
+        competenciaDAO.buscarPorNome("JAVA") >> java
+        competenciaDAO.buscarPorNome("SPRING") >> spring
+
+        when:
+        service.adicionarCompetencias(
+                1L,
+                ["JAVA", "SPRING"]
+        )
+
+        then:
+        1 * competenciasCandidatoDAO.atualizar(
+                1L,
+                [java, spring]
+        )
     }
 
     def "deve desativar candidato pelo id"() {

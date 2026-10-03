@@ -12,14 +12,14 @@ class Menu {
     """)
 
         while (true) {
-            println("""
+            int escolha = capturarEscolha("""
         1 - ENTRAR COMO EMPRESA
         2 - ENTRAR COMO CANDIDATO
 
         3 - SAIR
         
         ESCOLHA A OPCAO DESEJADA:""")
-            switch (scanner.nextInt()) {
+            switch (escolha) {
                 case 1:
                     menuEmpresa.inicio()
                     break
@@ -32,6 +32,19 @@ class Menu {
         }
 
     }
+    
+    private int capturarEscolha(String mensagem) {
+        while (true) {
+            println(mensagem)
+            String opcaoUsuario = scanner.nextLine()
+            try {
+                return Integer.parseInt(opcaoUsuario)
+            } catch (NumberFormatException e) {
+                println("Erro, Digite uma opção númerica inteira!")
+            }
+        }
+    }
+    
 
 
 }

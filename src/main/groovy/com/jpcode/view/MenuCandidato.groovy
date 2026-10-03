@@ -1,41 +1,39 @@
 package com.jpcode.view
 
-import com.jpcode.dao.candidato.CandidatoDAO
-import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
-import com.jpcode.dao.match.MatchDAO
-import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.referencia.EstadoDAO
-import com.jpcode.dao.referencia.PaisDAO
-import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
-import com.jpcode.dao.vaga.CompetenciasVagaDAO
-import com.jpcode.dao.vaga.VagaDAO
+import com.jpcode.config.DaoConfig
+import com.jpcode.config.ServiceConfig
+import com.jpcode.dto.candidato.AtualizarCandidatoDTO
+import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
+import com.jpcode.exception.candidato.CandidatoLoginException
+import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
+import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
+import com.jpcode.exception.referencia.EstadoNaoEncontradoException
+import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Candidato
-import com.jpcode.model.core.Vaga
-import com.jpcode.service.CandidatoService
-import com.jpcode.service.CompetenciaService
-import com.jpcode.service.MatchService
-import com.jpcode.service.ReferenciaService
-import com.jpcode.service.VagaService
+import com.jpcode.service.*
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 class MenuCandidato {
     final Scanner scanner = new Scanner(System.in)
-    final CandidatoService candidatoService = new CandidatoService(new PaisDAO(),new EstadoDAO(), new CompetenciaDAO(), new CompetenciasCandidatoDAO(), new CandidatoDAO())
-    final VagaService vagaService = new VagaService(new CompetenciaDAO(), new CompetenciasVagaDAO(), new VagaDAO(), new CandidatoCurtirDAO())
-    final CompetenciaService competenciaService = new CompetenciaService(new CompetenciaDAO())
-    final ReferenciaService referenciaService = new ReferenciaService(new PaisDAO(), new EstadoDAO())
-    final MatchService matchService = new MatchService(new MatchDAO(new CompetenciasCandidatoDAO(), new CompetenciasVagaDAO()))
+    final DaoConfig daoConfig = new DaoConfig()
+    final ServiceConfig serviceConfig = new ServiceConfig(daoConfig)
 
+    final CandidatoService candidatoService = serviceConfig.candidatoService
+    final VagaService vagaService = serviceConfig.vagaService
+    final CompetenciaService competenciaService = serviceConfig.competenciaService
+    final ReferenciaService referenciaService = serviceConfig.referenciaService
+    final MatchService matchService = serviceConfig.matchService
 
     void inicio() {
-        println("""
+        int opcao = capturarEscolha("""
         1 - Cadastre-se 
         2 - Fazer Login
         """)
-        switch (scanner.nextInt()) {
+        switch (opcao) {
             case 1:
                 cadastrarCandidato()
                 break
@@ -46,37 +44,39 @@ class MenuCandidato {
     }
 
     private void login() {
-        while (true) {
-            scanner.nextLine()
             println("Digite o email do candidato: ")
             String email = scanner.nextLine()
             println("Digite a senha do candidato: ")
             String senha = scanner.nextLine()
+            tentarLogarCandidato(email, senha)
+    }
+
+    private void tentarLogarCandidato(String email, String senha) {
+        try {
             Candidato candidatoEncontrado = candidatoService.logar(email, senha)
-            if (candidatoEncontrado) {
-                menuCandidato(candidatoEncontrado)
-                break
-            } else {
-                println("""
-                Email ou Senha incorretos
-                
-                1 - Tente Novamente
-                Qualquer Tecla - Sair
-                """)
-                if (scanner.nextLine() != "1") {
-                    break
-                }
+            println("Candidato Logado com sucesso!")
+            menuCandidato(candidatoEncontrado)
+        } catch (CandidatoLoginException e) {
+            println(e.getMessage())
+        }
+    }
+
+    private int capturarEscolha(String mensagem) {
+        while (true) {
+            println(mensagem)
+            String opcaoUsuario = scanner.nextLine()
+            try {
+                return Integer.parseInt(opcaoUsuario)
+            } catch (NumberFormatException e) {
+                println("Erro, Digite uma opção númerica inteira!")
             }
         }
     }
 
     private void menuCandidato(Candidato candidato) {
         while (true) {
-            List<VagaAnonimaDTO> vagasCurtidas = vagaService.listarVagasCurtidas(candidato.id)
-            List<VagaAnonimaDTO> vagasDisponiveis = vagaService.buscarTodasAsVagas() - vagasCurtidas
-            List<String> competencias = candidatoService.competenciasEmString(candidato.id)
             println(candidato)
-            println("""
+            int escolha = capturarEscolha("""
                         1 - Ver vagas curtidas
                         2 - Ver vagas disponiveis
                         3 - Curtir Vaga
@@ -87,32 +87,33 @@ class MenuCandidato {
                         8 - Remover Competencia
                         9 - Sair
                         """)
-            switch (scanner.nextInt()) {
+            switch (escolha) {
                 case 1:
-                    println(vagasCurtidas)
+                    println(vagasAnonimasCurtidas(candidato.id))
                     break
                 case 2:
-                    println(vagasDisponiveis)
+                    List<VagaAnonimaDTO> vagasCurtidasEncontradas = vagasAnonimasCurtidas(candidato.id)
+                    println(vagasDisponiveis(vagasCurtidasEncontradas))
                     break
                 case 3:
-                    curtirVaga(candidato, vagasDisponiveis)
+                    curtirVaga(candidato.id)
                     break
                 case 4:
-                    if(apagarCandidato(candidato)) {
+                    if(apagarCandidato(candidato.id, candidato.senha)) {
                         return
                     }
                     break
                 case 5:
-                    atualizarCompetencias(candidato, competencias)
+                    atualizarCompetencias(candidato.id)
                     break
                 case 6:
                     atualizarCandidato(candidato)
                     break
                 case 7:
-                    verMatches(candidato)
+                    verMatches(candidato.id)
                     break
                 case 8:
-                    removerCompetencia(candidato)
+                    removerCompetencia(candidato.id)
                     break
                 case 9:
                     return
@@ -120,34 +121,65 @@ class MenuCandidato {
         }
     }
 
-    void curtirVaga(Candidato candidato, List<VagaAnonimaDTO> vagasDisponiveis) {
+    private List<String> competenciasCandidato(Long idCandidato) {
+        return candidatoService.competenciasEmString(idCandidato)
+    }
+
+    private List<VagaAnonimaDTO> vagasDisponiveis(List<VagaAnonimaDTO> vagasAnonimasCurtidas) {
+        return vagaService.buscarTodasAsVagas() - vagasAnonimasCurtidas
+    }
+
+    private List<VagaAnonimaDTO> vagasAnonimasCurtidas(Long idCandidato) {
+        return vagaService.listarVagasCurtidas(idCandidato)
+    }
+
+    private Long solicitarId(String mensagem) {
+        while (true) {
+            println(mensagem)
+            String idEscolhido = scanner.nextLine()
+            try {
+                return Long.parseLong(idEscolhido)
+            } catch (NumberFormatException e) {
+                println("Erro, digite um ID númerico!")
+            }
+        }
+    }
+
+    private boolean verificaSeExisteVaga(Long idVaga, List<VagaAnonimaDTO> vagasDisponiveis) {
+        return vagasDisponiveis.any {
+            VagaAnonimaDTO vaga -> vaga.id == idVaga
+        }
+    }
+
+    void curtirVaga(Long idCandidato) {
+        List<VagaAnonimaDTO> vagasCurtidasCandidato = vagasAnonimasCurtidas(idCandidato)
+        List<VagaAnonimaDTO> vagasDisponiveis = vagasDisponiveis(vagasCurtidasCandidato)
+
         if (vagasDisponiveis.isEmpty()) {
             println("Nao ha vagas disponiveis no momento!")
             return
         }
+
         println(vagasDisponiveis)
-        println("Escolha uma vaga por ID: ")
-        int idVaga = scanner.nextInt()
-        scanner.nextLine()
-        Vaga vagaBuscada = vagaService.buscarVaga(idVaga)
 
-        if (vagaBuscada != null) {
+        try {
+            Long idVaga = solicitarId("Digite o ID da vaga: ")
 
-            println("Competencias exigidas: " + vagaService.buscarCompetenciasDeVaga(idVaga))
-            println("Desja Curtir a vaga: (s/n)? ")
-
-            if (scanner.nextLine().toLowerCase() == "s") {
-                vagaService.curtir(candidato.id, idVaga)
+            if (!verificaSeExisteVaga(idVaga, vagasDisponiveis)) {
+                println("Vaga de ID ${idVaga} não encontrada!")
+                return
             }
-            
-        } else {
-            println("Vaga não encontrada, talvez voce tenha digitado o ID incorretamente")
+
+            vagaService.curtir(idCandidato, idVaga)
+            println("Vaga Curtida com sucesso!")
+
+
+        } catch (InputMismatchException e) {
+            println("Entrada inválida! Digite um ID numérico." + e.getMessage())
         }
     }
 
-    private void cadastrarCandidato() {
-        scanner.nextLine()
-
+    private CadastrarCandidatoDTO capturarDadosCadastrar() {
         println("Nome:")
         String nome = scanner.nextLine()
 
@@ -164,12 +196,10 @@ class MenuCandidato {
         String cpf = scanner.nextLine()
 
         println("Data de nascimento (dd/MM/yyyy): ")
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        LocalDate data = LocalDate.parse(scanner.nextLine(), formatter)
+        LocalDate data = validarDataNascimento(scanner.nextLine())
 
         println("Idade:")
-        int idade = scanner.nextInt()
-        scanner.nextLine()
+        int idade = validarIdade(scanner.nextLine())
 
         println("Pais:")
         String pais = scanner.nextLine()
@@ -185,7 +215,7 @@ class MenuCandidato {
 
         List<String> competencias = capturarCompetencias([])
 
-        candidatoService.cadastrarCandidato(
+        return new CadastrarCandidatoDTO(
                 nome,
                 sobrenome,
                 email,
@@ -201,10 +231,21 @@ class MenuCandidato {
         )
     }
 
+    private void cadastrarCandidato() {
+        CadastrarCandidatoDTO candidato = capturarDadosCadastrar()
+        tentarCandastrarCandidato(candidato)
+    }
+
+    private void tentarCandastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
+        try {
+            candidatoService.cadastrarCandidato(cadastrarCandidatoDTO)
+            println("Candidato cadastrado com sucesso!")
+        } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException | CompetenciaNaoEncontradaException e) {
+            println(e.getMessage())
+        }
+    }
+
     private void atualizarCandidato(Candidato candidato) {
-        scanner.nextLine()
-
-
         println("Nome:")
         String nome = scanner.nextLine()
         if (!nome.isEmpty()) {
@@ -235,13 +276,18 @@ class MenuCandidato {
             candidato.cpf = cpf
         }
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-
         println("Data de nascimento (dd/MM/yyyy):")
         String dataInput = scanner.nextLine()
 
         if (!dataInput.isEmpty()) {
-            candidato.dataNascimento = LocalDate.parse(dataInput, formatter)
+            candidato.dataNascimento = validarDataNascimento(dataInput)
+        }
+
+        println("Idade: ")
+        String idade = scanner.nextLine()
+
+        if (!idade.isEmpty()) {
+            candidato.idade = validarIdade(idade)
         }
 
         println("Pais:")
@@ -271,29 +317,64 @@ class MenuCandidato {
             candidato.descricao = descricao
         }
         
-        candidatoService.atualizarCandidato(
-                candidato.id,
-                candidato.nome,
-                candidato.sobrenome,
-                candidato.email,
-                candidato.senha,
-                candidato.cpf,
-                candidato.dataNascimento,
-                pais,
-                candidato.idade,
-                estado,
-                candidato.cep,
-                candidato.descricao,
-                candidato.ativo
+        tentarAtualizarCandidato(
+                new AtualizarCandidatoDTO(
+                        candidato.id,
+                        candidato.nome,
+                        candidato.sobrenome,
+                        candidato.email,
+                        candidato.senha,
+                        candidato.cpf,
+                        candidato.dataNascimento,
+                        pais,
+                        candidato.idade,
+                        estado,
+                        candidato.cep,
+                        candidato.descricao,
+                        candidato.ativo
+                )
         )
     }
 
+    private LocalDate validarDataNascimento(String dataInput) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+        while (true) {
+            try {
+                return LocalDate.parse(dataInput, formatter)
+            } catch (DateTimeParseException e) {
+                println("Data inválida! Digite uma data no formato dd/MM/yyyy.")
+                dataInput = scanner.nextLine()
+            }
+        }
+    }
+
+    private int validarIdade(String idadeInput) {
+        while (true) {
+            try {
+                int idade = Integer.parseInt(idadeInput)
+                return idade
+            } catch (NumberFormatException e) {
+                println("Idade inválida! Digite um número inteiro.")
+                idadeInput = scanner.nextLine()
+            }
+        }
+    }
+
+    private void tentarAtualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
+        try {
+            candidatoService.atualizarCandidato(atualizarCandidatoDTO)
+            println("Candidato atualizado com sucesso!")
+        } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
+            println(e.getMessage())
+        }
+    }
 
     private List<String> capturarCompetencias(List<String> competencias) {
         List<String> todasCompetencias = competenciaService.listarCompetencias()
 
         while (true) {
-            if (todasCompetencias - competencias == []) {
+            if ((todasCompetencias - competencias).isEmpty()) {
                 break
             }
 
@@ -328,32 +409,43 @@ class MenuCandidato {
         return competencias
     }
 
-    boolean apagarCandidato(Candidato candidato) {
+    boolean apagarCandidato(Long idCandidato, String senha) {
         scanner.nextLine()
         println("Digite sua senha para confirmar (Caso queira desistir, aperte enter): ")
-        if (scanner.nextLine() == candidato.senha) {
-            candidatoService.desativarCandidato(candidato.id)
+        if (scanner.nextLine() == senha) {
+            candidatoService.desativarCandidato(idCandidato)
             println("Conta deletada com sucesso")
             return true
         }
         return false
     }
 
-    void atualizarCompetencias(Candidato candidato, List<String> competenciasCandidato) {
+    void atualizarCompetencias(Long idCandidato) {
+        List<String> competenciasCandidato = competenciasCandidato(idCandidato)
         List<String> novasCompetencias = capturarCompetencias(competenciasCandidato)
-        candidatoService.adicionarCompetencias(candidato.id, novasCompetencias)
+        candidatoService.adicionarCompetencias(idCandidato, novasCompetencias)
     }
 
-    void verMatches(Candidato candidato) {
-        println(matchService.verMatchesPorCandidato(candidato.id))
+    void verMatches(Long idCandidato) {
+        println(matchService.verMatchesPorCandidato(idCandidato))
+    }
+    
+    private void tentarRemoverCompetencia(Long idCandidato, Long idCompetencia) {
+        try {
+            candidatoService.removerCompetencia(idCandidato, idCompetencia)
+            println("Competencia removida com sucesso!")
+        } catch (CandidatoNaoEncontradoPorIdException e) {
+            e.getMessage()
+        }
     }
 
-    void removerCompetencia(Candidato candidato) {
-        println(candidatoService.listaParaRemover(candidato.id))
-        println("Digite o ID da competencia: ")
-        Long idCompetencia = scanner.nextLong()
-        if (competenciaService.buscarCompetencia(idCompetencia) != null) {
-            candidatoService.removerCompetencia(candidato.id, idCompetencia)
+    void removerCompetencia(Long idCandidato) {
+        println(candidatoService.listaParaRemover(idCandidato))
+        try {
+            Long idCompetencia = solicitarId("Digite o ID do candidato: ")
+            tentarRemoverCompetencia(idCandidato, idCompetencia)
+        } catch (InputMismatchException e) {
+            println("Entrada inválida! Digite um ID numérico." + e.getMessage())
         }
     }
 }

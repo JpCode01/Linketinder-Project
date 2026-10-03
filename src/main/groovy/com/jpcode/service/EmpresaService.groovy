@@ -9,13 +9,14 @@ import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
-import com.jpcode.model.core.Candidato
+import com.jpcode.dto.empresa.AtualizarEmpresaDTO
+import com.jpcode.dto.empresa.CadastrarEmpresaDTO
+import com.jpcode.exception.empresa.EmpresaLoginException
+import com.jpcode.exception.referencia.EstadoNaoEncontradoException
+import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Empresa
-import com.jpcode.model.core.Vaga
-import com.jpcode.validation.CompetenciaValidation
 
 class EmpresaService {
-    final CompetenciaValidation validation
     final PaisDAO paisDAO
     final EstadoDAO estadoDAO
     final EmpresaDAO empresaDAO
@@ -24,8 +25,7 @@ class EmpresaService {
     final CompetenciasVagaDAO competenciasVagaDAO
     final CompetenciaDAO competenciaDAO
 
-    EmpresaService(CompetenciaValidation validation, PaisDAO paisDAO, EstadoDAO estadoDAO, EmpresaDAO empresaDAO, CandidatoCurtirDAO candidatoCurtirDAO, EmpresaCurtirDAO empresaCurtirDAO, CompetenciasVagaDAO competenciasVagaDAO, CompetenciaDAO competenciaDAO) {
-        this.validation = validation
+    EmpresaService(PaisDAO paisDAO, EstadoDAO estadoDAO, EmpresaDAO empresaDAO, CandidatoCurtirDAO candidatoCurtirDAO, EmpresaCurtirDAO empresaCurtirDAO, CompetenciasVagaDAO competenciasVagaDAO, CompetenciaDAO competenciaDAO) {
         this.paisDAO = paisDAO
         this.estadoDAO = estadoDAO
         this.empresaDAO = empresaDAO
@@ -35,56 +35,35 @@ class EmpresaService {
         this.competenciaDAO = competenciaDAO
     }
 
-    Empresa cadastrarEmpresa(
-            String nome,
-            String email,
-            String senha,
-            String cnpj,
-            String pais,
-            String estado,
-            String cep,
-            String descricao
-    ) {
-        Long paisId = paisDAO.buscarIdPorNome(pais)
-        Long estadoId = estadoDAO.buscarIdPorSigla(estado)
-        if (paisId != null && estadoId != null) {
-
-            Empresa empresa = new Empresa(
-                    nome,
-                    email,
-                    senha,
-                    cnpj,
-                    paisId,
-                    estadoId,
-                    cep,
-                    descricao
-            )
-            return empresaDAO.salvar(empresa)
-        } else {
-            return null
-        }
-    }
-
-    void curtirCandidato(Candidato candidato, Empresa empresa) {
-        empresa.adicionarCandidatoCurtido(candidato)
-    }
-
-    List<Vaga> ListarVagasPorEmpresa(Empresa empresa) {
-        empresa.vagas
-    }
-
-    void ListarCandidatosPorVaga(Vaga vaga) {
-        vaga.candidatosQueCurtiram.eachWithIndex { candidato, index ->
-            println "$index - Candidato anônimo ${index + 1}"
-        }
+    Empresa cadastrarEmpresa(CadastrarEmpresaDTO cadastrarEmpresaDTO) {
+       
+        Long paisId = paisDAO.buscarIdPorNome(cadastrarEmpresaDTO.pais)
+                .orElseThrow(() ->
+                    new PaisNaoEncontradoException(cadastrarEmpresaDTO.pais)
+                )
+        Long estadoId = estadoDAO.buscarIdPorSigla(cadastrarEmpresaDTO.estado)
+                .orElseThrow(() ->
+                    new EstadoNaoEncontradoException(cadastrarEmpresaDTO.estado)
+                )
+    
+        Empresa empresa = new Empresa(
+                cadastrarEmpresaDTO.nome,
+                cadastrarEmpresaDTO.email,
+                cadastrarEmpresaDTO.senha,
+                cadastrarEmpresaDTO.cnpj,
+                paisId,
+                estadoId,
+                cadastrarEmpresaDTO.cep,
+                cadastrarEmpresaDTO.descricao
+        )
+        
+        return empresaDAO.salvar(empresa)
     }
 
     Empresa logar(String email, String senha) {
-        Empresa empresaEncontrada = null
-        if ((!email.isBlank()) && (!senha.isBlank())) {
-            empresaEncontrada = empresaDAO.buscarPorEmailESenha(email, senha)
-        }
-        return empresaEncontrada
+        return empresaDAO.buscarPorEmailESenha(email, senha)
+        .orElseThrow(() ->
+        new EmpresaLoginException(email, senha))
     }
     
     List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Long idVaga) {
@@ -103,33 +82,28 @@ class EmpresaService {
         empresaDAO.desativar(idEmpresa)
     }
 
-    void atualizarEmpresa(
-            Long id,
-            String nome,
-            String email,
-            String senha,
-            String cnpj,
-            String pais,
-            String estado,
-            String cep,
-            String descricao,
-            boolean ativo
-    ) {
-        Long idPais = paisDAO.buscarIdPorNome(pais)
-        Long idEstado = estadoDAO.buscarIdPorSigla(estado)
+    void atualizarEmpresa(AtualizarEmpresaDTO atualizarEmpresaDTO) {
+        Long paisId = paisDAO.buscarIdPorNome(atualizarEmpresaDTO.pais)
+                .orElseThrow(() ->
+                        new PaisNaoEncontradoException(atualizarEmpresaDTO.pais)
+                )
+        Long estadoId = estadoDAO.buscarIdPorSigla(atualizarEmpresaDTO.estado)
+                .orElseThrow(() ->
+                        new EstadoNaoEncontradoException(atualizarEmpresaDTO.estado)
+                )
 
         empresaDAO.atualizarDados(
                 new Empresa(
-                        id,
-                        nome,
-                        email,
-                        senha,
-                        cnpj,
-                        idPais,
-                        idEstado,
-                        cep,
-                        descricao,
-                        ativo
+                        atualizarEmpresaDTO.id,
+                        atualizarEmpresaDTO.nome,
+                        atualizarEmpresaDTO.email,
+                        atualizarEmpresaDTO.senha,
+                        atualizarEmpresaDTO.cnpj,
+                        paisId,
+                        estadoId,
+                        atualizarEmpresaDTO.cep,
+                        atualizarEmpresaDTO.descricao,
+                        atualizarEmpresaDTO.ativo
                 )
         )
     }

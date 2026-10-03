@@ -8,7 +8,4 @@ class Pais {
         this.id = id;
         this.nome = nome;
     }
-
-
-    
 }

@@ -9,10 +9,4 @@ class Competencia {
         this.id = id
         this.nome = nome
     }
-
-
-    @Override
-    public String toString() {
-        return nome
-    }
 }

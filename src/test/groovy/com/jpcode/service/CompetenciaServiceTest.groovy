@@ -1,8 +1,8 @@
 package com.jpcode.service
 
 import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.model.referencia.Competencia
 import spock.lang.Specification
+import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 
 class CompetenciaServiceTest extends Specification {
 
@@ -24,16 +24,14 @@ class CompetenciaServiceTest extends Specification {
         service.listarCompetencias() == competencias
     }
 
-    def "deve buscar competencia pelo id"() {
+    def "deve lançar exceção quando competencia não for encontrada pelo id"() {
         given:
-        Competencia competencia = new Competencia(
-                1L,
-                "JAVA"
-        )
+        competenciaDAO.buscarPorId(1L) >> Optional.empty()
 
-        competenciaDAO.buscarPorId(1L) >> competencia
+        when:
+        service.buscarCompetencia(1L)
 
-        expect:
-        service.buscarCompetencia(1L) == competencia
+        then:
+        thrown(CompetenciaNaoEncontradaException)
     }
 }

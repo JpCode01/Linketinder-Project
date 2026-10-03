@@ -4,8 +4,12 @@ import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dao.vaga.VagaDAO
+import com.jpcode.dto.vaga.AtualizarVagaDTO
+import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
+import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
+import com.jpcode.exception.referencia.VagaNaoEncontradaException
 import com.jpcode.model.core.Vaga
 import com.jpcode.model.referencia.Competencia
 
@@ -23,29 +27,27 @@ class VagaService {
         this.candidatoCurtirDAO = candidatoCurtirDAO
     }
 
-    void criarVaga(
-            String nome,
-            String descricao,
-            String local,
-            Long idEmpresa,
-            List<String> competencias
-    ) {
+    void criarVaga(CadastrarVagaDTO cadastrarVagaDTO) {
         Vaga vagaSalva =  vagaDAO.salvar(
                 new Vaga(
-                        nome,
-                        descricao,
-                        local,
-                        idEmpresa
+                        cadastrarVagaDTO.nome,
+                        cadastrarVagaDTO.descricao,
+                        cadastrarVagaDTO.local,
+                        cadastrarVagaDTO.idEmpresa
                 )
         )
 
-        competencias.each {
-            competencia ->
-            Long idCompetenciaNormalizada =
-                    competenciaDAO.buscarIdPorNomeCompetencia(competencia)
-            if (idCompetenciaNormalizada != null) {
-                competenciasVagaDAO.salvar(vagaSalva.id, idCompetenciaNormalizada)
-            }
+        cadastrarVagaDTO.competencias.each {competencia ->
+            Long idCompetencia  = competenciaDAO
+                .buscarIdPorNomeCompetencia(competencia)
+                .orElseThrow(() ->
+                    new CompetenciaNaoEncontradaException(competencia)
+                )
+
+            competenciasVagaDAO.salvar(
+                    vagaSalva.id,
+                    idCompetencia
+            )
         }
     }
 
@@ -53,12 +55,14 @@ class VagaService {
         candidatoCurtirDAO.salvar(idCandidato, idVaga)
     }
 
-    List<VagaEmpresaDTO>  listarVagas(Long idEmpresa) {
+    List<VagaEmpresaDTO> listarVagas(Long idEmpresa) {
         return vagaDAO.buscarVagasEmpresa(idEmpresa)
     }
 
     Vaga buscarVaga(Long idVaga) {
         return vagaDAO.buscarPorId(idVaga)
+        .orElseThrow(() ->
+        new VagaNaoEncontradaException(idVaga))
     }
 
     List<VagaAnonimaDTO> listarVagasCurtidas(long idCandidato) {
@@ -77,20 +81,14 @@ class VagaService {
         vagaDAO.deletar(idVaga)
     }
 
-    void atualizarVaga(
-            Long id,
-            String nome,
-            String descricao,
-            String local,
-            Long idEmpresa
-    ) {
+    void atualizarVaga(AtualizarVagaDTO atualizarVagaDTO) {
         vagaDAO.atualizarDados(
                 new Vaga(
-                        id,
-                        nome,
-                        descricao,
-                        local,
-                        idEmpresa
+                        atualizarVagaDTO.id,
+                        atualizarVagaDTO.nome,
+                        atualizarVagaDTO.descricao,
+                        atualizarVagaDTO.local,
+                        atualizarVagaDTO.idEmpresa
                 )
         )
     }
