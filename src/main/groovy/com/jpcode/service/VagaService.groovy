@@ -9,7 +9,7 @@ import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
 import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
-import com.jpcode.exception.referencia.VagaNaoEncontradaException
+import com.jpcode.exception.vaga.VagaNaoEncontradaException
 import com.jpcode.model.core.Vaga
 import com.jpcode.model.referencia.Competencia
 
@@ -28,7 +28,7 @@ class VagaService {
     }
 
     void criarVaga(CadastrarVagaDTO cadastrarVagaDTO) {
-        Vaga vagaSalva =  vagaDAO.salvar(
+        Vaga vagaSalva = vagaDAO.salvar(
                 new Vaga(
                         cadastrarVagaDTO.nome,
                         cadastrarVagaDTO.descricao,
@@ -37,12 +37,12 @@ class VagaService {
                 )
         )
 
-        cadastrarVagaDTO.competencias.each {competencia ->
-            Long idCompetencia  = competenciaDAO
-                .buscarIdPorNomeCompetencia(competencia)
-                .orElseThrow(() ->
-                    new CompetenciaNaoEncontradaException(competencia)
-                )
+        cadastrarVagaDTO.competencias.each { competencia ->
+            Long idCompetencia = competenciaDAO
+                    .buscarIdPorNomeCompetencia(competencia)
+                    .orElseThrow(() ->
+                            new CompetenciaNaoEncontradaException(competencia)
+                    )
 
             competenciasVagaDAO.salvar(
                     vagaSalva.id,
@@ -61,8 +61,8 @@ class VagaService {
 
     Vaga buscarVaga(Long idVaga) {
         return vagaDAO.buscarPorId(idVaga)
-        .orElseThrow(() ->
-        new VagaNaoEncontradaException(idVaga))
+                .orElseThrow(() ->
+                        new VagaNaoEncontradaException(idVaga))
     }
 
     List<VagaAnonimaDTO> listarVagasCurtidas(long idCandidato) {
@@ -99,7 +99,7 @@ class VagaService {
 
     void adicionarCompetencias(Long idVaga, List<String> competenciasNovas) {
         List<Competencia> converterParaCompetencia = []
-        competenciasNovas.each {competenciaString ->
+        competenciasNovas.each { competenciaString ->
             converterParaCompetencia.add(
                     competenciaDAO.buscarPorNome(competenciaString))
         }

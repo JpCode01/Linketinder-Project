@@ -10,6 +10,8 @@ import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
+import com.jpcode.exception.vaga.SemVagasDisponiveisException
+import com.jpcode.exception.vaga.VagaNaoEncontradaException
 import com.jpcode.model.core.Candidato
 import com.jpcode.service.*
 
@@ -74,7 +76,6 @@ class MenuCandidato {
     }
 
     private void menuCandidato(Candidato candidato) {
-        while (true) {
             println(candidato)
             int escolha = capturarEscolha("""
                         1 - Ver vagas curtidas
@@ -87,13 +88,17 @@ class MenuCandidato {
                         8 - Remover Competencia
                         9 - Sair
                         """)
+            executarOpcaoEscolhida(escolha, candidato)
+    }
+    
+    private void executarOpcaoEscolhida(int escolha, Candidato candidato) {
+        while (true) {
             switch (escolha) {
                 case 1:
                     println(vagasAnonimasCurtidas(candidato.id))
                     break
                 case 2:
-                    List<VagaAnonimaDTO> vagasCurtidasEncontradas = vagasAnonimasCurtidas(candidato.id)
-                    println(vagasDisponiveis(vagasCurtidasEncontradas))
+                    println(vagasDisponiveisParaCandidato(candidato.id))
                     break
                 case 3:
                     curtirVaga(candidato.id)
@@ -125,10 +130,14 @@ class MenuCandidato {
         return candidatoService.competenciasEmString(idCandidato)
     }
 
-    private List<VagaAnonimaDTO> vagasDisponiveis(List<VagaAnonimaDTO> vagasAnonimasCurtidas) {
-        return vagaService.buscarTodasAsVagas() - vagasAnonimasCurtidas
+    private List<String> competenciasDisponiveis(List<String> competenciasAtuais) {
+        return competenciaService.listarCompetencias() - competenciasAtuais
     }
 
+    private List<VagaAnonimaDTO> vagasDisponiveisParaCandidato(Long idCandidato) {
+        return vagaService.buscarTodasAsVagas() - vagasAnonimasCurtidas(idCandidato)
+    }
+    
     private List<VagaAnonimaDTO> vagasAnonimasCurtidas(Long idCandidato) {
         return vagaService.listarVagasCurtidas(idCandidato)
     }
@@ -151,32 +160,39 @@ class MenuCandidato {
         }
     }
 
-    void curtirVaga(Long idCandidato) {
-        List<VagaAnonimaDTO> vagasCurtidasCandidato = vagasAnonimasCurtidas(idCandidato)
-        List<VagaAnonimaDTO> vagasDisponiveis = vagasDisponiveis(vagasCurtidasCandidato)
-
+    private void verificaSeHaVagasDisponiveis(List<VagaAnonimaDTO> vagasDisponiveis) {
         if (vagasDisponiveis.isEmpty()) {
-            println("Nao ha vagas disponiveis no momento!")
-            return
+            throw new SemVagasDisponiveisException()
         }
+    }
+    
 
+    void curtirVaga(Long idCandidato) {
+        List<VagaAnonimaDTO> vagasDisponiveis = vagasDisponiveisParaCandidato(idCandidato)
         println(vagasDisponiveis)
 
         try {
+            verificaSeHaVagasDisponiveis(vagasDisponiveis)
             Long idVaga = solicitarId("Digite o ID da vaga: ")
 
-            if (!verificaSeExisteVaga(idVaga, vagasDisponiveis)) {
-                println("Vaga de ID ${idVaga} não encontrada!")
-                return
-            }
-
-            vagaService.curtir(idCandidato, idVaga)
-            println("Vaga Curtida com sucesso!")
-
-
+            tentarCurtirVaga(idVaga, idCandidato, vagasDisponiveis)
         } catch (InputMismatchException e) {
             println("Entrada inválida! Digite um ID numérico." + e.getMessage())
+        } catch (VagaNaoEncontradaException e) {
+            e.getMessage()
+        } catch (SemVagasDisponiveisException e) {
+            e.getMessage()
         }
+    }
+
+
+    private void tentarCurtirVaga(Long idVaga, Long idCandidato, List<VagaAnonimaDTO> vagasDisponiveis) {
+        if (!verificaSeExisteVaga(idVaga, vagasDisponiveis)) {
+            throw new VagaNaoEncontradaException(idVaga)
+        }
+
+        vagaService.curtir(idCandidato, idVaga)
+        println("Vaga Curtida com sucesso!")
     }
 
     private CadastrarCandidatoDTO capturarDadosCadastrar() {
@@ -246,6 +262,11 @@ class MenuCandidato {
     }
 
     private void atualizarCandidato(Candidato candidato) {
+        AtualizarCandidatoDTO candidatoAtualizado = captuarDadosAtualizar(candidato)
+        tentarAtualizarCandidato(candidatoAtualizado)
+    }
+
+    private AtualizarCandidatoDTO captuarDadosAtualizar(Candidato candidato) {
         println("Nome:")
         String nome = scanner.nextLine()
         if (!nome.isEmpty()) {
@@ -300,7 +321,7 @@ class MenuCandidato {
 
         println("Estado em sigla (SP/RS/RJ):")
         String estado = scanner.nextLine()
-        
+
         if (estado.isEmpty()) {
             estado = referenciaService.converterIdEstadoParaString(candidato.idEstado)
         }
@@ -316,23 +337,21 @@ class MenuCandidato {
         if (!descricao.isEmpty()) {
             candidato.descricao = descricao
         }
-        
-        tentarAtualizarCandidato(
-                new AtualizarCandidatoDTO(
-                        candidato.id,
-                        candidato.nome,
-                        candidato.sobrenome,
-                        candidato.email,
-                        candidato.senha,
-                        candidato.cpf,
-                        candidato.dataNascimento,
-                        pais,
-                        candidato.idade,
-                        estado,
-                        candidato.cep,
-                        candidato.descricao,
-                        candidato.ativo
-                )
+
+        return new AtualizarCandidatoDTO(
+                candidato.id,
+                candidato.nome,
+                candidato.sobrenome,
+                candidato.email,
+                candidato.senha,
+                candidato.cpf,
+                candidato.dataNascimento,
+                pais,
+                candidato.idade,
+                estado,
+                candidato.cep,
+                candidato.descricao,
+                candidato.ativo
         )
     }
 
@@ -370,43 +389,58 @@ class MenuCandidato {
         }
     }
 
-    private List<String> capturarCompetencias(List<String> competencias) {
-        List<String> todasCompetencias = competenciaService.listarCompetencias()
+    private boolean verificaSeHaCompetenciasDisponiveis(List<String> competenciasDisponiveis) {
+        return !competenciasDisponiveis.isEmpty()
+    }
 
-        while (true) {
-            if ((todasCompetencias - competencias).isEmpty()) {
-                break
-            }
+    private List<String> capturarCompetencias(List<String> competenciasAtuais) {
+        List<String> competenciasDisponiveis = competenciasDisponiveis(competenciasAtuais)
 
-            println("""
-        Competencias atuais: ${competencias}
+        while (verificaSeHaCompetenciasDisponiveis(competenciasDisponiveis)) {
+
+            int opcao = capturarEscolha("""
+        Competencias atuais: ${competenciasAtuais}
 
         1 - Digitar nova competencia
         2 - Parar
         """)
 
-            if (scanner.nextInt() == 2) {
+            if (opcao == 2) {
                 break
             }
 
-            scanner.nextLine()
-            
-            println("""
-        Competencias disponiveis: ${todasCompetencias - competencias}
+            String competenciaEscolhida = escolherCompetencia(competenciasDisponiveis)
+
+            try {
+                tentarAdicionarCompetencia(competenciaEscolhida, competenciasAtuais ,competenciasDisponiveis)
+            } catch (CompetenciaNaoEncontradaException e) {
+                println(e.getMessage())
+            }
+        }
+
+        return competenciasAtuais
+    }
+
+    private void tentarAdicionarCompetencia(String competencia,
+                                   List<String> competenciasAtuais,
+                                   List<String> competenciasDisponiveis) {
+        if (competenciasDisponiveis.contains(competencia)) {
+            competenciasDisponiveis.remove(competencia)
+            competenciasAtuais.add(competencia)
+        } else {
+            throw new CompetenciaNaoEncontradaException(competencia)
+        }
+    }
+
+
+    private String escolherCompetencia(List<String> competenciasDisponiveis) {
+        println("""
+        Competencias disponiveis: ${competenciasDisponiveis}
 
         Digite uma competencia:
         """)
 
-            String competencia = scanner.nextLine().trim().toUpperCase()
-
-            if (!competencias.contains(competencia)) {
-                competencias.add(competencia)
-            } else {
-                println("Competencia ja existente!")
-            }
-        }
-
-        return competencias
+        return scanner.nextLine().trim().toUpperCase()
     }
 
     boolean apagarCandidato(Long idCandidato, String senha) {
@@ -421,8 +455,8 @@ class MenuCandidato {
     }
 
     void atualizarCompetencias(Long idCandidato) {
-        List<String> competenciasCandidato = competenciasCandidato(idCandidato)
-        List<String> novasCompetencias = capturarCompetencias(competenciasCandidato)
+        List<String> competenciasAtuais = competenciasCandidato(idCandidato)
+        List<String> novasCompetencias = capturarCompetencias(competenciasAtuais)
         candidatoService.adicionarCompetencias(idCandidato, novasCompetencias)
     }
 
