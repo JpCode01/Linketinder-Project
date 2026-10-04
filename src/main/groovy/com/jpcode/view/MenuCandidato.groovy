@@ -76,6 +76,7 @@ class MenuCandidato {
     }
 
     private void menuCandidato(Candidato candidato) {
+        while (true) {
             println(candidato)
             int escolha = capturarEscolha("""
                         1 - Ver vagas curtidas
@@ -89,40 +90,40 @@ class MenuCandidato {
                         9 - Sair
                         """)
             executarOpcaoEscolhida(escolha, candidato)
+            if (escolha == 4 || escolha == 9) {
+                return
+            }
+        }
     }
     
     private void executarOpcaoEscolhida(int escolha, Candidato candidato) {
-        while (true) {
-            switch (escolha) {
-                case 1:
-                    println(vagasAnonimasCurtidas(candidato.id))
-                    break
-                case 2:
-                    println(vagasDisponiveisParaCandidato(candidato.id))
-                    break
-                case 3:
-                    curtirVaga(candidato.id)
-                    break
-                case 4:
-                    if(apagarCandidato(candidato.id, candidato.senha)) {
-                        return
-                    }
-                    break
-                case 5:
-                    atualizarCompetencias(candidato.id)
-                    break
-                case 6:
-                    atualizarCandidato(candidato)
-                    break
-                case 7:
-                    verMatches(candidato.id)
-                    break
-                case 8:
-                    removerCompetencia(candidato.id)
-                    break
-                case 9:
-                    return
-            }
+        switch (escolha) {
+            case 1:
+                println(vagasAnonimasCurtidas(candidato.id))
+                break
+            case 2:
+                println(vagasDisponiveisParaCandidato(candidato.id))
+                break
+            case 3:
+                curtirVaga(candidato.id)
+                break
+            case 4:
+                apagarCandidato(candidato.id, candidato.senha)
+                break
+            case 5:
+                atualizarCompetencias(candidato.id)
+                break
+            case 6:
+                atualizarCandidato(candidato)
+                break
+            case 7:
+                verMatches(candidato.id)
+                break
+            case 8:
+                removerCompetencia(candidato.id)
+                break
+            case 9:
+                return
         }
     }
 
