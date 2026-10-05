@@ -12,13 +12,13 @@ class MenuEmpresa {
     final Scanner scanner = new Scanner(System.in)
     final DaoConfig daoConfig = new DaoConfig()
     final ServiceConfig serviceConfig = new ServiceConfig(daoConfig)
-    final MenuEmpresaConfig menuConfig = new MenuEmpresaConfig(scanner, serviceConfig)
+    final MenuEmpresaConfig menuEmpresaConfig = new MenuEmpresaConfig(scanner, serviceConfig)
 
     final EmpresaService empresaService = serviceConfig.empresaService
 
-    final MenuEmpresaCrud menuEmpresaCrud = menuConfig.menuEmpresaCrud
-    final MenuVagaCrud menuVagaCrud = menuConfig.menuVagaCrud
-    final MenuCurtirCandidato menuCurtirCandidato = menuConfig.menuCurtirCandidato
+    final MenuEmpresaCrud menuEmpresaCrud = menuEmpresaConfig.menuEmpresaCrud
+    final MenuVagaCrud menuVagaCrud = menuEmpresaConfig.menuVagaCrud
+    final MenuCurtirCandidato menuCurtirCandidato = menuEmpresaConfig.menuCurtirCandidato
 
     void inicio() {
         int opcao = capturarEscolha("""

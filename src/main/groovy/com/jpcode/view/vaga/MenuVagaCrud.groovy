@@ -25,6 +25,7 @@ class MenuVagaCrud {
         this.scanner = scanner
         this.vagaService = vagaService
         this.competenciaService = competenciaService
+        this.empresaService = empresaService
     }
 
     void criarVaga(Long idEmpresa) {
