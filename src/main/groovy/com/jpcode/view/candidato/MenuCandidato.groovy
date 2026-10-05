@@ -1,4 +1,4 @@
-package com.jpcode.view
+package com.jpcode.view.candidato
 
 import com.jpcode.config.DaoConfig
 import com.jpcode.config.ServiceConfig
@@ -46,11 +46,11 @@ class MenuCandidato {
     }
 
     private void login() {
-            println("Digite o email do candidato: ")
-            String email = scanner.nextLine()
-            println("Digite a senha do candidato: ")
-            String senha = scanner.nextLine()
-            tentarLogarCandidato(email, senha)
+        println("Digite o email do candidato: ")
+        String email = scanner.nextLine()
+        println("Digite a senha do candidato: ")
+        String senha = scanner.nextLine()
+        tentarLogarCandidato(email, senha)
     }
 
     private void tentarLogarCandidato(String email, String senha) {
@@ -95,7 +95,7 @@ class MenuCandidato {
             }
         }
     }
-    
+
     private void executarOpcaoEscolhida(int escolha, Candidato candidato) {
         switch (escolha) {
             case 1:
@@ -138,7 +138,7 @@ class MenuCandidato {
     private List<VagaAnonimaDTO> vagasDisponiveisParaCandidato(Long idCandidato) {
         return vagaService.buscarTodasAsVagas() - vagasAnonimasCurtidas(idCandidato)
     }
-    
+
     private List<VagaAnonimaDTO> vagasAnonimasCurtidas(Long idCandidato) {
         return vagaService.listarVagasCurtidas(idCandidato)
     }
@@ -149,6 +149,7 @@ class MenuCandidato {
             String idEscolhido = scanner.nextLine()
             try {
                 return Long.parseLong(idEscolhido)
+            } catch (NumberFormatException e) {
             } catch (NumberFormatException e) {
                 println("Erro, digite um ID númerico!")
             }
@@ -166,7 +167,7 @@ class MenuCandidato {
             throw new SemVagasDisponiveisException()
         }
     }
-    
+
 
     void curtirVaga(Long idCandidato) {
         List<VagaAnonimaDTO> vagasDisponiveis = vagasDisponiveisParaCandidato(idCandidato)
@@ -177,12 +178,10 @@ class MenuCandidato {
             Long idVaga = solicitarId("Digite o ID da vaga: ")
 
             tentarCurtirVaga(idVaga, idCandidato, vagasDisponiveis)
-        } catch (InputMismatchException e) {
-            println("Entrada inválida! Digite um ID numérico." + e.getMessage())
         } catch (VagaNaoEncontradaException e) {
-            e.getMessage()
+            println(e.getMessage())
         } catch (SemVagasDisponiveisException e) {
-            e.getMessage()
+            println(e.getMessage())
         }
     }
 
@@ -413,7 +412,7 @@ class MenuCandidato {
             String competenciaEscolhida = escolherCompetencia(competenciasDisponiveis)
 
             try {
-                tentarAdicionarCompetencia(competenciaEscolhida, competenciasAtuais ,competenciasDisponiveis)
+                tentarAdicionarCompetencia(competenciaEscolhida, competenciasAtuais, competenciasDisponiveis)
             } catch (CompetenciaNaoEncontradaException e) {
                 println(e.getMessage())
             }
@@ -423,8 +422,8 @@ class MenuCandidato {
     }
 
     private void tentarAdicionarCompetencia(String competencia,
-                                   List<String> competenciasAtuais,
-                                   List<String> competenciasDisponiveis) {
+                                            List<String> competenciasAtuais,
+                                            List<String> competenciasDisponiveis) {
         if (competenciasDisponiveis.contains(competencia)) {
             competenciasDisponiveis.remove(competencia)
             competenciasAtuais.add(competencia)
@@ -464,7 +463,7 @@ class MenuCandidato {
     void verMatches(Long idCandidato) {
         println(matchService.verMatchesPorCandidato(idCandidato))
     }
-    
+
     private void tentarRemoverCompetencia(Long idCandidato, Long idCompetencia) {
         try {
             candidatoService.removerCompetencia(idCandidato, idCompetencia)
