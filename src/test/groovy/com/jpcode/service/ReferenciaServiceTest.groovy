@@ -1,22 +1,21 @@
 package com.jpcode.service
 
-import com.jpcode.dao.referencia.EstadoDAO
-import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.dao.referencia.contrato.ReferenciaRepository
 import com.jpcode.model.referencia.Estado
 import com.jpcode.model.referencia.Pais
 import spock.lang.Specification
 
 class ReferenciaServiceTest extends Specification {
 
-    PaisDAO paisDAO = Mock()
-    EstadoDAO estadoDAO = Mock()
+    ReferenciaRepository<Pais> paisRepository = Mock()
+    ReferenciaRepository<Estado> estadoRepository = Mock()
 
     ReferenciaService service
 
     def setup() {
         service = new ReferenciaService(
-                paisDAO,
-                estadoDAO
+                paisRepository,
+                estadoRepository
         )
     }
 
@@ -27,7 +26,7 @@ class ReferenciaServiceTest extends Specification {
                 "BRASIL"
         )
 
-        paisDAO.buscarPorId(1L) >> pais
+        paisRepository.buscarPorId(1L) >> Optional.of(pais)
 
         expect:
         service.converterIdPaisParaString(1L) == "BRASIL"
@@ -40,7 +39,7 @@ class ReferenciaServiceTest extends Specification {
                 "SP"
         )
 
-        estadoDAO.buscarPorId(1L) >> estado
+        estadoRepository.buscarPorId(1L) >> Optional.of(estado)
 
         expect:
         service.converterIdEstadoParaString(1L) == "SP"

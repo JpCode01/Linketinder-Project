@@ -1,27 +1,17 @@
 package com.jpcode.service
 
-import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
-import com.jpcode.dao.match.MatchDAO
-import com.jpcode.dao.vaga.CompetenciasVagaDAO
+import com.jpcode.dao.match.contrato.MatchRepository
 import com.jpcode.dto.Match.MatchEncontradoDTO
 import spock.lang.Specification
 
 class MatchServiceTest extends Specification {
 
-    CompetenciasCandidatoDAO competenciasCandidatoDAO = Mock()
-    CompetenciasVagaDAO competenciasVagaDAO = Mock()
-
-    MatchDAO matchDAO = Mock(
-            constructorArgs: [
-                    competenciasCandidatoDAO,
-                    competenciasVagaDAO
-            ]
-    )
+    MatchRepository matchRepository = Mock()
 
     MatchService service
 
     def setup() {
-        service = new MatchService(matchDAO)
+        service = new MatchService(matchRepository)
     }
 
     def "deve salvar match"() {
@@ -29,14 +19,14 @@ class MatchServiceTest extends Specification {
         service.salvar(1L, 2L, 3L)
 
         then:
-        1 * matchDAO.salvar(1L, 2L, 3L)
+        1 * matchRepository.salvar(1L, 2L, 3L)
     }
 
     def "deve buscar matches por empresa"() {
         given:
         List<MatchEncontradoDTO> matches = []
 
-        matchDAO.buscarMatchesPorEmpresa(1L) >> matches
+        matchRepository.buscarMatchesPorEmpresa(1L) >> matches
 
         expect:
         service.verMatchesPorEmpresa(1L) == matches
@@ -46,7 +36,7 @@ class MatchServiceTest extends Specification {
         given:
         List<MatchEncontradoDTO> matches = []
 
-        matchDAO.buscarMatchesPorCandidato(1L) >> matches
+        matchRepository.buscarMatchesPorCandidato(1L) >> matches
 
         expect:
         service.verMatchesPorCandidato(1L) == matches

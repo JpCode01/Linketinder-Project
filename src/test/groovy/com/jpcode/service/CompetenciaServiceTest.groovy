@@ -1,8 +1,8 @@
 package com.jpcode.service
 
 import com.jpcode.dao.referencia.CompetenciaDAO
-import spock.lang.Specification
 import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
+import spock.lang.Specification
 
 class CompetenciaServiceTest extends Specification {
 

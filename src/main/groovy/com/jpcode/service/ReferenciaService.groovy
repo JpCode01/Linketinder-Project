@@ -1,29 +1,32 @@
 package com.jpcode.service
 
-import com.jpcode.dao.referencia.EstadoDAO
-import com.jpcode.dao.referencia.PaisDAO
 import com.jpcode.dao.referencia.contrato.ReferenciaRepository
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
+import com.jpcode.model.referencia.Estado
+import com.jpcode.model.referencia.Pais
 
 class ReferenciaService {
-    final PaisDAO paisDAO
-    final EstadoDAO estadoDAO
+    final ReferenciaRepository<Pais> paisRepository
+    final ReferenciaRepository<Estado> estadoRepository
 
-    ReferenciaService(PaisDAO paisDAO, EstadoDAO estadoDAO) {
-        this.paisDAO = paisDAO
-        this.estadoDAO = estadoDAO
+    ReferenciaService(
+            ReferenciaRepository<Pais> paisRepository,
+            ReferenciaRepository<Estado> estadoRepository
+    ) {
+        this.paisRepository = paisRepository
+        this.estadoRepository = estadoRepository
     }
 
     String converterIdPaisParaString(Long idPais) {
-        return paisDAO.buscarPorId(idPais)
+        return paisRepository.buscarPorId(idPais)
                 .orElseThrow(() ->
                         new PaisNaoEncontradoException(idPais))
                 .nome
     }
 
     String converterIdEstadoParaString(Long idEstado) {
-        return estadoDAO.buscarPorId(idEstado)
+        return estadoRepository.buscarPorId(idEstado)
                 .orElseThrow(() ->
                         new EstadoNaoEncontradoException(idEstado))
                 .sigla
