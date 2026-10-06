@@ -1,5 +1,8 @@
 package com.jpcode.view
 
+import com.jpcode.view.candidato.MenuCandidato
+import com.jpcode.view.empresa.MenuEmpresa
+
 class Menu {
     private final Scanner scanner = new Scanner(System.in)
     private final MenuEmpresa menuEmpresa = new MenuEmpresa()
@@ -32,7 +35,7 @@ class Menu {
         }
 
     }
-    
+
     private int capturarEscolha(String mensagem) {
         while (true) {
             println(mensagem)
@@ -44,7 +47,6 @@ class Menu {
             }
         }
     }
-    
 
 
 }

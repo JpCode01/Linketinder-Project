@@ -1,12 +1,13 @@
 package com.jpcode.service
 
-import com.jpcode.dao.empresa.EmpresaDAO
+import com.jpcode.dao.empresa.contrato.EmpresaAutenticacao
+import com.jpcode.dao.empresa.contrato.EmpresaDesativacao
+import com.jpcode.dao.empresa.contrato.EmpresaRepository
 import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.referencia.EstadoDAO
-import com.jpcode.dao.referencia.PaisDAO
-import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
-import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
-import com.jpcode.dao.vaga.CompetenciasVagaDAO
+import com.jpcode.dao.referencia.contrato.ReferenciaRepository
+import com.jpcode.dao.relacionamento.contrato.CandidatoCurtirConsulta
+import com.jpcode.dao.relacionamento.contrato.EmpresaCurtirRepository
+import com.jpcode.dao.vaga.contrato.CompetenciasVagaRepository
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.dto.empresa.AtualizarEmpresaDTO
@@ -15,33 +16,39 @@ import com.jpcode.exception.empresa.EmpresaLoginException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Empresa
+import com.jpcode.model.referencia.Estado
+import com.jpcode.model.referencia.Pais
 
 class EmpresaService {
-    final PaisDAO paisDAO
-    final EstadoDAO estadoDAO
-    final EmpresaDAO empresaDAO
-    final CandidatoCurtirDAO candidatoCurtirDAO
-    final EmpresaCurtirDAO empresaCurtirDAO
-    final CompetenciasVagaDAO competenciasVagaDAO
+    final ReferenciaRepository<Pais> paisRepository
+    final ReferenciaRepository<Estado> estadoRepository
+    final EmpresaRepository empresaRepository
+    final EmpresaAutenticacao empresaAutenticacao
+    final EmpresaDesativacao empresaDesativacao
+    final CandidatoCurtirConsulta candidatoCurtirConsulta
+    final EmpresaCurtirRepository empresaCurtirRepository
+    final CompetenciasVagaRepository competenciasVagaRepository
     final CompetenciaDAO competenciaDAO
 
-    EmpresaService(PaisDAO paisDAO, EstadoDAO estadoDAO, EmpresaDAO empresaDAO, CandidatoCurtirDAO candidatoCurtirDAO, EmpresaCurtirDAO empresaCurtirDAO, CompetenciasVagaDAO competenciasVagaDAO, CompetenciaDAO competenciaDAO) {
-        this.paisDAO = paisDAO
-        this.estadoDAO = estadoDAO
-        this.empresaDAO = empresaDAO
-        this.candidatoCurtirDAO = candidatoCurtirDAO
-        this.empresaCurtirDAO = empresaCurtirDAO
-        this.competenciasVagaDAO = competenciasVagaDAO
+    EmpresaService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, EmpresaRepository empresaRepository, EmpresaAutenticacao empresaAutenticacao, EmpresaDesativacao empresaDesativacao, CandidatoCurtirConsulta candidatoCurtirConsulta, EmpresaCurtirRepository empresaCurtirRepository, CompetenciasVagaRepository competenciasVagaRepository, CompetenciaDAO competenciaDAO) {
+        this.paisRepository = paisRepository
+        this.estadoRepository = estadoRepository
+        this.empresaRepository = empresaRepository
+        this.empresaAutenticacao = empresaAutenticacao
+        this.empresaDesativacao = empresaDesativacao
+        this.candidatoCurtirConsulta = candidatoCurtirConsulta
+        this.empresaCurtirRepository = empresaCurtirRepository
+        this.competenciasVagaRepository = competenciasVagaRepository
         this.competenciaDAO = competenciaDAO
     }
 
     Empresa cadastrarEmpresa(CadastrarEmpresaDTO cadastrarEmpresaDTO) {
        
-        Long paisId = paisDAO.buscarIdPorNome(cadastrarEmpresaDTO.pais)
+        Long paisId = paisRepository.buscarIdPorNome(cadastrarEmpresaDTO.pais)
                 .orElseThrow(() ->
                     new PaisNaoEncontradoException(cadastrarEmpresaDTO.pais)
                 )
-        Long estadoId = estadoDAO.buscarIdPorSigla(cadastrarEmpresaDTO.estado)
+        Long estadoId = estadoRepository.buscarIdPorNome(cadastrarEmpresaDTO.estado)
                 .orElseThrow(() ->
                     new EstadoNaoEncontradoException(cadastrarEmpresaDTO.estado)
                 )
@@ -57,42 +64,42 @@ class EmpresaService {
                 cadastrarEmpresaDTO.descricao
         )
         
-        return empresaDAO.salvar(empresa)
+        return empresaRepository.salvar(empresa)
     }
 
     Empresa logar(String email, String senha) {
-        return empresaDAO.buscarPorEmailESenha(email, senha)
+        return empresaAutenticacao.buscarPorEmailESenha(email, senha)
         .orElseThrow(() ->
         new EmpresaLoginException(email, senha))
     }
     
     List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Long idVaga) {
-        return candidatoCurtirDAO.buscarCandidatosQueCurtiram(idVaga)
+        return candidatoCurtirConsulta.buscarCandidatosQueCurtiram(idVaga)
     }
 
     void curtirCandidato(Long idEmpresa,Long idCandidato) {
-        empresaCurtirDAO.salvar(idEmpresa, idCandidato)
+        empresaCurtirRepository.salvar(idEmpresa, idCandidato)
     }
 
     List<CandidatoAnonimoDTO> buscarCandidatosCurtidos(Long idEmpresa) {
-        return empresaCurtirDAO.buscarCandidatosCurtidos(idEmpresa)
+        return empresaCurtirRepository.buscarCandidatosCurtidos(idEmpresa)
     }
 
     void desativarEmpresa(Long idEmpresa) {
-        empresaDAO.desativar(idEmpresa)
+        empresaDesativacao.desativar(idEmpresa)
     }
 
     void atualizarEmpresa(AtualizarEmpresaDTO atualizarEmpresaDTO) {
-        Long paisId = paisDAO.buscarIdPorNome(atualizarEmpresaDTO.pais)
+        Long paisId = paisRepository.buscarIdPorNome(atualizarEmpresaDTO.pais)
                 .orElseThrow(() ->
                         new PaisNaoEncontradoException(atualizarEmpresaDTO.pais)
                 )
-        Long estadoId = estadoDAO.buscarIdPorSigla(atualizarEmpresaDTO.estado)
+        Long estadoId = estadoRepository.buscarIdPorNome(atualizarEmpresaDTO.estado)
                 .orElseThrow(() ->
                         new EstadoNaoEncontradoException(atualizarEmpresaDTO.estado)
                 )
 
-        empresaDAO.atualizarDados(
+        empresaRepository.atualizarDados(
                 new Empresa(
                         atualizarEmpresaDTO.id,
                         atualizarEmpresaDTO.nome,
@@ -109,10 +116,10 @@ class EmpresaService {
     }
 
     List<RemoverCompetenciaDTO> listaParaRemover(Long idVaga) {
-        return competenciaDAO.converterCompetenciasParaDTO(competenciasVagaDAO.buscarPorVaga(idVaga))
+        return competenciaDAO.converterCompetenciasParaDTO(competenciasVagaRepository.buscarPorVaga(idVaga))
     }
     
     void removerCompetencia(Long idVaga, Long idCompetencia) {
-        competenciasVagaDAO.removerCompetencia(idVaga, idCompetencia)
+        competenciasVagaRepository.removerCompetencia(idVaga, idCompetencia)
     }
 }

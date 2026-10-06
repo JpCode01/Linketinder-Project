@@ -1,5 +1,6 @@
 package com.jpcode.dao.vaga
 
+import com.jpcode.dao.vaga.contrato.VagaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
@@ -8,7 +9,7 @@ import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
 
-class VagaDAO {
+class VagaDAO implements VagaRepository {
 
     Vaga salvar(Vaga vaga) {
         String sql = """

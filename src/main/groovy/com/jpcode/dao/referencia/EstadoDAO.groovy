@@ -1,11 +1,12 @@
 package com.jpcode.dao.referencia
 
+import com.jpcode.dao.referencia.contrato.ReferenciaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.referencia.Estado
 
-class EstadoDAO {
+class EstadoDAO implements ReferenciaRepository {
 
-    Estado buscarPorId(Long id) {
+    Optional<Estado> buscarPorId(Long id) {
         String sql = """
             SELECT id, sigla
             FROM estados
@@ -21,17 +22,19 @@ class EstadoDAO {
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next()) {
-                return null
+                return Optional.empty()
             }
 
-            return new Estado(
+            Estado estado = new Estado(
                     resultSet.getLong("id"),
                     resultSet.getString("sigla")
             )
+
+            return Optional.of(estado)
         }
     }
 
-    Optional<Long> buscarIdPorSigla(String sigla) {
+    Optional<Long> buscarIdPorNome(String sigla) {
         String sql = """
             SELECT id
             FROM estados

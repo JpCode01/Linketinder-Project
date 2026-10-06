@@ -1,18 +1,19 @@
 package com.jpcode.dao.match
 
-import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
+import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
+import com.jpcode.dao.match.contrato.MatchRepository
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.Match.MatchEncontradoDTO
 import com.jpcode.model.referencia.Competencia
 
-class MatchDAO {
+class MatchDAO implements MatchRepository {
 
-    final CompetenciasCandidatoDAO competenciasCandidatoDAO
+    final CompetenciasCandidatoRepository competenciasCandidatoRepository
     final CompetenciasVagaDAO competenciasVagaDAO
 
-    MatchDAO(CompetenciasCandidatoDAO competenciasCandidatoDAO, CompetenciasVagaDAO competenciasVagaDAO) {
-        this.competenciasCandidatoDAO = competenciasCandidatoDAO
+    MatchDAO(CompetenciasCandidatoRepository competenciasCandidatoRepository, CompetenciasVagaDAO competenciasVagaDAO) {
+        this.competenciasCandidatoRepository = competenciasCandidatoRepository
         this.competenciasVagaDAO = competenciasVagaDAO
     }
 

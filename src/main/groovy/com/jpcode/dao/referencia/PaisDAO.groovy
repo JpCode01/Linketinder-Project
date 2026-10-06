@@ -1,11 +1,12 @@
 package com.jpcode.dao.referencia
 
+import com.jpcode.dao.referencia.contrato.ReferenciaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.referencia.Pais
 
-class PaisDAO {
+class PaisDAO implements ReferenciaRepository {
 
-    Pais buscarPorId(Long id) {
+    Optional<Pais> buscarPorId(Long id) {
         String sql = """
             SELECT id, nome
             FROM pais
@@ -24,11 +25,13 @@ class PaisDAO {
                 return null
             }
 
-            return new Pais(
+            Pais pais = new Pais(
                     resultSet.getLong("id"),
                     resultSet.getString("nome")
                     
             )
+
+            return Optional.of(pais)
         }
     }
 

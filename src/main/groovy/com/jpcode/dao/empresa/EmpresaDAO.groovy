@@ -1,11 +1,18 @@
 package com.jpcode.dao.empresa
 
+import com.jpcode.dao.empresa.contrato.EmpresaAutenticacao
+import com.jpcode.dao.empresa.contrato.EmpresaDesativacao
+import com.jpcode.dao.empresa.contrato.EmpresaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.core.Empresa
 
 import java.sql.Statement
 
-class EmpresaDAO {
+class EmpresaDAO implements 
+        EmpresaRepository,
+        EmpresaAutenticacao,
+        EmpresaDesativacao
+{
 
     Empresa salvar(Empresa empresa) {
         String sql = """

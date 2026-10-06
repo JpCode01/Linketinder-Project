@@ -1,37 +1,46 @@
 package com.jpcode.service
 
-import com.jpcode.dao.candidato.CandidatoDAO
-import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
+import com.jpcode.dao.candidato.contrato.CandidatoAutenticacao
+import com.jpcode.dao.candidato.contrato.CandidatoDesativacao
+import com.jpcode.dao.candidato.contrato.CandidatoRepository
+import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
 import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.referencia.EstadoDAO
-import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.dao.referencia.contrato.ReferenciaRepository
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.exception.candidato.CandidatoLoginException
+import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.referencia.Competencia
+import com.jpcode.model.referencia.Estado
+import com.jpcode.model.referencia.Pais
 import spock.lang.Specification
 import spock.lang.Unroll
-import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 
 import java.time.LocalDate
 
 class CandidatoServiceTest extends Specification {
 
-    PaisDAO paisDAO = Mock()
-    EstadoDAO estadoDAO = Mock()
+    ReferenciaRepository<Pais> paisRepository = Mock()
+    ReferenciaRepository<Estado> estadoRepository = Mock()
     CompetenciaDAO competenciaDAO = Mock()
-    CompetenciasCandidatoDAO competenciasCandidatoDAO = Mock()
-    CandidatoDAO candidatoDAO = Mock()
+
+    CompetenciasCandidatoRepository competenciasCandidatoRepository = Mock()
+
+    CandidatoRepository candidatoRepository = Mock()
+    CandidatoAutenticacao candidatoAutenticacao = Mock()
+    CandidatoDesativacao candidatoDesativacao = Mock()
 
     CandidatoService service
 
     def setup() {
         service = new CandidatoService(
-                paisDAO,
-                estadoDAO,
+                paisRepository,
+                estadoRepository,
                 competenciaDAO,
-                competenciasCandidatoDAO,
-                candidatoDAO
+                competenciasCandidatoRepository,
+                candidatoRepository,
+                candidatoAutenticacao,
+                candidatoDesativacao
         )
     }
 
@@ -51,7 +60,7 @@ class CandidatoServiceTest extends Specification {
                 "Desenvolvedor"
         )
 
-        candidatoDAO.buscarPorId(1L) >> Optional.of(candidato)
+        candidatoRepository.buscarPorId(1L) >> Optional.of(candidato)
 
         expect:
         service.buscarCandidato(1L) == candidato
@@ -59,7 +68,7 @@ class CandidatoServiceTest extends Specification {
 
     def "deve lançar exceção quando candidato não for encontrado pelo id"() {
         given:
-        candidatoDAO.buscarPorId(1L) >> Optional.empty()
+        candidatoRepository.buscarPorId(1L) >> Optional.empty()
 
         when:
         service.buscarCandidato(1L)
@@ -73,13 +82,13 @@ class CandidatoServiceTest extends Specification {
         service.desativarCandidato(1L)
 
         then:
-        1 * candidatoDAO.desativar(1L)
+        1 * candidatoDesativacao.desativar(1L)
     }
 
     @Unroll
     def "deve lançar exceção quando login não for encontrado para email '#email' e senha informados"() {
         given:
-        candidatoDAO.buscarPorEmailESenha(email, senha) >> Optional.empty()
+        candidatoAutenticacao.buscarPorEmailESenha(email, senha) >> Optional.empty()
 
         when:
         service.logar(email, senha)
@@ -110,7 +119,10 @@ class CandidatoServiceTest extends Specification {
                 "Desenvolvedor"
         )
 
-        candidatoDAO.buscarPorEmailESenha("joao@email.com", "123") >> Optional.of(candidato)
+        candidatoAutenticacao.buscarPorEmailESenha(
+                "joao@email.com",
+                "123"
+        ) >> Optional.of(candidato)
 
         expect:
         service.logar("joao@email.com", "123") == candidato
@@ -149,51 +161,19 @@ class CandidatoServiceTest extends Specification {
                 true
         )
 
-        paisDAO.buscarIdPorNome("BRASIL") >> Optional.of(1L)
-        estadoDAO.buscarIdPorSigla("SP") >> Optional.of(2L)
+        paisRepository.buscarIdPorNome("BRASIL") >> Optional.of(1L)
+        estadoRepository.buscarIdPorNome("SP") >> Optional.of(2L)
 
-        competenciaDAO.buscarIdPorNomeCompetencia("JAVA") >>
-                Optional.of(10L)
-
-        competenciaDAO.buscarIdPorNomeCompetencia("SPRING") >>
-                Optional.of(20L)
+        competenciaDAO.buscarIdPorNome("JAVA") >> Optional.of(10L)
+        competenciaDAO.buscarIdPorNome("SPRING") >> Optional.of(20L)
 
         when:
         service.cadastrarCandidato(cadastrarCandidatoDTO)
 
         then:
-        1 * candidatoDAO.salvar(_) >> candidatoSalvo
-        1 * competenciasCandidatoDAO.salvar(1L, 10L)
-        1 * competenciasCandidatoDAO.salvar(1L, 20L)
-    }
-
-    def "deve cadastrar competencias do candidato"() {
-        given:
-        Competencia java = new Competencia(1L, "JAVA")
-        Competencia spring = new Competencia(2L, "SPRING")
-
-        competenciaDAO.buscarPorNome("JAVA") >> java
-        competenciaDAO.buscarPorNome("SPRING") >> spring
-
-        when:
-        service.adicionarCompetencias(
-                1L,
-                ["JAVA", "SPRING"]
-        )
-
-        then:
-        1 * competenciasCandidatoDAO.atualizar(
-                1L,
-                [java, spring]
-        )
-    }
-
-    def "deve desativar candidato pelo id"() {
-        when:
-        service.desativarCandidato(5L)
-
-        then:
-        1 * candidatoDAO.desativar(5L)
+        1 * candidatoRepository.salvar(_) >> candidatoSalvo
+        1 * competenciasCandidatoRepository.salvar(1L, 10L)
+        1 * competenciasCandidatoRepository.salvar(1L, 20L)
     }
 
     def "deve adicionar competencias ao candidato"() {
@@ -211,7 +191,7 @@ class CandidatoServiceTest extends Specification {
         )
 
         then:
-        1 * competenciasCandidatoDAO.atualizar(
+        1 * competenciasCandidatoRepository.atualizar(
                 1L,
                 [java, spring]
         )
@@ -222,14 +202,14 @@ class CandidatoServiceTest extends Specification {
         service.removerCompetencia(1L, 5L)
 
         then:
-        1 * competenciasCandidatoDAO.removerCompetencia(1L, 5L)
+        1 * competenciasCandidatoRepository.removerCompetencia(1L, 5L)
     }
 
     def "deve buscar competencias do candidato"() {
         given:
         List<String> competencias = ["JAVA", "SPRING"]
 
-        competenciasCandidatoDAO.buscarPorCandidatoString(1L) >> competencias
+        competenciasCandidatoRepository.buscarPorCandidatoString(1L) >> competencias
 
         expect:
         service.competenciasEmString(1L) == competencias

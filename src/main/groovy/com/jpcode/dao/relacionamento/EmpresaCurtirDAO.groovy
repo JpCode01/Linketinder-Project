@@ -1,12 +1,14 @@
 package com.jpcode.dao.relacionamento
 
+import com.jpcode.dao.relacionamento.contrato.EmpresaCurtirRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
 
-class EmpresaCurtirDAO {
+class EmpresaCurtirDAO implements EmpresaCurtirRepository {
+
     void salvar(Long idEmpresa, Long idCandidato) {
        String sql = """
             INSERT INTO candidatos_curtidos_empresa

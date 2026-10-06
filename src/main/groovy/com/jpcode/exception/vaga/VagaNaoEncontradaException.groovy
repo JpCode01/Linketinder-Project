@@ -1,4 +1,4 @@
-package com.jpcode.exception.referencia
+package com.jpcode.exception.vaga
 
 class VagaNaoEncontradaException extends RuntimeException {
 
