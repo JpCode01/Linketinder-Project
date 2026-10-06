@@ -1,9 +1,9 @@
 package com.jpcode.service
 
 import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
-import com.jpcode.dao.vaga.CompetenciasVagaDAO
-import com.jpcode.dao.vaga.VagaDAO
+import com.jpcode.dao.relacionamento.contrato.CandidatoCurtirRepository
+import com.jpcode.dao.vaga.contrato.CompetenciasVagaRepository
+import com.jpcode.dao.vaga.contrato.VagaRepository
 import com.jpcode.dto.vaga.AtualizarVagaDTO
 import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
@@ -16,19 +16,19 @@ import com.jpcode.model.referencia.Competencia
 class VagaService {
 
     final CompetenciaDAO competenciaDAO
-    final CompetenciasVagaDAO competenciasVagaDAO
-    final VagaDAO vagaDAO
-    final CandidatoCurtirDAO candidatoCurtirDAO
+    final CompetenciasVagaRepository competenciasVagaRepository
+    final VagaRepository vagaRepository
+    final CandidatoCurtirRepository candidatoCurtirRepository
 
-    VagaService(CompetenciaDAO competenciaDAO, CompetenciasVagaDAO competenciasVagaDAO, VagaDAO vagaDAO, CandidatoCurtirDAO candidatoCurtirDAO) {
+    VagaService(CompetenciaDAO competenciaDAO, CompetenciasVagaRepository competenciasVagaRepository, VagaRepository vagaRepository, CandidatoCurtirRepository candidatoCurtirRepository) {
         this.competenciaDAO = competenciaDAO
-        this.competenciasVagaDAO = competenciasVagaDAO
-        this.vagaDAO = vagaDAO
-        this.candidatoCurtirDAO = candidatoCurtirDAO
+        this.competenciasVagaRepository = competenciasVagaRepository
+        this.vagaRepository = vagaRepository
+        this.candidatoCurtirRepository = candidatoCurtirRepository
     }
 
     void criarVaga(CadastrarVagaDTO cadastrarVagaDTO) {
-        Vaga vagaSalva = vagaDAO.salvar(
+        Vaga vagaSalva = vagaRepository.salvar(
                 new Vaga(
                         cadastrarVagaDTO.nome,
                         cadastrarVagaDTO.descricao,
@@ -39,12 +39,12 @@ class VagaService {
 
         cadastrarVagaDTO.competencias.each { competencia ->
             Long idCompetencia = competenciaDAO
-                    .buscarIdPorNomeCompetencia(competencia)
+                    .buscarIdPorNome(competencia)
                     .orElseThrow(() ->
                             new CompetenciaNaoEncontradaException(competencia)
                     )
 
-            competenciasVagaDAO.salvar(
+            competenciasVagaRepository.salvar(
                     vagaSalva.id,
                     idCompetencia
             )
@@ -52,37 +52,37 @@ class VagaService {
     }
 
     void curtir(Long idCandidato, Long idVaga) {
-        candidatoCurtirDAO.salvar(idCandidato, idVaga)
+        candidatoCurtirRepository.salvar(idCandidato, idVaga)
     }
 
     List<VagaEmpresaDTO> listarVagas(Long idEmpresa) {
-        return vagaDAO.buscarVagasEmpresa(idEmpresa)
+        return vagaRepository.buscarVagasEmpresa(idEmpresa)
     }
 
     Vaga buscarVaga(Long idVaga) {
-        return vagaDAO.buscarPorId(idVaga)
+        return vagaRepository.buscarPorId(idVaga)
                 .orElseThrow(() ->
                         new VagaNaoEncontradaException(idVaga))
     }
 
     List<VagaAnonimaDTO> listarVagasCurtidas(long idCandidato) {
-        return candidatoCurtirDAO.buscarVagasCurtidas(idCandidato)
+        return candidatoCurtirRepository.buscarVagasCurtidas(idCandidato)
     }
 
     List<VagaAnonimaDTO> buscarTodasAsVagas() {
-        return vagaDAO.buscarTodasAsVagas()
+        return vagaRepository.buscarTodasAsVagas()
     }
 
     List<Competencia> buscarCompetenciasDeVaga(Long idVaga) {
-        return competenciasVagaDAO.buscarPorVaga(idVaga)
+        return competenciasVagaRepository.buscarPorVaga(idVaga)
     }
 
     void deletarVaga(Long idVaga) {
-        vagaDAO.deletar(idVaga)
+        vagaRepository.deletar(idVaga)
     }
 
     void atualizarVaga(AtualizarVagaDTO atualizarVagaDTO) {
-        vagaDAO.atualizarDados(
+        vagaRepository.atualizarDados(
                 new Vaga(
                         atualizarVagaDTO.id,
                         atualizarVagaDTO.nome,
@@ -94,7 +94,7 @@ class VagaService {
     }
 
     List<String> competenciasEmString(Long idVaga) {
-        return competenciasVagaDAO.buscarPorVagaString(idVaga)
+        return competenciasVagaRepository.buscarPorVagaString(idVaga)
     }
 
     void adicionarCompetencias(Long idVaga, List<String> competenciasNovas) {
@@ -103,7 +103,7 @@ class VagaService {
             converterParaCompetencia.add(
                     competenciaDAO.buscarPorNome(competenciaString))
         }
-        competenciasVagaDAO.atualizar(idVaga, converterParaCompetencia)
+        competenciasVagaRepository.atualizar(idVaga, converterParaCompetencia)
     }
 
 }

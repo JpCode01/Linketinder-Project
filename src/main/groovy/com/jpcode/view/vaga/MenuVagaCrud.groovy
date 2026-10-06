@@ -86,8 +86,13 @@ class MenuVagaCrud {
         }
     }
 
-    void removerCompetencia(Long idVaga) {
+    private void listarCompetenciasVaga(Long idVaga) {
+        println(vagaService.buscarCompetenciasDeVaga(idVaga))
+    }
 
+    private void removerCompetencia(Long idVaga) {
+        listarCompetenciasVaga(idVaga)
+        
         try {
             Long idCompetencia = solicitarId("Digite o ID da competencia: ")
             List<RemoverCompetenciaDTO> competenciasVaga = empresaService.listaParaRemover(idVaga)

@@ -66,11 +66,12 @@ class MenuCandidatoCrud {
     void removerCompetencia(Long idCandidato) {
         println(candidatoService.listaParaRemover(idCandidato))
         
-        Long idCompetencia = solicitarId("Digite o ID do candidato: ")
+        Long idCompetencia = solicitarId("Digite o ID da competencia: ")
         tentarRemoverCompetencia(idCandidato, idCompetencia)
     }
 
     private void tentarRemoverCompetencia(Long idCandidato, Long idCompetencia) {
+
         try {
             candidatoService.removerCompetencia(idCandidato, idCompetencia)
             println("Competencia removida com sucesso!")

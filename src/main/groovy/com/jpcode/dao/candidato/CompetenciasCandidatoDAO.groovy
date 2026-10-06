@@ -1,9 +1,10 @@
 package com.jpcode.dao.candidato
 
+import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.referencia.Competencia
 
-class CompetenciasCandidatoDAO {
+class CompetenciasCandidatoDAO implements CompetenciasCandidatoRepository {
     void salvar(Long idCandidato, Long idCompetencia) {
         String sql = """
             INSERT INTO candidatos_competencias

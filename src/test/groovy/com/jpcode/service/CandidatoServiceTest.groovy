@@ -150,12 +150,12 @@ class CandidatoServiceTest extends Specification {
         )
 
         paisDAO.buscarIdPorNome("BRASIL") >> Optional.of(1L)
-        estadoDAO.buscarIdPorSigla("SP") >> Optional.of(2L)
+        estadoDAO.buscarIdPorNome("SP") >> Optional.of(2L)
 
-        competenciaDAO.buscarIdPorNomeCompetencia("JAVA") >>
+        competenciaDAO.buscarIdPorNome("JAVA") >>
                 Optional.of(10L)
 
-        competenciaDAO.buscarIdPorNomeCompetencia("SPRING") >>
+        competenciaDAO.buscarIdPorNome("SPRING") >>
                 Optional.of(20L)
 
         when:

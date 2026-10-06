@@ -9,4 +9,17 @@ class Competencia {
         this.id = id
         this.nome = nome
     }
+
+
+    @Override
+    String toString() {
+        return """
+            ----------------------------------------------------------------
+
+            Competencia:
+            
+            Id: ${id}
+            Nome: ${nome}
+        """;
+    }
 }

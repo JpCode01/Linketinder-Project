@@ -1,25 +1,26 @@
 package com.jpcode.service
 
-import com.jpcode.dao.match.MatchDAO
+
+import com.jpcode.dao.match.contrato.MatchRepository
 import com.jpcode.dto.Match.MatchEncontradoDTO
 
 class MatchService {
-    final MatchDAO matchDAO
+    final MatchRepository matchRepository
 
-    MatchService(MatchDAO matchDAO) {
-        this.matchDAO = matchDAO
+    MatchService(MatchRepository matchRepository) {
+        this.matchRepository = matchRepository
     }
 
     void salvar(Long idCandidato, Long idEmpresa, Long idVaga) {
-        matchDAO.salvar(idCandidato, idEmpresa, idVaga)
+        matchRepository.salvar(idCandidato, idEmpresa, idVaga)
     }
 
     List<MatchEncontradoDTO> verMatchesPorEmpresa(Long idEmpresa) {
-        return matchDAO.buscarMatchesPorEmpresa(idEmpresa)
+        return matchRepository.buscarMatchesPorEmpresa(idEmpresa)
     }
 
     List<MatchEncontradoDTO> verMatchesPorCandidato(Long idCandidato) {
-        return matchDAO.buscarMatchesPorCandidato(idCandidato)
+        return matchRepository.buscarMatchesPorCandidato(idCandidato)
     }
 
 }

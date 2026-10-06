@@ -68,7 +68,7 @@ class EmpresaServiceTest extends Specification {
         )
 
         paisDAO.buscarIdPorNome("BRASIL") >> Optional.of(1L)
-        estadoDAO.buscarIdPorSigla("SP") >> Optional.of(2L)
+        estadoDAO.buscarIdPorNome("SP") >> Optional.of(2L)
 
         when:
         Empresa resultado = service.cadastrarEmpresa(cadastrarEmpresaDTO)
@@ -115,7 +115,7 @@ class EmpresaServiceTest extends Specification {
         )
 
         paisDAO.buscarIdPorNome("BRASIL") >> Optional.of(1L)
-        estadoDAO.buscarIdPorSigla("SP") >> Optional.empty()
+        estadoDAO.buscarIdPorNome("SP") >> Optional.empty()
 
         when:
         service.cadastrarEmpresa(cadastrarEmpresaDTO)
@@ -215,7 +215,7 @@ class EmpresaServiceTest extends Specification {
         )
 
         paisDAO.buscarIdPorNome("BRASIL") >> Optional.of(1L)
-        estadoDAO.buscarIdPorSigla("SP") >> Optional.of(2L)
+        estadoDAO.buscarIdPorNome("SP") >> Optional.of(2L)
 
         when:
         service.atualizarEmpresa(atualizarEmpresaDTO)

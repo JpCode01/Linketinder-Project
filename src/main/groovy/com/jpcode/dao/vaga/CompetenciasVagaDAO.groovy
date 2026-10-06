@@ -1,11 +1,13 @@
 package com.jpcode.dao.vaga
 
+import com.jpcode.dao.vaga.contrato.CompetenciasVagaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
 
-class CompetenciasVagaDAO {
+class CompetenciasVagaDAO implements CompetenciasVagaRepository {
+
     void salvar(Long idVaga, Long idCompetencia) {
         String sql = """
             INSERT INTO vagas_competencias 

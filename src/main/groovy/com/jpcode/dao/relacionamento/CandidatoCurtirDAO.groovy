@@ -1,5 +1,7 @@
 package com.jpcode.dao.relacionamento
 
+import com.jpcode.dao.relacionamento.contrato.CandidatoCurtirConsulta
+import com.jpcode.dao.relacionamento.contrato.CandidatoCurtirRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
@@ -7,7 +9,10 @@ import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
 
-class CandidatoCurtirDAO {
+class CandidatoCurtirDAO implements
+        CandidatoCurtirRepository,
+        CandidatoCurtirConsulta
+{
     void salvar(Long idCandidato, Long idVaga) {
         String sql = """
             INSERT INTO vagas_curtidas_candidato

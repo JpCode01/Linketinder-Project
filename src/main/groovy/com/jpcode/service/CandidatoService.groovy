@@ -1,10 +1,11 @@
 package com.jpcode.service
 
-import com.jpcode.dao.candidato.CandidatoDAO
-import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
+import com.jpcode.dao.candidato.contrato.CandidatoAutenticacao
+import com.jpcode.dao.candidato.contrato.CandidatoDesativacao
+import com.jpcode.dao.candidato.contrato.CandidatoRepository
+import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
 import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.referencia.EstadoDAO
-import com.jpcode.dao.referencia.PaisDAO
+import com.jpcode.dao.referencia.contrato.ReferenciaRepository
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
@@ -15,33 +16,39 @@ import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.referencia.Competencia
+import com.jpcode.model.referencia.Estado
+import com.jpcode.model.referencia.Pais
 
 class CandidatoService {
-    final PaisDAO paisDAO
-    final EstadoDAO estadoDAO
+    final ReferenciaRepository<Pais> paisRepository
+    final ReferenciaRepository<Estado> estadoRepository
     final CompetenciaDAO competenciaDAO
-    final CompetenciasCandidatoDAO competenciasCandidatoDAO
-    final CandidatoDAO candidatoDAO
+    final CompetenciasCandidatoRepository competenciasCandidatoRepository
+    final CandidatoRepository candidatoRepository
+    final CandidatoAutenticacao candidatoAutenticacao
+    final CandidatoDesativacao candidatoDesativacao
 
-    CandidatoService(PaisDAO paisDAO, EstadoDAO estadoDAO, CompetenciaDAO competenciaDAO, CompetenciasCandidatoDAO competenciasCandidatoDAO, CandidatoDAO candidatoDAO) {
-        this.paisDAO = paisDAO
-        this.estadoDAO = estadoDAO
+    CandidatoService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, CompetenciaDAO competenciaDAO, CompetenciasCandidatoRepository competenciasCandidatoRepository, CandidatoRepository candidatoRepository, CandidatoAutenticacao candidatoAutenticacao, CandidatoDesativacao candidatoDesativacao) {
+        this.paisRepository = paisRepository
+        this.estadoRepository = estadoRepository
         this.competenciaDAO = competenciaDAO
-        this.competenciasCandidatoDAO = competenciasCandidatoDAO
-        this.candidatoDAO = candidatoDAO
+        this.competenciasCandidatoRepository = competenciasCandidatoRepository
+        this.candidatoRepository = candidatoRepository
+        this.candidatoAutenticacao = candidatoAutenticacao
+        this.candidatoDesativacao = candidatoDesativacao
     }
-    
+
     void cadastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
-        Long paisId = paisDAO.buscarIdPorNome(cadastrarCandidatoDTO.pais)
+        Long paisId = paisRepository.buscarIdPorNome(cadastrarCandidatoDTO.pais)
                 .orElseThrow(() ->
                         new PaisNaoEncontradoException(cadastrarCandidatoDTO.pais)
                 )
-        Long estadoId = estadoDAO.buscarIdPorSigla(cadastrarCandidatoDTO.estado)
+        Long estadoId = estadoRepository.buscarIdPorNome(cadastrarCandidatoDTO.estado)
                 .orElseThrow(() ->
                 new EstadoNaoEncontradoException(cadastrarCandidatoDTO.estado)
         )
 
-        Candidato candidatoSalvo = candidatoDAO.salvar(
+        Candidato candidatoSalvo = candidatoRepository.salvar(
                     new Candidato(
                             cadastrarCandidatoDTO.nome,
                             cadastrarCandidatoDTO.sobrenome,
@@ -63,12 +70,12 @@ class CandidatoService {
         competencias.each {
             competencia ->
                 Long idCompetencia = competenciaDAO
-                        .buscarIdPorNomeCompetencia(competencia)
+                        .buscarIdPorNome(competencia)
                         .orElseThrow(() ->
                                 new CompetenciaNaoEncontradaException(competencia)
                         )
 
-                competenciasCandidatoDAO.salvar(
+                competenciasCandidatoRepository.salvar(
                         idCandidato,
                         idCompetencia
                 )
@@ -76,32 +83,32 @@ class CandidatoService {
     }
 
     Candidato buscarCandidato(Long idCandidato) {
-        return candidatoDAO.buscarPorId(idCandidato)
+        return candidatoRepository.buscarPorId(idCandidato)
         .orElseThrow(() ->
                     new CandidatoNaoEncontradoPorIdException(idCandidato))
     }
 
     Candidato logar(String email, String senha) {
-        return candidatoDAO.buscarPorEmailESenha(email, senha)
+        return candidatoAutenticacao.buscarPorEmailESenha(email, senha)
         .orElseThrow(() ->
         new CandidatoLoginException(email, senha))
     }
 
     void desativarCandidato(Long idCandidato) {
-        candidatoDAO.desativar(idCandidato)
+        candidatoDesativacao.desativar(idCandidato)
     }
     
     void atualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
-        Long paisId = paisDAO.buscarIdPorNome(atualizarCandidatoDTO.pais)
+        Long paisId = paisRepository.buscarIdPorNome(atualizarCandidatoDTO.pais)
                 .orElseThrow(() ->
                         new PaisNaoEncontradoException(atualizarCandidatoDTO.pais)
                 )
-        Long estadoId = estadoDAO.buscarIdPorSigla(atualizarCandidatoDTO.estado)
+        Long estadoId = estadoRepository.buscarIdPorNome(atualizarCandidatoDTO.estado)
                 .orElseThrow(() ->
                         new EstadoNaoEncontradoException(atualizarCandidatoDTO.estado)
                 )
 
-        candidatoDAO.atualizarDados(
+        candidatoRepository.atualizarDados(
                 new Candidato(
                         atualizarCandidatoDTO.id,
                         atualizarCandidatoDTO.nome,
@@ -127,19 +134,23 @@ class CandidatoService {
             converterParaCompetencia.add(
                     competenciaDAO.buscarPorNome(competenciaString))
         }
-        competenciasCandidatoDAO.atualizar(idCandidato, converterParaCompetencia)
+        competenciasCandidatoRepository.atualizar(idCandidato, converterParaCompetencia)
     }
 
     void removerCompetencia(Long idCandidato, Long idCompetencia) {
-        competenciasCandidatoDAO.removerCompetencia(idCandidato, idCompetencia)
+        competenciasCandidatoRepository.removerCompetencia(idCandidato, idCompetencia)
     }
 
     List<RemoverCompetenciaDTO> listaParaRemover(Long idCandidato) {
-        return competenciaDAO.converterCompetenciasParaDTO(competenciasCandidatoDAO.buscarPorCandidato(idCandidato))
+        return competenciaDAO.converterCompetenciasParaDTO(competenciasCandidatoRepository.buscarPorCandidato(idCandidato))
     }
 
     List<String> competenciasEmString(Long idCandidato) {
-        return competenciasCandidatoDAO.buscarPorCandidatoString(idCandidato)
+        return competenciasCandidatoRepository.buscarPorCandidatoString(idCandidato)
+    }
+
+    List<Competencia> buscarCompetenciasDeCandidato(Long idCandidato) {
+        return competenciasCandidatoRepository.buscarPorCandidato(idCandidato)
     }
     
 }

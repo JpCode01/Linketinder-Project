@@ -1,12 +1,19 @@
 package com.jpcode.dao.candidato
 
+import com.jpcode.dao.candidato.contrato.CandidatoAutenticacao
+import com.jpcode.dao.candidato.contrato.CandidatoDesativacao
+import com.jpcode.dao.candidato.contrato.CandidatoRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.core.Candidato
 
 import java.sql.Date
 import java.sql.Statement
 
-class CandidatoDAO {
+class CandidatoDAO implements 
+        CandidatoAutenticacao,
+        CandidatoRepository,
+        CandidatoDesativacao
+{
 
     Candidato salvar(Candidato candidato) {
 

@@ -1,10 +1,12 @@
 package com.jpcode.dao.referencia
 
+import com.jpcode.dao.referencia.contrato.ReferenciaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.referencia.Competencia
 
-class CompetenciaDAO {
+class CompetenciaDAO implements ReferenciaRepository {
+    
     Optional<Competencia> buscarPorId(Long id) {
         String sql = """
             SELECT id, nome_competencia
@@ -61,7 +63,7 @@ class CompetenciaDAO {
         }
     }
 
-    Optional<Long> buscarIdPorNomeCompetencia(String competencia) {
+    Optional<Long> buscarIdPorNome(String competencia) {
         String sql = """
             SELECT id
             FROM competencias

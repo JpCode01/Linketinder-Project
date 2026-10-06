@@ -20,6 +20,8 @@ class ServiceConfig {
                 daoConfig.paisDAO,
                 daoConfig.estadoDAO,
                 daoConfig.empresaDAO,
+                daoConfig.empresaDAO,
+                daoConfig.empresaDAO,
                 daoConfig.candidatoCurtirDAO,
                 daoConfig.empresaCurtirDAO,
                 daoConfig.competenciasVagaDAO,
@@ -38,6 +40,8 @@ class ServiceConfig {
                 daoConfig.estadoDAO,
                 daoConfig.competenciaDAO,
                 daoConfig.getCompetenciasCandidatoDAO(),
+                daoConfig.candidatoDAO,
+                daoConfig.candidatoDAO,
                 daoConfig.candidatoDAO
         )
 
@@ -48,7 +52,7 @@ class ServiceConfig {
         competenciaService = new CompetenciaService(
                 daoConfig.competenciaDAO
         )
-        
+
         referenciaService = new ReferenciaService(
                 daoConfig.paisDAO,
                 daoConfig.estadoDAO
