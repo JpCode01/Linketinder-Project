@@ -1,6 +1,12 @@
-import { Candidato } from "../models/Candidato";
+import { Candidato } from "../../models/Candidato";
+import { CandidatoConsultaRepository } from "./contrato/CandidatoConsultaRepository"
+import { CadastroRepository } from "../CadastroRepository";
 
-export class CandidatoRepository {
+export class CandidatoRepository implements 
+            CandidatoConsultaRepository,
+            CadastroRepository<Candidato>
+            
+            {
 
     salvar(candidato: Candidato): void {
         const candidatosSalvos = localStorage.getItem("candidatos")

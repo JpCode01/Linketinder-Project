@@ -1,6 +1,11 @@
-import { Empresa } from "../models/Empresa"
+import { Empresa } from "../../models/Empresa"
+import { EmpresaConsultaRepository } from "./contrato/EmpresaConsultaRepository"
+import { CadastroRepository } from "../CadastroRepository";
 
-export class EmpresaRepository {
+export class EmpresaRepository implements
+            EmpresaConsultaRepository,
+            CadastroRepository<Empresa>
+            {
 
     salvar(empresa: Empresa): void {
         const empresasSalvas = localStorage.getItem("empresas")

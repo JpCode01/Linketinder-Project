@@ -14,6 +14,7 @@ export class ServiceConfig {
     criarCandidatoService(): CandidatoService {
         return new CandidatoService(
             this.repositoryConfig.candidatoRepository,
+            this.repositoryConfig.candidatoRepository,
             this.repositoryConfig.empresaRepository
         )
     }
@@ -29,12 +30,14 @@ export class ServiceConfig {
     criarEmpresaService(): EmpresaService {
         return new EmpresaService(
             this.repositoryConfig.empresaRepository,
+            this.repositoryConfig.empresaRepository,
             this.repositoryConfig.candidatoRepository
         )
     }
 
     criarVagaService(): VagaService {
         return new VagaService(
+            this.repositoryConfig.vagaRepository,
             this.repositoryConfig.vagaRepository,
             this.repositoryConfig.empresaRepository
         )
@@ -43,6 +46,7 @@ export class ServiceConfig {
     criarCurtidaVagaService(): CurtidaVagaService {
         return new CurtidaVagaService(
             this.repositoryConfig.curtidaVagaRepository,
+            this.repositoryConfig.curtidaVagaRepository,
             this.repositoryConfig.candidatoRepository,
             this.repositoryConfig.vagaRepository
         )
@@ -50,6 +54,7 @@ export class ServiceConfig {
 
     criarCurtidaCandidatoService(): CurtidaCandidatoService {
         return new CurtidaCandidatoService(
+            this.repositoryConfig.curtidaCandidatoRepository,
             this.repositoryConfig.curtidaCandidatoRepository,
             this.repositoryConfig.empresaRepository,
             this.repositoryConfig.candidatoRepository
