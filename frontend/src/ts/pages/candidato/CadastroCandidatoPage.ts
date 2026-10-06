@@ -1,13 +1,13 @@
-import { Candidato } from "../models/Candidato"
-import { Competencia } from "../models/Competencia"
+import { Candidato } from "../../models/Candidato"
+import { Competencia } from "../../models/Competencia"
 
-import { CandidatoService } from "../services/CandidatoService"
+import { CandidatoService } from "../../services/CandidatoService"
 
-import { RepositoryConfig } from "../config/RepositoryConfig"
-import { ServiceConfig } from "../config/ServiceConfig"
+import { RepositoryConfig } from "../../config/RepositoryConfig"
+import { ServiceConfig } from "../../config/ServiceConfig"
 
-import { EmailJaCadastradoException } from "../exceptions/EmailJaCadastradoException"
-import { CpfJaCadastradoException } from "../exceptions/CpfJaCadastradoException"
+import { EmailJaCadastradoException } from "../../exceptions/EmailJaCadastradoException"
+import { CpfJaCadastradoException } from "../../exceptions/CpfJaCadastradoException"
 
 interface DadosCandidatoFormulario {
     nome: string

@@ -1,12 +1,12 @@
-import { Empresa } from "../models/Empresa"
+import { Empresa } from "../../models/Empresa"
 
-import { EmpresaService } from "../services/EmpresaService"
+import { EmpresaService } from "../../services/EmpresaService"
 
-import { RepositoryConfig } from "../config/RepositoryConfig"
-import { ServiceConfig } from "../config/ServiceConfig"
+import { RepositoryConfig } from "../../config/RepositoryConfig"
+import { ServiceConfig } from "../../config/ServiceConfig"
 
-import { EmailJaCadastradoException } from "../exceptions/EmailJaCadastradoException"
-import { CnpjJaCadastradoException } from "../exceptions/CnpjJaCadastradoException"
+import { EmailJaCadastradoException } from "../../exceptions/EmailJaCadastradoException"
+import { CnpjJaCadastradoException } from "../../exceptions/CnpjJaCadastradoException"
 
 
 interface DadosEmpresaFormulario {

@@ -1,9 +1,8 @@
-import { loginCandidato, loginEmpresa } from "../pages/LoginPage"
-import { abrirCadastro } from "../pages/LoginPage"
-import { cadastrarCandidato } from "../pages/CadastroCandidatoPage"
-import { cadastrarEmpresa } from "../pages/CadastroEmpresaPage"
-import { exibirPageCandidato } from "../pages/CandidatoPage"
-import { exibirPageEmpresa } from "../pages/EmpresaPage"
+import { cadastrarCandidato } from "../pages/candidato/CadastroCandidatoPage"
+import { cadastrarEmpresa } from "../pages/empresa/CadastroEmpresaPage"
+import { exibirPageCandidato } from "../pages/candidato/CandidatoPage"
+import { exibirPageEmpresa } from "../pages/empresa/EmpresaPage"
+import { exibirLogin } from "../pages/LoginPage"
 
 export class App {
 
@@ -13,9 +12,7 @@ export class App {
         console.log("Página:", paginaAtual)
 
         if (paginaAtual.endsWith("/index.html")) {
-            loginCandidato()
-            loginEmpresa()
-            abrirCadastro()
+            exibirLogin()
         }
 
         if (paginaAtual.endsWith("/cadastro-candidato.html")) {

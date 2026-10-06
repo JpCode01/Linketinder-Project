@@ -1,6 +1,10 @@
-import { CurtidaVaga } from "../models/CurtidaVaga"
+import { CurtidaVaga } from "../../models/CurtidaVaga"
+import { CurtidaVagaConsultaRepository } from "./contrato/CurtidaVagaConsultaRepository"
+import { CadastroRepository } from "../CadastroRepository";
 
-export class CurtidaVagaRepository {
+export class CurtidaVagaRepository implements 
+            CurtidaVagaConsultaRepository,
+            CadastroRepository<CurtidaVaga> {
 
     salvar(curtida: CurtidaVaga): void {
         const curtidasSalvas = localStorage.getItem("curtidasVagas")

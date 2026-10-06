@@ -1,7 +1,8 @@
 import { CurtidaCandidato } from "../models/CurtidaCandidato"
-import { CurtidaCandidatoRepository } from "../repository/CurtidaCandidatoRepository"
-import { EmpresaRepository } from "../repository/EmpresaRepository"
-import { CandidatoRepository } from "../repository/CandidatoRepository"
+import { CadastroRepository } from "../repository/CadastroRepository"
+import { CurtidaCandidatoConsultaRepository } from "../repository/empresa/contrato/CurtidaCandidatoConsultaRepository"
+import { EmpresaConsultaRepository } from "../repository/empresa/contrato/EmpresaConsultaRepository"
+import { CandidatoConsultaRepository } from "../repository/candidato/contrato/CandidatoConsultaRepository"
 import { EmpresaNaoEncontradaException } from "../exceptions/empresa/EmpresaNaoEncontradaException"
 import { CandidatoNaoEncontradoException } from "../exceptions/candidato/CandidatoNaoEncontradoException"
 import { CandidatoJaCurtidoException } from "../exceptions/candidato/CandidatoJaCurtidoException"
@@ -9,26 +10,27 @@ import { CandidatoJaCurtidoException } from "../exceptions/candidato/CandidatoJa
 export class CurtidaCandidatoService {
 
     constructor(
-        private curtidaCandidatoRepository: CurtidaCandidatoRepository,
-        private empresaRepository: EmpresaRepository,
-        private candidatoRepository: CandidatoRepository
+        private curtidaCandidatoCadastroRepository: CadastroRepository<CurtidaCandidato>,
+        private curtidaCandidatoConsultaRepository: CurtidaCandidatoConsultaRepository,
+        private empresaConsultaRepository: EmpresaConsultaRepository,
+        private candidatoConsultaRepository: CandidatoConsultaRepository
     ) {}
 
     curtir(idEmpresa: number, idCandidato: number, idVaga: number): void {
-       const empresa = this.empresaRepository.buscarPorId(idEmpresa)
+       const empresa = this.empresaConsultaRepository.buscarPorId(idEmpresa)
 
         if (empresa == undefined) {
             throw new EmpresaNaoEncontradaException(idEmpresa)
         }
 
-        const candidato = this.candidatoRepository.buscarPorId(idCandidato)
+        const candidato = this.candidatoConsultaRepository.buscarPorId(idCandidato)
 
         if (candidato == undefined) {
             throw new CandidatoNaoEncontradoException(idCandidato)
         }
 
         const curtidaExistente =
-            this.curtidaCandidatoRepository.buscar(
+            this.curtidaCandidatoConsultaRepository.buscar(
                 idEmpresa,
                 idCandidato,
                 idVaga
@@ -44,26 +46,26 @@ export class CurtidaCandidatoService {
             idVaga
         )
 
-        this.curtidaCandidatoRepository.salvar(curtida)
+        this.curtidaCandidatoCadastroRepository.salvar(curtida)
     }
 
     buscarPorEmpresa(idEmpresa: number): CurtidaCandidato[] {
-        const empresaProcurada = this.empresaRepository.buscarPorId(idEmpresa)
+        const empresaProcurada = this.empresaConsultaRepository.buscarPorId(idEmpresa)
 
         if (empresaProcurada == undefined) {
             throw new EmpresaNaoEncontradaException(idEmpresa)
         }
 
-        return this.curtidaCandidatoRepository.buscarPorEmpresa(idEmpresa)
+        return this.curtidaCandidatoConsultaRepository.buscarPorEmpresa(idEmpresa)
     }
 
     buscarPorCandidato(idCandidato: number): CurtidaCandidato[] {
-        const candidatoProcurado = this.candidatoRepository.buscarPorId(idCandidato)
+        const candidatoProcurado = this.candidatoConsultaRepository.buscarPorId(idCandidato)
 
         if (candidatoProcurado == undefined) {
             throw new CandidatoNaoEncontradoException(idCandidato)
         }
 
-        return this.curtidaCandidatoRepository.buscarPorCandidato(idCandidato)
+        return this.curtidaCandidatoConsultaRepository.buscarPorCandidato(idCandidato)
     }
 }

@@ -1,8 +1,8 @@
-import { CandidatoRepository } from "../repository/CandidatoRepository"
-import { EmpresaRepository } from "../repository/EmpresaRepository"
-import { VagaRepository } from "../repository/VagaRepository"
-import { CurtidaVagaRepository } from "../repository/CurtidaVagaRepository"
-import { CurtidaCandidatoRepository } from "../repository/CurtidaCandidatoRepository"
+import { CandidatoRepository } from "../repository/candidato/CandidatoRepository"
+import { EmpresaRepository } from "../repository/empresa/EmpresaRepository"
+import { VagaRepository } from "../repository/vaga/VagaRepository"
+import { CurtidaVagaRepository } from "../repository/candidato/CurtidaVagaRepository"
+import { CurtidaCandidatoRepository } from "../repository/empresa/CurtidaCandidatoRepository"
 
 export class RepositoryConfig {
 

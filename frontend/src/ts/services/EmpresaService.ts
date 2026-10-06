@@ -1,26 +1,28 @@
 import { Empresa } from "../models/Empresa"
-import { EmpresaRepository } from "../repository/EmpresaRepository"
-import { CandidatoRepository } from "../repository/CandidatoRepository"
+import { CadastroRepository } from "../repository/CadastroRepository"
+import { EmpresaConsultaRepository } from "../repository/empresa/contrato/EmpresaConsultaRepository"
+import { CandidatoConsultaRepository } from "../repository/candidato/contrato/CandidatoConsultaRepository"
 import { EmailJaCadastradoException } from "../exceptions/EmailJaCadastradoException"
 import { CnpjJaCadastradoException } from "../exceptions/CnpjJaCadastradoException"
-import { EmpresaNaoEncontradaException } from "../exceptions/empresa/EmpresaNaoEncontradaException";
+import { EmpresaNaoEncontradaException } from "../exceptions/empresa/EmpresaNaoEncontradaException"
 
 export class EmpresaService {
 
     constructor(
-        private empresaRepository: EmpresaRepository,
-        private candidatoRepository: CandidatoRepository
+        private empresaCadastroRepository: CadastroRepository<Empresa>,
+        private empresaConsultaRepository: EmpresaConsultaRepository,
+        private candidatoConsultaRepository: CandidatoConsultaRepository
     ) {}
 
     salvar(empresa: Empresa): void {
         const empresaPorEmail =
-            this.empresaRepository.buscarPorEmail(empresa.email)
+            this.empresaConsultaRepository.buscarPorEmail(empresa.email)
 
         const candidatoPorEmail =
-            this.candidatoRepository.buscarPorEmail(empresa.email)
+            this.candidatoConsultaRepository.buscarPorEmail(empresa.email)
 
         const empresaPorCnpj =
-            this.empresaRepository.buscarPorCnpj(empresa.cnpj)
+            this.empresaConsultaRepository.buscarPorCnpj(empresa.cnpj)
 
         if ((empresaPorEmail != undefined) || (candidatoPorEmail != undefined)) {
             throw new EmailJaCadastradoException()
@@ -30,15 +32,15 @@ export class EmpresaService {
             throw new CnpjJaCadastradoException()
         }
 
-        this.empresaRepository.salvar(empresa)
+        this.empresaCadastroRepository.salvar(empresa)
     }
 
     buscarTodos(): Empresa[] {
-        return this.empresaRepository.buscarTodos()
+        return this.empresaConsultaRepository.buscarTodos()
     }
 
     buscarPorId(id: number): Empresa {
-        const empresa = this.empresaRepository.buscarPorId(id)
+        const empresa = this.empresaConsultaRepository.buscarPorId(id)
 
         if (empresa == undefined) {
             throw new EmpresaNaoEncontradaException(id)
@@ -48,7 +50,7 @@ export class EmpresaService {
     }
 
     buscarPorEmail(email: string): Empresa {
-        const empresa = this.empresaRepository.buscarPorEmail(email)
+        const empresa = this.empresaConsultaRepository.buscarPorEmail(email)
     
         if (empresa == undefined) {
             throw new EmpresaNaoEncontradaException(email)

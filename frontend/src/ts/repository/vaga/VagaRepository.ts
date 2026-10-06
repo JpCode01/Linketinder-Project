@@ -1,6 +1,10 @@
-import { Vaga } from "../models/Vaga"
+import { Vaga } from "../../models/Vaga"
+import { VagaConsultaRepository } from "./contrato/VagaConsultaRepository"
+import { CadastroRepository } from "../CadastroRepository";
 
-export class VagaRepository {
+export class VagaRepository implements
+            VagaConsultaRepository,
+            CadastroRepository<Vaga> {
 
     salvar(vaga: Vaga): void {
         const vagasSalvas = localStorage.getItem("vagas")

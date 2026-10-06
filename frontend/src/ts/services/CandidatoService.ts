@@ -1,27 +1,30 @@
 import { Candidato } from "../models/Candidato"
-import { CandidatoRepository } from "../repository/CandidatoRepository"
-import { EmpresaRepository } from "../repository/EmpresaRepository"
+import { CadastroRepository } from "../repository/CadastroRepository"
+import { CandidatoConsultaRepository } from "../repository/candidato/contrato/CandidatoConsultaRepository"
+import { EmpresaConsultaRepository } from "../repository/empresa/contrato/EmpresaConsultaRepository"
 import { EmailJaCadastradoException } from "../exceptions/EmailJaCadastradoException"
 import { CpfJaCadastradoException } from "../exceptions/CpfJaCadastradoException"
 import { CandidatoNaoEncontradoException } from "../exceptions/candidato/CandidatoNaoEncontradoException"
 
 export class CandidatoService {
 
+
     constructor(
-        private candidatoRepository: CandidatoRepository,
-        private empresaRepository: EmpresaRepository
+        private candidatoCadastroRepository: CadastroRepository<Candidato>,
+        private candidatoConsultaRepository: CandidatoConsultaRepository,
+        private empresaConsultaRepository: EmpresaConsultaRepository
     ) {}
 
     salvar(candidato: Candidato): void {
 
         const candidatoPorEmail =
-            this.candidatoRepository.buscarPorEmail(candidato.email)
+            this.candidatoConsultaRepository.buscarPorEmail(candidato.email)
 
         const empresaPorEmail =
-            this.empresaRepository.buscarPorEmail(candidato.email)
+            this.empresaConsultaRepository.buscarPorEmail(candidato.email)
 
         const candidatoPorCpf =
-            this.candidatoRepository.buscarPorCpf(candidato.cpf)
+            this.candidatoConsultaRepository.buscarPorCpf(candidato.cpf)
 
         if ((candidatoPorEmail != undefined) || (empresaPorEmail != undefined)) {
             throw new EmailJaCadastradoException()
@@ -31,15 +34,15 @@ export class CandidatoService {
             throw new CpfJaCadastradoException()
         }
 
-        this.candidatoRepository.salvar(candidato)
+        this.candidatoCadastroRepository.salvar(candidato)
     }
 
     buscarTodos(): Candidato[] {
-        return this.candidatoRepository.buscarTodos()
+        return this.candidatoConsultaRepository.buscarTodos()
     }
 
     buscarPorId(id: number): Candidato {
-        const candidatoPorId = this.candidatoRepository.buscarPorId(id)
+        const candidatoPorId = this.candidatoConsultaRepository.buscarPorId(id)
         if (candidatoPorId == undefined) {
             throw new CandidatoNaoEncontradoException(id)
         }
@@ -47,7 +50,7 @@ export class CandidatoService {
     }
 
     buscarPorEmail(email: string): Candidato {
-        const candidatoPorEmail = this.candidatoRepository.buscarPorEmail(email)
+        const candidatoPorEmail = this.candidatoConsultaRepository.buscarPorEmail(email)
         if (candidatoPorEmail == undefined) {
             throw new CandidatoNaoEncontradoException(email)
         }
