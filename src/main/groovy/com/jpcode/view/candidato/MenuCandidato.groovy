@@ -1,21 +1,26 @@
 package com.jpcode.view.candidato
 
-import com.jpcode.config.DaoConfig
-import com.jpcode.config.MenuCandidatoConfig
-import com.jpcode.config.ServiceConfig
 import com.jpcode.exception.candidato.CandidatoLoginException
 import com.jpcode.model.core.Candidato
 import com.jpcode.service.CandidatoService
 
 class MenuCandidato {
-    final Scanner scanner = new Scanner(System.in)
-    final DaoConfig daoConfig = new DaoConfig()
-    final ServiceConfig serviceConfig = new ServiceConfig(daoConfig)
-    final MenuCandidatoConfig menuCandidatoConfig = new MenuCandidatoConfig(scanner, serviceConfig)
+    final Scanner scanner
+    final CandidatoService candidatoService
+    final MenuCandidatoCrud menuCandidatoCrud
+    final MenuCurtirVaga menuCurtirVaga
 
-    final CandidatoService candidatoService = serviceConfig.candidatoService
-    final MenuCandidatoCrud menuCandidatoCrud = menuCandidatoConfig.menuCandidatoCrud
-    final MenuCurtirVaga menuCurtirVaga = menuCandidatoConfig.menuCurtirVaga
+    MenuCandidato(
+            Scanner scanner,
+            CandidatoService candidatoService,
+            MenuCandidatoCrud menuCandidatoCrud,
+            MenuCurtirVaga menuCurtirVaga
+    ) {
+        this.scanner = scanner
+        this.candidatoService = candidatoService
+        this.menuCandidatoCrud = menuCandidatoCrud
+        this.menuCurtirVaga = menuCurtirVaga
+    }
     
     void inicio() {
         int opcao = capturarEscolha("""
