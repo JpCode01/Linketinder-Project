@@ -1,12 +1,16 @@
 import { EmpresaService } from "../../services/EmpresaService"
 import { RepositoryConfig } from "../../config/RepositoryConfig"
 import { ServiceConfig } from "../../config/ServiceConfig"
+import { LoginEmpresaStrategy } from "../../strategy/login/LoginEmpresaStrategy"
 
 const repositoryConfig: RepositoryConfig = new RepositoryConfig()
 const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
 
 const empresaService: EmpresaService =
     serviceConfig.criarEmpresaService()
+
+const loginStrategy: LoginEmpresaStrategy =
+    new LoginEmpresaStrategy(empresaService)
 
 export function loginEmpresa(): void {
 
@@ -19,12 +23,7 @@ export function loginEmpresa(): void {
 
         try {
 
-            const empresa =
-                empresaService.buscarPorEmail(inputEmail.value)
-
-            adicionarNaSessao(empresa.id, "EMPRESA")
-
-            window.location.href = "./empresa.html"
+            loginStrategy.login(inputEmail.value)
 
         } catch {
 
@@ -34,16 +33,6 @@ export function loginEmpresa(): void {
             )
         }
     }
-}
-
-function adicionarNaSessao(id: number, tipo: string): void {
-    localStorage.setItem(
-        "sessao",
-        JSON.stringify({
-            id: id,
-            tipo: tipo
-        })
-    )
 }
 
 function limparErroEmail(inputEmail: HTMLInputElement): void {

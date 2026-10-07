@@ -1,13 +1,20 @@
 import { Vaga } from "../../models/Vaga"
 import { VagaConsultaRepository } from "./contrato/VagaConsultaRepository"
 import { CadastroRepository } from "../CadastroRepository";
+import { StorageFactory } from "../../factory/storage/StorageFactory"
 
 export class VagaRepository implements
             VagaConsultaRepository,
             CadastroRepository<Vaga> {
 
+    private readonly storage: Storage
+
+    constructor(storageFactory: StorageFactory) {
+        this.storage = storageFactory.criarStorage()
+    }
+
     salvar(vaga: Vaga): void {
-        const vagasSalvas = localStorage.getItem("vagas")
+        const vagasSalvas = this.storage.getItem("vagas")
 
         const vagas: Vaga[] =
             vagasSalvas
@@ -20,14 +27,14 @@ export class VagaRepository implements
 
         vagas.push(vaga)
 
-        localStorage.setItem(
+        this.storage.setItem(
             "vagas",
             JSON.stringify(vagas)
         )
     }
 
     buscarTodos(): Vaga[] {
-        const vagasSalvas = localStorage.getItem("vagas")
+        const vagasSalvas = this.storage.getItem("vagas")
 
         if (vagasSalvas == null) {
             return []

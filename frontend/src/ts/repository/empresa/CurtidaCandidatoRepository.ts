@@ -1,13 +1,19 @@
 import { CurtidaCandidato } from "../../models/CurtidaCandidato"
 import { CadastroRepository } from "../CadastroRepository";
 import { CurtidaCandidatoConsultaRepository } from "../empresa/contrato/CurtidaCandidatoConsultaRepository"
+import { StorageFactory } from "../../factory/storage/StorageFactory"
 
 export class CurtidaCandidatoRepository implements 
             CurtidaCandidatoConsultaRepository,
             CadastroRepository<CurtidaCandidato> {
 
+    private readonly storage: Storage
+
+    constructor(storageFactory: StorageFactory) {
+        this.storage = storageFactory.criarStorage()
+    }
     salvar(curtida: CurtidaCandidato): void {
-        const curtidasSalvas = localStorage.getItem("curtidasCandidatos")
+        const curtidasSalvas = this.storage.getItem("curtidasCandidatos")
 
         const curtidas: CurtidaCandidato[] =
             curtidasSalvas
@@ -16,14 +22,14 @@ export class CurtidaCandidatoRepository implements
 
         curtidas.push(curtida)
 
-        localStorage.setItem(
+        this.storage.setItem(
             "curtidasCandidatos",
             JSON.stringify(curtidas)
         )
     }
 
     buscarTodos(): CurtidaCandidato[] {
-        const curtidasSalvas = localStorage.getItem("curtidasCandidatos")
+        const curtidasSalvas = this.storage.getItem("curtidasCandidatos")
 
         if (curtidasSalvas == null) {
             return []

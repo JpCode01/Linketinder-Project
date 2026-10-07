@@ -1,15 +1,20 @@
 import { Candidato } from "../../models/Candidato";
 import { CandidatoConsultaRepository } from "./contrato/CandidatoConsultaRepository"
 import { CadastroRepository } from "../CadastroRepository";
+import { StorageFactory } from "../../factory/storage/StorageFactory"
 
-export class CandidatoRepository implements 
+export class CandidatoRepository implements
             CandidatoConsultaRepository,
-            CadastroRepository<Candidato>
-            
-            {
+            CadastroRepository<Candidato> {
+
+    private readonly storage: Storage
+
+    constructor(storageFactory: StorageFactory) {
+        this.storage = storageFactory.criarStorage()
+    }
 
     salvar(candidato: Candidato): void {
-        const candidatosSalvos = localStorage.getItem("candidatos")
+        const candidatosSalvos = this.storage.getItem("candidatos")
 
         const candidatos: Candidato[] =
             candidatosSalvos
@@ -22,14 +27,14 @@ export class CandidatoRepository implements
 
         candidatos.push(candidato)
 
-        localStorage.setItem(
+        this.storage.setItem(
             "candidatos",
             JSON.stringify(candidatos)
         )
     }
 
     buscarTodos(): Candidato[] {
-        const candidatosSalvos = localStorage.getItem("candidatos")
+        const candidatosSalvos = this.storage.getItem("candidatos")
 
         if (candidatosSalvos == null) {
             return []
