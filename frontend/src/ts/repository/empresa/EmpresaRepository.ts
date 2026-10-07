@@ -1,14 +1,21 @@
 import { Empresa } from "../../models/Empresa"
 import { EmpresaConsultaRepository } from "./contrato/EmpresaConsultaRepository"
 import { CadastroRepository } from "../CadastroRepository";
+import { StorageFactory } from "../../factory/storage/StorageFactory"
 
 export class EmpresaRepository implements
             EmpresaConsultaRepository,
             CadastroRepository<Empresa>
             {
 
+    private readonly storage: Storage
+
+    constructor(storageFactory: StorageFactory) {
+        this.storage = storageFactory.criarStorage()
+    }
+
     salvar(empresa: Empresa): void {
-        const empresasSalvas = localStorage.getItem("empresas")
+        const empresasSalvas = this.storage.getItem("empresas")
 
         const empresas: Empresa[] =
             empresasSalvas
@@ -21,14 +28,14 @@ export class EmpresaRepository implements
 
         empresas.push(empresa)
 
-        localStorage.setItem(
+        this.storage.setItem(
             "empresas",
             JSON.stringify(empresas)
         )
     }
 
     buscarTodos(): Empresa[] {
-        const empresasSalvas = localStorage.getItem("empresas")
+        const empresasSalvas = this.storage.getItem("empresas")
 
         if (empresasSalvas == null) {
             return []
