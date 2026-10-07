@@ -5,6 +5,13 @@ import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.referencia.Competencia
 
 class CompetenciasCandidatoDAO implements CompetenciasCandidatoRepository {
+
+    private final ConnectionFactory connectionFactory
+
+    CompetenciasCandidatoDAO(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory
+    }
+
     void salvar(Long idCandidato, Long idCompetencia) {
         String sql = """
             INSERT INTO candidatos_competencias
@@ -14,8 +21,8 @@ class CompetenciasCandidatoDAO implements CompetenciasCandidatoRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idCandidato)
             statement.setLong(2, idCompetencia)
@@ -34,7 +41,7 @@ class CompetenciasCandidatoDAO implements CompetenciasCandidatoRepository {
         """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idCandidato)
@@ -66,7 +73,7 @@ class CompetenciasCandidatoDAO implements CompetenciasCandidatoRepository {
         """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idCandidato)
@@ -77,7 +84,7 @@ class CompetenciasCandidatoDAO implements CompetenciasCandidatoRepository {
 
             while (resultSet.next()) {
                 competencias.add(
-                            resultSet.getString("nome_competencia")
+                        resultSet.getString("nome_competencia")
                 )
             }
 
@@ -94,15 +101,15 @@ class CompetenciasCandidatoDAO implements CompetenciasCandidatoRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement =  connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idCandidato)
             statement.setLong(2, idCompetencia)
 
             statement.executeUpdate()
 
-            
+
         }
     }
 
@@ -115,7 +122,7 @@ class CompetenciasCandidatoDAO implements CompetenciasCandidatoRepository {
     """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             competencias.each { competencia ->

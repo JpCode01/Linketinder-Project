@@ -9,8 +9,14 @@ import java.sql.Statement
 
 class EmpresaCurtirDAO implements EmpresaCurtirRepository {
 
+    private final ConnectionFactory connectionFactory
+
+    EmpresaCurtirDAO(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory
+    }
+
     void salvar(Long idEmpresa, Long idCandidato) {
-       String sql = """
+        String sql = """
             INSERT INTO candidatos_curtidos_empresa
                 (id_empresa, id_candidato)
             VALUES (?, ?)
@@ -18,8 +24,8 @@ class EmpresaCurtirDAO implements EmpresaCurtirRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
         ) {
             statement.setLong(1, idEmpresa)
             statement.setLong(2, idCandidato)
@@ -48,8 +54,8 @@ class EmpresaCurtirDAO implements EmpresaCurtirRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idEmpresa)
 
@@ -59,7 +65,7 @@ class EmpresaCurtirDAO implements EmpresaCurtirRepository {
             CandidatoAnonimoDTO candidatoAtual = null
 
             List<Competencia> competencias = []
-        
+
             while (resultSet.next()) {
                 Long idCandidato = resultSet.getLong("id")
 
@@ -90,7 +96,7 @@ class EmpresaCurtirDAO implements EmpresaCurtirRepository {
                             )
                     )
                 }
-                
+
             }
 
             if (candidatoAtual != null) {

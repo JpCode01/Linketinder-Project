@@ -6,7 +6,13 @@ import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.referencia.Competencia
 
 class CompetenciaDAO implements ReferenciaRepository {
-    
+
+    private final ConnectionFactory connectionFactory
+
+    CompetenciaDAO(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory
+    }
+
     Optional<Competencia> buscarPorId(Long id) {
         String sql = """
             SELECT id, nome_competencia
@@ -15,8 +21,8 @@ class CompetenciaDAO implements ReferenciaRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, id)
 
@@ -44,7 +50,7 @@ class CompetenciaDAO implements ReferenciaRepository {
         """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, nome)
@@ -71,8 +77,8 @@ class CompetenciaDAO implements ReferenciaRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, competencia.toUpperCase())
 
@@ -93,8 +99,8 @@ class CompetenciaDAO implements ReferenciaRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             def resultSet = statement.executeQuery()
             List<String> competencias = []
@@ -113,7 +119,7 @@ class CompetenciaDAO implements ReferenciaRepository {
 
     List<RemoverCompetenciaDTO> converterCompetenciasParaDTO(List<Competencia> competencias) {
         List<RemoverCompetenciaDTO> competenciasConvertidas = []
-        competencias.each {competencia ->
+        competencias.each { competencia ->
             competenciasConvertidas.add(
                     new RemoverCompetenciaDTO(competencia.id,
                             competencia.nome

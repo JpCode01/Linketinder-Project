@@ -8,11 +8,16 @@ import com.jpcode.model.core.Empresa
 
 import java.sql.Statement
 
-class EmpresaDAO implements 
+class EmpresaDAO implements
         EmpresaRepository,
         EmpresaAutenticacao,
-        EmpresaDesativacao
-{
+        EmpresaDesativacao {
+
+    private final ConnectionFactory connectionFactory
+
+    EmpresaDAO(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory
+    }
 
     Empresa salvar(Empresa empresa) {
         String sql = """
@@ -23,7 +28,7 @@ class EmpresaDAO implements
     """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
         ) {
             statement.setString(1, empresa.nome)
@@ -58,8 +63,8 @@ class EmpresaDAO implements
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, id)
 
@@ -80,10 +85,9 @@ class EmpresaDAO implements
                     resultSet.getString("cep"),
                     resultSet.getString("descricao"),
                     resultSet.getBoolean("ativo")
-                    
-                    
-                    
-            ) 
+
+
+            )
         }
     }
 
@@ -97,7 +101,7 @@ class EmpresaDAO implements
         """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, emailCorporativo)
@@ -108,7 +112,7 @@ class EmpresaDAO implements
             if (!resultSet.next() || !resultSet.getBoolean("ativo")) {
                 return Optional.empty()
             }
-            
+
             Empresa empresa = new Empresa(
                     resultSet.getLong("id"),
                     resultSet.getString("nome"),
@@ -134,7 +138,7 @@ class EmpresaDAO implements
     """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, id)
@@ -157,13 +161,13 @@ class EmpresaDAO implements
     """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, empresa.nome)
             statement.setString(2, empresa.email)
             statement.setString(3, empresa.senha)
-            statement.setString(4, empresa.cnpj)           
+            statement.setString(4, empresa.cnpj)
             statement.setLong(5, empresa.idPais)
             statement.setLong(6, empresa.idEstado)
             statement.setString(7, empresa.cep)

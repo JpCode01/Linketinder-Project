@@ -11,8 +11,14 @@ import java.sql.Statement
 
 class CandidatoCurtirDAO implements
         CandidatoCurtirRepository,
-        CandidatoCurtirConsulta
-{
+        CandidatoCurtirConsulta {
+
+    private final ConnectionFactory connectionFactory
+
+    CandidatoCurtirDAO(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory
+    }
+
     void salvar(Long idCandidato, Long idVaga) {
         String sql = """
             INSERT INTO vagas_curtidas_candidato
@@ -22,8 +28,8 @@ class CandidatoCurtirDAO implements
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
         ) {
             statement.setLong(1, idCandidato)
             statement.setLong(2, idVaga)
@@ -51,7 +57,7 @@ class CandidatoCurtirDAO implements
         """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idCandidato)
@@ -121,8 +127,8 @@ class CandidatoCurtirDAO implements
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idVaga)
 

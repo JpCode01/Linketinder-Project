@@ -11,16 +11,22 @@ import java.sql.Statement
 
 class VagaDAO implements VagaRepository {
 
+    private final ConnectionFactory connectionFactory
+
+    VagaDAO(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory
+    }
+
     Vaga salvar(Vaga vaga) {
         String sql = """
             INSERT INTO vagas           
                 (nome, descricao, local, id_empresa)
             VALUES (?, ?, ?, ?)
         """
-    
+
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
         ) {
             statement.setString(1, vaga.nome)
             statement.setString(2, vaga.descricao)
@@ -49,8 +55,8 @@ class VagaDAO implements VagaRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, id)
 
@@ -73,8 +79,8 @@ class VagaDAO implements VagaRepository {
         }
     }
 
-        List<VagaEmpresaDTO> buscarVagasEmpresa(Long idEmpresa) {
-            String sql = """
+    List<VagaEmpresaDTO> buscarVagasEmpresa(Long idEmpresa) {
+        String sql = """
             SELECT
                 v.id,
                 v.nome,
@@ -98,62 +104,62 @@ class VagaDAO implements VagaRepository {
             WHERE v.id_empresa = ?
             ORDER BY v.id
             """
-    
-            try (
-                def connection = ConnectionFactory.getConnection()
+
+        try (
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
-            ) {
-                statement.setLong(1, idEmpresa)
-    
-                def resultSet = statement.executeQuery()
-    
-                List<VagaEmpresaDTO> vagas = []
-    
-                VagaEmpresaDTO vagaAtual = null
-                List<Competencia> competencias = []
-    
-                while (resultSet.next()) {
-    
-                    Long idVaga = resultSet.getLong("id")
-                    // Apenas cria quando o id da vaga for diferente da vaga atual, caso contrário, considera a mesma vaga e add as competencias
-                    if (vagaAtual == null || vagaAtual.id != idVaga) {
-    
-                        if (vagaAtual != null) {
-                            vagas.add(vagaAtual)
-                        }
-    
-                        competencias = []
-    
-                        vagaAtual = new VagaEmpresaDTO(
-                                idVaga,
-                                resultSet.getString("nome"),
-                                resultSet.getString("descricao"),
-                                resultSet.getString("local"),
-                                resultSet.getInt("quantidade_candidatos"),
-                                competencias
-                        )
+        ) {
+            statement.setLong(1, idEmpresa)
+
+            def resultSet = statement.executeQuery()
+
+            List<VagaEmpresaDTO> vagas = []
+
+            VagaEmpresaDTO vagaAtual = null
+            List<Competencia> competencias = []
+
+            while (resultSet.next()) {
+
+                Long idVaga = resultSet.getLong("id")
+                // Apenas cria quando o id da vaga for diferente da vaga atual, caso contrário, considera a mesma vaga e add as competencias
+                if (vagaAtual == null || vagaAtual.id != idVaga) {
+
+                    if (vagaAtual != null) {
+                        vagas.add(vagaAtual)
                     }
-    
-                    Long competenciaId = resultSet.getLong("competencia_id")
-    
-                    if (competenciaId != 0) {
-                        competencias.add(
-                                new Competencia(
-                                        competenciaId,
-                                        resultSet.getString("nome_competencia")
-                                )
-                        )
-                    }
+
+                    competencias = []
+
+                    vagaAtual = new VagaEmpresaDTO(
+                            idVaga,
+                            resultSet.getString("nome"),
+                            resultSet.getString("descricao"),
+                            resultSet.getString("local"),
+                            resultSet.getInt("quantidade_candidatos"),
+                            competencias
+                    )
                 }
-    
-                if (vagaAtual != null) {
-                    vagas.add(vagaAtual)
+
+                Long competenciaId = resultSet.getLong("competencia_id")
+
+                if (competenciaId != 0) {
+                    competencias.add(
+                            new Competencia(
+                                    competenciaId,
+                                    resultSet.getString("nome_competencia")
+                            )
+                    )
                 }
-    
-                return vagas
-    
             }
+
+            if (vagaAtual != null) {
+                vagas.add(vagaAtual)
+            }
+
+            return vagas
+
         }
+    }
 
     List<VagaAnonimaDTO> buscarTodasAsVagas() {
         String sql = """
@@ -171,8 +177,8 @@ class VagaDAO implements VagaRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             def resultSet = statement.executeQuery()
 
@@ -197,7 +203,7 @@ class VagaDAO implements VagaRepository {
                             resultSet.getString("descricao"),
                             competencias
                     )
-                    
+
                 }
 
                 Long competenciaId = resultSet.getLong("competencia_id")
@@ -217,7 +223,7 @@ class VagaDAO implements VagaRepository {
             }
 
             return vagas
-            
+
         }
     }
 
@@ -228,7 +234,7 @@ class VagaDAO implements VagaRepository {
     """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, id)
@@ -246,7 +252,7 @@ class VagaDAO implements VagaRepository {
         """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, vaga.nome)

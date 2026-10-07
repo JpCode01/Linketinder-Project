@@ -6,6 +6,12 @@ import com.jpcode.model.referencia.Estado
 
 class EstadoDAO implements ReferenciaRepository {
 
+    private final ConnectionFactory connectionFactory
+
+    EstadoDAO(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory
+    }
+
     Optional<Estado> buscarPorId(Long id) {
         String sql = """
             SELECT id, sigla
@@ -14,8 +20,8 @@ class EstadoDAO implements ReferenciaRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, id)
 
@@ -42,8 +48,8 @@ class EstadoDAO implements ReferenciaRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, sigla.toUpperCase())
 
