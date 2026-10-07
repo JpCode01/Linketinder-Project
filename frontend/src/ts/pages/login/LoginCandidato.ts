@@ -1,12 +1,16 @@
 import { CandidatoService } from "../../services/CandidatoService"
 import { RepositoryConfig } from "../../config/RepositoryConfig"
 import { ServiceConfig } from "../../config/ServiceConfig"
+import { LoginCandidatoStrategy } from "../../strategy/login/LoginCandidatoStrategy"
 
 const repositoryConfig: RepositoryConfig = new RepositoryConfig()
 const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
 
 const candidatoService: CandidatoService =
     serviceConfig.criarCandidatoService()
+
+const loginStrategy: LoginCandidatoStrategy =
+    new LoginCandidatoStrategy(candidatoService)
 
 export function loginCandidato(): void {
 
@@ -19,12 +23,7 @@ export function loginCandidato(): void {
 
         try {
 
-            const candidato =
-                candidatoService.buscarPorEmail(inputEmail.value)
-
-            adicionarNaSessao(candidato.id, "CANDIDATO")
-
-            window.location.href = "./candidato.html"
+            loginStrategy.login(inputEmail.value)
 
         } catch {
 
@@ -34,16 +33,6 @@ export function loginCandidato(): void {
             )
         }
     }
-}
-
-function adicionarNaSessao(id: number, tipo: string): void {
-    localStorage.setItem(
-        "sessao",
-        JSON.stringify({
-            id: id,
-            tipo: tipo
-        })
-    )
 }
 
 function limparErroEmail(inputEmail: HTMLInputElement): void {
