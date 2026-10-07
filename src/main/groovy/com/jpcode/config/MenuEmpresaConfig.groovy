@@ -1,5 +1,6 @@
 package com.jpcode.config
 
+import com.jpcode.facade.MatchFacade
 import com.jpcode.view.empresa.MenuCurtirCandidato
 import com.jpcode.view.empresa.MenuEmpresaCrud
 import com.jpcode.view.vaga.MenuVagaCrud
@@ -26,11 +27,16 @@ class MenuEmpresaConfig {
                 serviceConfig.matchService
         )
 
+        MatchFacade matchFacade = new MatchFacade(
+                serviceConfig.empresaService,
+                serviceConfig.matchService
+        )
+
         menuCurtirCandidato = new MenuCurtirCandidato(
                 scanner,
                 menuVagaCrud,
                 serviceConfig.empresaService,
-                serviceConfig.matchService
+                matchFacade
         )
     }
 }

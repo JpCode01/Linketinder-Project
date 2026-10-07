@@ -1,12 +1,15 @@
 package com.jpcode.view
 
+import com.jpcode.factory.MenuFactory
 import com.jpcode.view.candidato.MenuCandidato
 import com.jpcode.view.empresa.MenuEmpresa
 
 class Menu {
     private final Scanner scanner = new Scanner(System.in)
-    private final MenuEmpresa menuEmpresa = new MenuEmpresa()
-    private final MenuCandidato menuCandidato = new MenuCandidato()
+    MenuFactory menuFactory = new MenuFactory(scanner)
+
+    MenuEmpresa menuEmpresa = menuFactory.criarMenuEmpresa()
+    MenuCandidato menuCandidato = menuFactory.criarMenuCandidato()
 
     void inicio() {
         println("""

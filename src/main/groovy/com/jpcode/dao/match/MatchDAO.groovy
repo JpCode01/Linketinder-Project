@@ -2,7 +2,7 @@ package com.jpcode.dao.match
 
 import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
 import com.jpcode.dao.match.contrato.MatchRepository
-import com.jpcode.dao.vaga.CompetenciasVagaDAO
+import com.jpcode.dao.vaga.contrato.CompetenciasVagaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.Match.MatchEncontradoDTO
 import com.jpcode.model.referencia.Competencia
@@ -10,11 +10,13 @@ import com.jpcode.model.referencia.Competencia
 class MatchDAO implements MatchRepository {
 
     final CompetenciasCandidatoRepository competenciasCandidatoRepository
-    final CompetenciasVagaDAO competenciasVagaDAO
+    final CompetenciasVagaRepository competenciasVagaRepository
+    private final ConnectionFactory connectionFactory
 
-    MatchDAO(CompetenciasCandidatoRepository competenciasCandidatoRepository, CompetenciasVagaDAO competenciasVagaDAO) {
+    MatchDAO(CompetenciasCandidatoRepository competenciasCandidatoRepository, CompetenciasVagaRepository competenciasVagaRepository, ConnectionFactory connectionFactory) {
         this.competenciasCandidatoRepository = competenciasCandidatoRepository
-        this.competenciasVagaDAO = competenciasVagaDAO
+        this.competenciasVagaRepository = competenciasVagaRepository
+        this.connectionFactory = connectionFactory
     }
 
     void salvar(Long idCandidato, Long idEmpresa, Long idVaga) {
@@ -26,8 +28,8 @@ class MatchDAO implements MatchRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idCandidato)
             statement.setLong(2, idEmpresa)
@@ -91,7 +93,7 @@ class MatchDAO implements MatchRepository {
     """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
 
@@ -107,10 +109,10 @@ class MatchDAO implements MatchRepository {
                 Long idVaga = resultSet.getLong("id_vaga")
 
                 List<Competencia> competenciasCandidato =
-                        competenciasCandidatoDAO.buscarPorCandidato(idCandidato)
+                        competenciasCandidatoRepository.buscarPorCandidato(idCandidato)
 
                 List<String> competenciasVaga =
-                        competenciasVagaDAO.buscarPorVagaString(idVaga)
+                        competenciasVagaRepository.buscarPorVagaString(idVaga)
 
                 matches.add(
                         new MatchEncontradoDTO(
@@ -198,7 +200,7 @@ class MatchDAO implements MatchRepository {
     """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
 
@@ -213,10 +215,10 @@ class MatchDAO implements MatchRepository {
                 Long idVaga = resultSet.getLong("id_vaga")
 
                 List<Competencia> competenciasCandidato =
-                        competenciasCandidatoDAO.buscarPorCandidato(idCandidato)
+                        competenciasCandidatoRepository.buscarPorCandidato(idCandidato)
 
                 List<String> competenciasVaga =
-                        competenciasVagaDAO.buscarPorVagaString(idVaga)
+                        competenciasVagaRepository.buscarPorVagaString(idVaga)
 
                 matches.add(
                         new MatchEncontradoDTO(

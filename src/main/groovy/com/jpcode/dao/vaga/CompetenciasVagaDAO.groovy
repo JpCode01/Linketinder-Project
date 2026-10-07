@@ -8,6 +8,12 @@ import java.sql.Statement
 
 class CompetenciasVagaDAO implements CompetenciasVagaRepository {
 
+    private final ConnectionFactory connectionFactory
+
+    CompetenciasVagaDAO(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory
+    }
+
     void salvar(Long idVaga, Long idCompetencia) {
         String sql = """
             INSERT INTO vagas_competencias 
@@ -17,10 +23,10 @@ class CompetenciasVagaDAO implements CompetenciasVagaRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
         ) {
-            statement.setLong(1,  idVaga)
+            statement.setLong(1, idVaga)
             statement.setLong(2, idCompetencia)
 
             statement.executeUpdate()
@@ -37,8 +43,8 @@ class CompetenciasVagaDAO implements CompetenciasVagaRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idVaga)
 
@@ -68,7 +74,7 @@ class CompetenciasVagaDAO implements CompetenciasVagaRepository {
         """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idVaga)
@@ -96,7 +102,7 @@ class CompetenciasVagaDAO implements CompetenciasVagaRepository {
     """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             competencias.each { competencia ->
@@ -116,8 +122,8 @@ class CompetenciasVagaDAO implements CompetenciasVagaRepository {
         """
 
         try (
-                def connection = ConnectionFactory.getConnection()
-                def statement =  connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, idVaga)
             statement.setLong(2, idCompetencia)

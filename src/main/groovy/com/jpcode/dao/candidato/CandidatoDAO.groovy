@@ -9,11 +9,17 @@ import com.jpcode.model.core.Candidato
 import java.sql.Date
 import java.sql.Statement
 
-class CandidatoDAO implements 
+class CandidatoDAO implements
         CandidatoAutenticacao,
         CandidatoRepository,
         CandidatoDesativacao
 {
+
+    private final ConnectionFactory connectionFactory
+
+    CandidatoDAO(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory
+    }
 
     Candidato salvar(Candidato candidato) {
 
@@ -26,7 +32,7 @@ class CandidatoDAO implements
 
         
         try (
-            def connection = ConnectionFactory.getConnection()
+            def connection = connectionFactory.getConnection()
             def statement = connection.prepareStatement(
                     sql,
                     Statement.RETURN_GENERATED_KEYS
@@ -71,7 +77,7 @@ class CandidatoDAO implements
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
+            def connection = connectionFactory.getConnection()
             def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, id)
@@ -113,7 +119,7 @@ class CandidatoDAO implements
         """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, email)
@@ -154,7 +160,7 @@ class CandidatoDAO implements
     """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, id)
@@ -179,7 +185,7 @@ class CandidatoDAO implements
     """
 
         try (
-                def connection = ConnectionFactory.getConnection()
+                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, candidato.nome)

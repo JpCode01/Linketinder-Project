@@ -1,24 +1,30 @@
 package com.jpcode.view.empresa
 
-import com.jpcode.config.DaoConfig
-import com.jpcode.config.MenuEmpresaConfig
-import com.jpcode.config.ServiceConfig
 import com.jpcode.exception.empresa.EmpresaLoginException
 import com.jpcode.model.core.Empresa
-import com.jpcode.service.*
+import com.jpcode.service.EmpresaService
 import com.jpcode.view.vaga.MenuVagaCrud
 
 class MenuEmpresa {
-    final Scanner scanner = new Scanner(System.in)
-    final DaoConfig daoConfig = new DaoConfig()
-    final ServiceConfig serviceConfig = new ServiceConfig(daoConfig)
-    final MenuEmpresaConfig menuEmpresaConfig = new MenuEmpresaConfig(scanner, serviceConfig)
+    final Scanner scanner
+    final EmpresaService empresaService
+    final MenuEmpresaCrud menuEmpresaCrud
+    final MenuVagaCrud menuVagaCrud
+    final MenuCurtirCandidato menuCurtirCandidato
 
-    final EmpresaService empresaService = serviceConfig.empresaService
-
-    final MenuEmpresaCrud menuEmpresaCrud = menuEmpresaConfig.menuEmpresaCrud
-    final MenuVagaCrud menuVagaCrud = menuEmpresaConfig.menuVagaCrud
-    final MenuCurtirCandidato menuCurtirCandidato = menuEmpresaConfig.menuCurtirCandidato
+    MenuEmpresa(
+            Scanner scanner,
+            EmpresaService empresaService,
+            MenuEmpresaCrud menuEmpresaCrud,
+            MenuVagaCrud menuVagaCrud,
+            MenuCurtirCandidato menuCurtirCandidato
+    ) {
+        this.scanner = scanner
+        this.empresaService = empresaService
+        this.menuEmpresaCrud = menuEmpresaCrud
+        this.menuVagaCrud = menuVagaCrud
+        this.menuCurtirCandidato = menuCurtirCandidato
+    }
 
     void inicio() {
         int opcao = capturarEscolha("""

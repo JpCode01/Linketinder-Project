@@ -6,8 +6,8 @@ import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import com.jpcode.exception.candidato.SemCandidatosDisponiveisException
 import com.jpcode.exception.vaga.SemVagasDisponiveisException
 import com.jpcode.exception.vaga.VagaNaoEncontradaException
+import com.jpcode.facade.MatchFacade
 import com.jpcode.service.EmpresaService
-import com.jpcode.service.MatchService
 import com.jpcode.view.vaga.MenuVagaCrud
 
 class MenuCurtirCandidato {
@@ -15,13 +15,13 @@ class MenuCurtirCandidato {
     final Scanner scanner
     final MenuVagaCrud menuVagaCrud
     final EmpresaService empresaService
-    final MatchService matchService
+    final MatchFacade matchFacade
 
-    MenuCurtirCandidato(Scanner scanner, MenuVagaCrud menuVagaCrud, EmpresaService empresaService, MatchService matchService) {
+    MenuCurtirCandidato(Scanner scanner, MenuVagaCrud menuVagaCrud, EmpresaService empresaService, MatchFacade matchFacade) {
         this.scanner = scanner
         this.menuVagaCrud = menuVagaCrud
         this.empresaService = empresaService
-        this.matchService = matchService
+        this.matchFacade = matchFacade
     }
 
     void escolherVagaParaCurtirCandidato(Long idEmpresa) {
@@ -71,8 +71,7 @@ class MenuCurtirCandidato {
             Long idEmpresa,
             Long idVaga) {
 
-        empresaService.curtirCandidato(idEmpresa, idCandidato)
-        matchService.salvar(idCandidato, idEmpresa, idVaga)
+        matchFacade.curtirCandidato(idEmpresa, idCandidato, idVaga)
 
         println("Curtida registrada com sucesso!")
     }

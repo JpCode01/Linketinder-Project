@@ -11,24 +11,47 @@ import com.jpcode.dao.relacionamento.CandidatoCurtirDAO
 import com.jpcode.dao.relacionamento.EmpresaCurtirDAO
 import com.jpcode.dao.vaga.CompetenciasVagaDAO
 import com.jpcode.dao.vaga.VagaDAO
+import com.jpcode.database.ConnectionFactory
+import com.jpcode.database.PostgresConnectionFactory
 
 class DaoConfig {
-    final PaisDAO paisDAO = new PaisDAO()
-    final EstadoDAO estadoDAO = new EstadoDAO()
-    final EmpresaDAO empresaDAO = new EmpresaDAO()
-    final CandidatoDAO candidatoDAO = new CandidatoDAO()
-    final CompetenciaDAO competenciaDAO = new CompetenciaDAO()
 
-    final CandidatoCurtirDAO candidatoCurtirDAO = new CandidatoCurtirDAO()
-    final EmpresaCurtirDAO empresaCurtirDAO = new EmpresaCurtirDAO()
+    final ConnectionFactory connectionFactory =
+            new PostgresConnectionFactory()
 
-    final CompetenciasVagaDAO competenciasVagaDAO = new CompetenciasVagaDAO()
-    final CompetenciasCandidatoDAO competenciasCandidatoDAO = new CompetenciasCandidatoDAO()
+    final PaisDAO paisDAO =
+            new PaisDAO(connectionFactory)
 
-    final VagaDAO vagaDAO = new VagaDAO()
+    final EstadoDAO estadoDAO =
+            new EstadoDAO(connectionFactory)
+
+    final EmpresaDAO empresaDAO =
+            new EmpresaDAO(connectionFactory)
+
+    final CandidatoDAO candidatoDAO =
+            new CandidatoDAO(connectionFactory)
+
+    final CompetenciaDAO competenciaDAO =
+            new CompetenciaDAO(connectionFactory)
+
+    final CandidatoCurtirDAO candidatoCurtirDAO =
+            new CandidatoCurtirDAO(connectionFactory)
+
+    final EmpresaCurtirDAO empresaCurtirDAO =
+            new EmpresaCurtirDAO(connectionFactory)
+
+    final CompetenciasVagaDAO competenciasVagaDAO =
+            new CompetenciasVagaDAO(connectionFactory)
+
+    final CompetenciasCandidatoDAO competenciasCandidatoDAO =
+            new CompetenciasCandidatoDAO(connectionFactory)
+
+    final VagaDAO vagaDAO =
+            new VagaDAO(connectionFactory)
 
     final MatchDAO matchDAO = new MatchDAO(
             competenciasCandidatoDAO,
-            competenciasVagaDAO
+            competenciasVagaDAO,
+            connectionFactory
     )
 }

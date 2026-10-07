@@ -6,6 +6,12 @@ import com.jpcode.model.referencia.Pais
 
 class PaisDAO implements ReferenciaRepository {
 
+    private final ConnectionFactory connectionFactory
+
+    PaisDAO(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory
+    }
+
     Optional<Pais> buscarPorId(Long id) {
         String sql = """
             SELECT id, nome
@@ -14,8 +20,8 @@ class PaisDAO implements ReferenciaRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setLong(1, id)
 
@@ -28,7 +34,7 @@ class PaisDAO implements ReferenciaRepository {
             Pais pais = new Pais(
                     resultSet.getLong("id"),
                     resultSet.getString("nome")
-                    
+
             )
 
             return Optional.of(pais)
@@ -43,8 +49,8 @@ class PaisDAO implements ReferenciaRepository {
         """
 
         try (
-            def connection = ConnectionFactory.getConnection()
-            def statement = connection.prepareStatement(sql)
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, nome.toUpperCase())
 

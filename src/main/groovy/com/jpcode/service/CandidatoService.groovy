@@ -148,9 +148,5 @@ class CandidatoService {
     List<String> competenciasEmString(Long idCandidato) {
         return competenciasCandidatoRepository.buscarPorCandidatoString(idCandidato)
     }
-
-    List<Competencia> buscarCompetenciasDeCandidato(Long idCandidato) {
-        return competenciasCandidatoRepository.buscarPorCandidato(idCandidato)
-    }
     
 }
