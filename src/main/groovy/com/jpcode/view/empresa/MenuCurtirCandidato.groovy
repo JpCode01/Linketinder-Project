@@ -1,27 +1,27 @@
 package com.jpcode.view.empresa
 
+import com.jpcode.controller.empresa.EmpresaController
+import com.jpcode.controller.match.MatchController
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import com.jpcode.exception.candidato.SemCandidatosDisponiveisException
 import com.jpcode.exception.vaga.SemVagasDisponiveisException
 import com.jpcode.exception.vaga.VagaNaoEncontradaException
-import com.jpcode.facade.MatchFacade
-import com.jpcode.service.EmpresaService
 import com.jpcode.view.vaga.MenuVagaCrud
 
 class MenuCurtirCandidato {
 
     final Scanner scanner
     final MenuVagaCrud menuVagaCrud
-    final EmpresaService empresaService
-    final MatchFacade matchFacade
+    final EmpresaController empresaController
+    final MatchController matchController
 
-    MenuCurtirCandidato(Scanner scanner, MenuVagaCrud menuVagaCrud, EmpresaService empresaService, MatchFacade matchFacade) {
+    MenuCurtirCandidato(Scanner scanner, MenuVagaCrud menuVagaCrud, EmpresaController empresaController, MatchController matchController) {
         this.scanner = scanner
         this.menuVagaCrud = menuVagaCrud
-        this.empresaService = empresaService
-        this.matchFacade = matchFacade
+        this.empresaController = empresaController
+        this.matchController = matchController
     }
 
     void escolherVagaParaCurtirCandidato(Long idEmpresa) {
@@ -39,11 +39,11 @@ class MenuCurtirCandidato {
     }
 
     void verCandidatosCurtidos(Long idEmpresa) {
-        println(empresaService.buscarCandidatosCurtidos(idEmpresa))
+        println(empresaController.buscarCandidatosCurtidos(idEmpresa))
     }
 
     private void escolherCandidatoParaCurtir(Long idEmpresa, Long idVaga) {
-        List<CandidatoAnonimoDTO> candidatosQueCurtiram = empresaService.buscarCandidatosQueCurtiram(idVaga)
+        List<CandidatoAnonimoDTO> candidatosQueCurtiram = empresaController.buscarCandidatosQueCurtiram(idVaga)
         println(candidatosQueCurtiram)
 
         try {
@@ -71,7 +71,7 @@ class MenuCurtirCandidato {
             Long idEmpresa,
             Long idVaga) {
 
-        matchFacade.curtirCandidato(idEmpresa, idCandidato, idVaga)
+        matchController.curtirCandidato(idEmpresa, idCandidato, idVaga)
 
         println("Curtida registrada com sucesso!")
     }

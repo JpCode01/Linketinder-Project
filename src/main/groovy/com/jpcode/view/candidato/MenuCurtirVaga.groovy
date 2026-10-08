@@ -3,24 +3,24 @@ package com.jpcode.view.candidato
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.exception.vaga.SemVagasDisponiveisException
 import com.jpcode.exception.vaga.VagaNaoEncontradaException
-import com.jpcode.service.VagaService
+import com.jpcode.controller.vaga.VagaController
 
 class MenuCurtirVaga {
 
     final Scanner scanner
-    final VagaService vagaService
+    final VagaController vagaController
 
-    MenuCurtirVaga(Scanner scanner, VagaService vagaService) {
+    MenuCurtirVaga(Scanner scanner, VagaController vagaController) {
         this.scanner = scanner
-        this.vagaService = vagaService
+        this.vagaController = vagaController
     }
 
     List<VagaAnonimaDTO> vagasAnonimasCurtidas(Long idCandidato) {
-        return vagaService.listarVagasCurtidas(idCandidato)
+        return vagaController.listarVagasCurtidas(idCandidato)
     }
 
     List<VagaAnonimaDTO> vagasDisponiveisParaCandidato(Long idCandidato) {
-        return vagaService.buscarTodasAsVagas() - vagasAnonimasCurtidas(idCandidato)
+        return vagaController.buscarTodasAsVagas() - vagasAnonimasCurtidas(idCandidato)
     }
 
     void curtirVaga(Long idCandidato) {
@@ -44,7 +44,7 @@ class MenuCurtirVaga {
             throw new VagaNaoEncontradaException(idVaga)
         }
 
-        vagaService.curtir(idCandidato, idVaga)
+        vagaController.curtir(idCandidato, idVaga)
         println("Vaga Curtida com sucesso!")
     }
 
@@ -66,14 +66,9 @@ class MenuCurtirVaga {
         }
     }
 
-
     private void verificaSeHaVagasDisponiveis(List<VagaAnonimaDTO> vagasDisponiveis) {
         if (vagasDisponiveis.isEmpty()) {
             throw new SemVagasDisponiveisException()
         }
     }
-
-
-
-
 }

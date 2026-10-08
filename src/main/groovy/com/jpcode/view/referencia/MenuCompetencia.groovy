@@ -1,16 +1,16 @@
 package com.jpcode.view.referencia
 
 import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
-import com.jpcode.service.CompetenciaService
+import com.jpcode.controller.competencia.CompetenciaController
 
 class MenuCompetencia {
 
     final Scanner scanner
-    final CompetenciaService competenciaService
+    final CompetenciaController competenciaController
 
-    MenuCompetencia(Scanner scanner, CompetenciaService competenciaService) {
+    MenuCompetencia(Scanner scanner, CompetenciaController competenciaController) {
         this.scanner = scanner
-        this.competenciaService = competenciaService
+        this.competenciaController = competenciaController
     }
 
     List<String> capturarCompetencias(List<String> competenciasAtuais) {
@@ -68,7 +68,7 @@ class MenuCompetencia {
     }
 
     private List<String> competenciasDisponiveis(List<String> competenciasAtuais) {
-        return competenciaService.listarCompetencias() - competenciasAtuais
+        return competenciaController.listarCompetencias() - competenciasAtuais
     }
 
     private int capturarEscolha(String mensagem) {
