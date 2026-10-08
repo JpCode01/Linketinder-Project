@@ -7,25 +7,25 @@ import com.jpcode.dto.vaga.VagaEmpresaDTO
 import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 import com.jpcode.exception.vaga.VagaNaoEncontradaException
 import com.jpcode.model.core.Vaga
-import com.jpcode.service.CompetenciaService
-import com.jpcode.service.EmpresaService
-import com.jpcode.service.VagaService
+import com.jpcode.controller.competencia.CompetenciaController
+import com.jpcode.controller.empresa.EmpresaController
+import com.jpcode.controller.vaga.VagaController
 import com.jpcode.view.referencia.MenuCompetencia
 
 class MenuVagaCrud {
 
     final Scanner scanner
-    final VagaService vagaService
-    final CompetenciaService competenciaService
-    final EmpresaService empresaService
+    final VagaController vagaController
+    final CompetenciaController competenciaController
+    final EmpresaController empresaController
     
-    final MenuCompetencia menuCompetencia = new MenuCompetencia(scanner, competenciaService)
+    final MenuCompetencia menuCompetencia = new MenuCompetencia(scanner, competenciaController)
 
-    MenuVagaCrud(Scanner scanner, VagaService vagaService, CompetenciaService competenciaService, EmpresaService empresaService) {
+    MenuVagaCrud(Scanner scanner, VagaController vagaController, CompetenciaController competenciaController, EmpresaController empresaController) {
         this.scanner = scanner
-        this.vagaService = vagaService
-        this.competenciaService = competenciaService
-        this.empresaService = empresaService
+        this.vagaController = vagaController
+        this.competenciaController = competenciaController
+        this.empresaController = empresaController
     }
 
     void criarVaga(Long idEmpresa) {
@@ -38,7 +38,7 @@ class MenuVagaCrud {
     }
 
     List<VagaEmpresaDTO> verVagasEmpresa(Long idEmpresa) {
-        return vagaService.listarVagas(idEmpresa)
+        return vagaController.listarVagas(idEmpresa)
     }
 
     void apagarVaga(Long idEmpresa) {
@@ -62,7 +62,7 @@ class MenuVagaCrud {
             }
 
             List<String> competencias = competenciasVaga(idVaga)
-            vagaService.adicionarCompetencias(idVaga, menuCompetencia.capturarCompetencias(competencias))
+            vagaController.adicionarCompetencias(idVaga, menuCompetencia.capturarCompetencias(competencias))
 
             println("Competencias da vaga atualizada com sucesso!")
         } catch (InputMismatchException e) {
@@ -87,7 +87,7 @@ class MenuVagaCrud {
     }
 
     private void listarCompetenciasVaga(Long idVaga) {
-        println(vagaService.buscarCompetenciasDeVaga(idVaga))
+        println(vagaController.buscarCompetenciasDeVaga(idVaga))
     }
 
     private void removerCompetencia(Long idVaga) {
@@ -95,7 +95,7 @@ class MenuVagaCrud {
         
         try {
             Long idCompetencia = solicitarId("Digite o ID da competencia: ")
-            List<RemoverCompetenciaDTO> competenciasVaga = empresaService.listaParaRemover(idVaga)
+            List<RemoverCompetenciaDTO> competenciasVaga = empresaController.listaParaRemover(idVaga)
 
             tentarRemoverCompetencia(idCompetencia, idVaga, competenciasVaga)
         } catch (CompetenciaNaoEncontradaException e) {
@@ -108,7 +108,7 @@ class MenuVagaCrud {
             throw new CompetenciaNaoEncontradaException(idCompetencia)
         }
 
-        empresaService.removerCompetencia(idVaga, idCompetencia)
+        empresaController.removerCompetencia(idVaga, idCompetencia)
     }
 
     private boolean verificaSeExisteCompetenciaNaLista(Long idCompetencia, List<RemoverCompetenciaDTO> competenciasVaga) {
@@ -119,7 +119,7 @@ class MenuVagaCrud {
 
     private void tentarDeletarVaga(Long idVaga) {
         try {
-            vagaService.deletarVaga(idVaga)
+            vagaController.deletarVaga(idVaga)
             println("Vaga deletada com sucesso!")
         } catch (VagaNaoEncontradaException e) {
             e.getMessage()
@@ -195,7 +195,7 @@ class MenuVagaCrud {
     }
 
     private Vaga buscarVaga(Long idVaga) {
-        return vagaService.buscarVaga(idVaga)
+        return vagaController.buscarVaga(idVaga)
     }
 
     private CadastrarVagaDTO capturarDadosCriarVaga(Long idEmpresa) {
@@ -221,7 +221,7 @@ class MenuVagaCrud {
 
     private void tentarCriarVaga(CadastrarVagaDTO cadastrarVagaDTO) {
         try {
-            vagaService.criarVaga(cadastrarVagaDTO)
+            vagaController.criarVaga(cadastrarVagaDTO)
             println("Vaga cadastrada com sucesso!")
         } catch (CompetenciaNaoEncontradaException e) {
             println(e.getMessage())
@@ -229,7 +229,7 @@ class MenuVagaCrud {
     }
 
     private List<String> competenciasVaga(Long idVaga) {
-        return vagaService.competenciasEmString(idVaga)
+        return vagaController.competenciasEmString(idVaga)
     }
 
     private boolean VerificaSeExisteVagaNaLista(Long idVaga, List<VagaEmpresaDTO> vagasEmpresa) {

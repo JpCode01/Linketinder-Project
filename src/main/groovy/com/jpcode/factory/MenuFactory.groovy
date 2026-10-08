@@ -6,6 +6,7 @@ import com.jpcode.config.MenuEmpresaConfig
 import com.jpcode.config.ServiceConfig
 import com.jpcode.view.candidato.MenuCandidato
 import com.jpcode.view.empresa.MenuEmpresa
+import com.jpcode.config.ControllerConfig
 
 class MenuFactory {
     private final Scanner scanner
@@ -13,6 +14,7 @@ class MenuFactory {
     private final ServiceConfig serviceConfig
     private final MenuCandidatoConfig menuCandidatoConfig
     private final MenuEmpresaConfig menuEmpresaConfig
+    private final ControllerConfig controllerConfig
 
     MenuFactory(Scanner scanner) {
         this.scanner = scanner
@@ -20,21 +22,25 @@ class MenuFactory {
         daoConfig = new DaoConfig()
         serviceConfig = new ServiceConfig(daoConfig)
 
+        controllerConfig = new ControllerConfig(
+                serviceConfig
+        )
+
         menuCandidatoConfig = new MenuCandidatoConfig(
                 scanner,
-                serviceConfig
+                controllerConfig
         )
 
         menuEmpresaConfig = new MenuEmpresaConfig(
                 scanner,
-                serviceConfig
+                controllerConfig
         )
     }
 
     MenuCandidato criarMenuCandidato() {
         return new MenuCandidato(
                 scanner,
-                serviceConfig.candidatoService,
+                controllerConfig.candidatoController,
                 menuCandidatoConfig.menuCandidatoCrud,
                 menuCandidatoConfig.menuCurtirVaga
         )
@@ -43,7 +49,7 @@ class MenuFactory {
     MenuEmpresa criarMenuEmpresa() {
         return new MenuEmpresa(
                 scanner,
-                serviceConfig.empresaService,
+                controllerConfig.empresaController,
                 menuEmpresaConfig.menuEmpresaCrud,
                 menuEmpresaConfig.menuVagaCrud,
                 menuEmpresaConfig.menuCurtirCandidato

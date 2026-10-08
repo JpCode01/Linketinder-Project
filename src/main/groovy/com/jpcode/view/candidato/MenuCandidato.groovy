@@ -2,26 +2,21 @@ package com.jpcode.view.candidato
 
 import com.jpcode.exception.candidato.CandidatoLoginException
 import com.jpcode.model.core.Candidato
-import com.jpcode.service.CandidatoService
+import com.jpcode.controller.candidato.CandidatoController
 
 class MenuCandidato {
     final Scanner scanner
-    final CandidatoService candidatoService
+    final CandidatoController candidatoController
     final MenuCandidatoCrud menuCandidatoCrud
     final MenuCurtirVaga menuCurtirVaga
 
-    MenuCandidato(
-            Scanner scanner,
-            CandidatoService candidatoService,
-            MenuCandidatoCrud menuCandidatoCrud,
-            MenuCurtirVaga menuCurtirVaga
-    ) {
+    MenuCandidato(Scanner scanner, CandidatoController candidatoController, MenuCandidatoCrud menuCandidatoCrud, MenuCurtirVaga menuCurtirVaga) {
         this.scanner = scanner
-        this.candidatoService = candidatoService
+        this.candidatoController = candidatoController
         this.menuCandidatoCrud = menuCandidatoCrud
         this.menuCurtirVaga = menuCurtirVaga
     }
-    
+
     void inicio() {
         int opcao = capturarEscolha("""
         1 - Cadastre-se 
@@ -47,7 +42,7 @@ class MenuCandidato {
 
     private void tentarLogarCandidato(String email, String senha) {
         try {
-            Candidato candidatoEncontrado = candidatoService.logar(email, senha)
+            Candidato candidatoEncontrado = candidatoController.logar(email, senha)
             println("Candidato Logado com sucesso!")
             menuCandidato(candidatoEncontrado)
         } catch (CandidatoLoginException e) {

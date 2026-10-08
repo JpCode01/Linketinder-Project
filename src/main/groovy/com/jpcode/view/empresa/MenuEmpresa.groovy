@@ -2,25 +2,19 @@ package com.jpcode.view.empresa
 
 import com.jpcode.exception.empresa.EmpresaLoginException
 import com.jpcode.model.core.Empresa
-import com.jpcode.service.EmpresaService
+import com.jpcode.controller.empresa.EmpresaController
 import com.jpcode.view.vaga.MenuVagaCrud
 
 class MenuEmpresa {
     final Scanner scanner
-    final EmpresaService empresaService
+    final EmpresaController empresaController
     final MenuEmpresaCrud menuEmpresaCrud
     final MenuVagaCrud menuVagaCrud
     final MenuCurtirCandidato menuCurtirCandidato
 
-    MenuEmpresa(
-            Scanner scanner,
-            EmpresaService empresaService,
-            MenuEmpresaCrud menuEmpresaCrud,
-            MenuVagaCrud menuVagaCrud,
-            MenuCurtirCandidato menuCurtirCandidato
-    ) {
+    MenuEmpresa(Scanner scanner, EmpresaController empresaController, MenuEmpresaCrud menuEmpresaCrud, MenuVagaCrud menuVagaCrud, MenuCurtirCandidato menuCurtirCandidato) {
         this.scanner = scanner
-        this.empresaService = empresaService
+        this.empresaController = empresaController
         this.menuEmpresaCrud = menuEmpresaCrud
         this.menuVagaCrud = menuVagaCrud
         this.menuCurtirCandidato = menuCurtirCandidato
@@ -64,7 +58,7 @@ class MenuEmpresa {
 
     private void tentarLogarEmpresa(String email, String senha) {
         try {
-            Empresa empresaEncontrada = empresaService.logar(email, senha)
+            Empresa empresaEncontrada = empresaController.logar(email, senha)
             println("Empresa Logada com sucesso!")
             menuEmpresa(empresaEncontrada)
         } catch (EmpresaLoginException e) {

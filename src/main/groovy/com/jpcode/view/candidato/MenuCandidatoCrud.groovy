@@ -1,5 +1,8 @@
 package com.jpcode.view.candidato
 
+import com.jpcode.controller.candidato.CandidatoController
+import com.jpcode.controller.match.MatchController
+import com.jpcode.controller.referencia.ReferenciaController
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
@@ -7,9 +10,6 @@ import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Candidato
-import com.jpcode.service.CandidatoService
-import com.jpcode.service.MatchService
-import com.jpcode.service.ReferenciaService
 import com.jpcode.view.referencia.MenuCompetencia
 
 import java.time.LocalDate
@@ -19,17 +19,17 @@ import java.time.format.DateTimeParseException
 class MenuCandidatoCrud {
 
     final Scanner scanner
-    final CandidatoService candidatoService
+    final CandidatoController candidatoController
     final MenuCompetencia menuCompetencia
-    final ReferenciaService referenciaService
-    final MatchService matchService
+    final ReferenciaController referenciaController
+    final MatchController matchController
 
-    MenuCandidatoCrud(Scanner scanner, CandidatoService candidatoService, MenuCompetencia menuCompetencia, ReferenciaService referenciaService, MatchService matchService) {
+    MenuCandidatoCrud(Scanner scanner, CandidatoController candidatoController, MenuCompetencia menuCompetencia, ReferenciaController referenciaController, MatchController matchController) {
         this.scanner = scanner
-        this.candidatoService = candidatoService
+        this.candidatoController = candidatoController
         this.menuCompetencia = menuCompetencia
-        this.referenciaService = referenciaService
-        this.matchService = matchService
+        this.referenciaController = referenciaController
+        this.matchController = matchController
     }
 
     void cadastrarCandidato() {
@@ -41,7 +41,7 @@ class MenuCandidatoCrud {
         scanner.nextLine()
         println("Digite sua senha para confirmar (Caso queira desistir, aperte enter): ")
         if (scanner.nextLine() == senha) {
-            candidatoService.desativarCandidato(idCandidato)
+            candidatoController.desativarCandidato(idCandidato)
             println("Conta deletada com sucesso")
             return true
         }
@@ -56,15 +56,15 @@ class MenuCandidatoCrud {
     void atualizarCompetencias(Long idCandidato) {
         List<String> competenciasAtuais = competenciasCandidato(idCandidato)
         List<String> novasCompetencias = menuCompetencia.capturarCompetencias(competenciasAtuais)
-        candidatoService.adicionarCompetencias(idCandidato, novasCompetencias)
+        candidatoController.adicionarCompetencias(idCandidato, novasCompetencias)
     }
 
     void verMatches(Long idCandidato) {
-        println(matchService.verMatchesPorCandidato(idCandidato))
+        println(matchController.verMatchesPorCandidato(idCandidato))
     }
 
     void removerCompetencia(Long idCandidato) {
-        println(candidatoService.listaParaRemover(idCandidato))
+        println(candidatoController.listaParaRemover(idCandidato))
         
         Long idCompetencia = solicitarId("Digite o ID da competencia: ")
         tentarRemoverCompetencia(idCandidato, idCompetencia)
@@ -73,7 +73,7 @@ class MenuCandidatoCrud {
     private void tentarRemoverCompetencia(Long idCandidato, Long idCompetencia) {
 
         try {
-            candidatoService.removerCompetencia(idCandidato, idCompetencia)
+            candidatoController.removerCompetencia(idCandidato, idCompetencia)
             println("Competencia removida com sucesso!")
         } catch (CandidatoNaoEncontradoPorIdException e) {
             e.getMessage()
@@ -93,12 +93,12 @@ class MenuCandidatoCrud {
     }
 
     private List<String> competenciasCandidato(Long idCandidato) {
-        return candidatoService.competenciasEmString(idCandidato)
+        return candidatoController.competenciasEmString(idCandidato)
     }
 
     private void tentarAtualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
         try {
-            candidatoService.atualizarCandidato(atualizarCandidatoDTO)
+            candidatoController.atualizarCandidato(atualizarCandidatoDTO)
             println("Candidato atualizado com sucesso!")
         } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
             println(e.getMessage())
@@ -155,14 +155,14 @@ class MenuCandidatoCrud {
 
 
         if (pais.isEmpty()) {
-            pais = referenciaService.converterIdPaisParaString(candidato.idPais)
+            pais = referenciaController.converterIdPaisParaString(candidato.idPais)
         }
 
         println("Estado em sigla (SP/RS/RJ):")
         String estado = scanner.nextLine()
 
         if (estado.isEmpty()) {
-            estado = referenciaService.converterIdEstadoParaString(candidato.idEstado)
+            estado = referenciaController.converterIdEstadoParaString(candidato.idEstado)
         }
 
         println("CEP:")
@@ -196,7 +196,7 @@ class MenuCandidatoCrud {
 
     private void tentarCandastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
         try {
-            candidatoService.cadastrarCandidato(cadastrarCandidatoDTO)
+            candidatoController.cadastrarCandidato(cadastrarCandidatoDTO)
             println("Candidato cadastrado com sucesso!")
         } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException | CompetenciaNaoEncontradaException e) {
             println(e.getMessage())

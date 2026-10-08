@@ -5,22 +5,22 @@ import com.jpcode.dto.empresa.CadastrarEmpresaDTO
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Empresa
-import com.jpcode.service.EmpresaService
-import com.jpcode.service.MatchService
-import com.jpcode.service.ReferenciaService
+import com.jpcode.controller.empresa.EmpresaController
+import com.jpcode.controller.match.MatchController
+import com.jpcode.controller.referencia.ReferenciaController
 
 class MenuEmpresaCrud {
 
     final Scanner scanner
-    final EmpresaService empresaService
-    final ReferenciaService referenciaService
-    final MatchService matchService
+    final EmpresaController empresaController
+    final ReferenciaController referenciaController
+    final MatchController matchController
 
-    MenuEmpresaCrud(Scanner scanner, EmpresaService empresaService, ReferenciaService referenciaService, MatchService matchService) {
+    MenuEmpresaCrud(Scanner scanner, EmpresaController empresaController, ReferenciaController referenciaController, MatchController matchController) {
         this.scanner = scanner
-        this.empresaService = empresaService
-        this.referenciaService = referenciaService
-        this.matchService = matchService
+        this.empresaController = empresaController
+        this.referenciaController = referenciaController
+        this.matchController = matchController
     }
 
     void cadastrarEmpresa() {
@@ -36,7 +36,7 @@ class MenuEmpresaCrud {
     boolean apagarEmpresa(Long idEmpresa, String senhaEmpresa) {
         println("Digite sua senha para confirmar (Caso queira desistir, aperte enter): ")
         if (scanner.nextLine() == senhaEmpresa) {
-            empresaService.desativarEmpresa(idEmpresa)
+            empresaController.desativarEmpresa(idEmpresa)
             println("Conta deletada com sucesso")
             return true
         }
@@ -48,7 +48,7 @@ class MenuEmpresaCrud {
     }
 
     void verMatches(Long idEmpresa) {
-        println(matchService.verMatchesPorEmpresa(idEmpresa))
+        println(matchController.verMatchesPorEmpresa(idEmpresa))
     }
 
     private CadastrarEmpresaDTO capturarDadosCadastrar() {
@@ -91,7 +91,7 @@ class MenuEmpresaCrud {
 
     private void tentarCadastrarEmpresa(CadastrarEmpresaDTO cadastrarEmpresaDTO) {
         try {
-            empresaService.cadastrarEmpresa(cadastrarEmpresaDTO)
+            empresaController.cadastrarEmpresa(cadastrarEmpresaDTO)
             println("Empresa cadastrada com sucesso!")
         } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
             println(e.getMessage())
@@ -127,14 +127,14 @@ class MenuEmpresaCrud {
         String pais = scanner.nextLine()
 
         if (pais.isEmpty()) {
-            pais = referenciaService.converterIdPaisParaString(empresa.idPais)
+            pais = referenciaController.converterIdPaisParaString(empresa.idPais)
         }
 
         println("Estado em sigla (SP/RS/RJ):")
         String estado = scanner.nextLine()
 
         if (estado.isEmpty()) {
-            estado = referenciaService.converterIdEstadoParaString(empresa.idEstado)
+            estado = referenciaController.converterIdEstadoParaString(empresa.idEstado)
         }
 
         println("CEP:")
@@ -165,7 +165,7 @@ class MenuEmpresaCrud {
 
     private void tentarAtualizarEmpresa(AtualizarEmpresaDTO atualizarEmpresaDTO) {
         try {
-            empresaService.atualizarEmpresa(atualizarEmpresaDTO)
+            empresaController.atualizarEmpresa(atualizarEmpresaDTO)
             println("Empresa atualizada com sucesso!")
         } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
             println(e.getMessage())
