@@ -1,10 +1,8 @@
 package com.jpcode.config
 
-import com.jpcode.service.CompetenciaService
 import com.jpcode.view.candidato.MenuCandidatoCrud
 import com.jpcode.view.candidato.MenuCurtirVaga
 import com.jpcode.view.referencia.MenuCompetencia
-
 
 class MenuCandidatoConfig {
 
@@ -14,25 +12,25 @@ class MenuCandidatoConfig {
 
     MenuCandidatoConfig(
             Scanner scanner,
-            ServiceConfig serviceConfig
+            ControllerConfig controllerConfig
     ) {
 
         menuCurtirVaga = new MenuCurtirVaga(
                 scanner,
-                serviceConfig.vagaService
+                controllerConfig.vagaController
         )
 
         menuCompetencia = new MenuCompetencia(
                 scanner,
-                serviceConfig.competenciaService
+                controllerConfig.competenciaController
         )
 
         menuCandidatoCrud = new MenuCandidatoCrud(
                 scanner,
-                serviceConfig.candidatoService,
+                controllerConfig.candidatoController,
                 menuCompetencia,
-                serviceConfig.referenciaService,
-                serviceConfig.matchService
+                controllerConfig.referenciaController,
+                controllerConfig.matchController
         )
     }
 }
