@@ -147,7 +147,8 @@ class MenuVagaCrud {
 
             verificarSeVagaExiste(idVaga, vagasEmpresa)
             Vaga vagaEncontrada = buscarVaga(idVaga)
-            capturarDadosAtualizarVaga(vagaEncontrada)
+            AtualizarVagaDTO vagaAtualizada = capturarDadosAtualizarVaga(vagaEncontrada)
+            tentarAtualizarVaga(vagaAtualizada)
 
         } catch (VagaNaoEncontradaException e) {
             println(e.getMessage())
@@ -223,6 +224,15 @@ class MenuVagaCrud {
         try {
             vagaController.criarVaga(cadastrarVagaDTO)
             println("Vaga cadastrada com sucesso!")
+        } catch (CompetenciaNaoEncontradaException e) {
+            println(e.getMessage())
+        }
+    }
+
+    private void tentarAtualizarVaga(AtualizarVagaDTO atualizarVagaDTO) {
+        try {
+            vagaController.atualizarVaga(atualizarVagaDTO)
+            println("Vaga Atualizada com Sucesso")
         } catch (CompetenciaNaoEncontradaException e) {
             println(e.getMessage())
         }
