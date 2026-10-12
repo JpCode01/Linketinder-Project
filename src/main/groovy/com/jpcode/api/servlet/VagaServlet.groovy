@@ -1,9 +1,11 @@
 package com.jpcode.api.servlet
 
 import com.jpcode.controller.vaga.VagaController
+import com.jpcode.dto.vaga.AtualizarVagaDTO
 import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.exception.vaga.VagaNaoEncontradaException
 import com.jpcode.model.core.Vaga
+import groovy.json.JsonException
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import jakarta.servlet.http.HttpServlet
@@ -62,6 +64,76 @@ class VagaServlet extends HttpServlet {
 
         buscarVagaPorId(idPath, response)
     }
+
+
+    @Override
+    protected void doPut(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        response.setContentType("application/json")
+        response.setCharacterEncoding("UTF-8")
+
+        String idPath = request.pathInfo?.substring(1)
+
+        if (!idPath || !(idPath ==~ /\d+/)) {
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            response.writer.write(
+                    JsonOutput.toJson([erro: "ID da vaga inválido."])
+            )
+            return
+        }
+
+        atualizarVaga(idPath, request, response)
+    }
+
+    private void atualizarVaga(
+            String idPath,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        try {
+            Map dados = new JsonSlurper().parse(request.inputStream) as Map
+
+            AtualizarVagaDTO dto = new AtualizarVagaDTO(
+                    idPath.toLong(),
+                    dados.nome as String,
+                    dados.descricao as String,
+                    dados.local as String,
+                    dados.idEmpresa as Long
+            )
+
+            vagaController.atualizarVaga(dto)
+
+            response.status = HttpServletResponse.SC_OK
+            response.writer.write(
+                    JsonOutput.toJson([
+                            mensagem: "Vaga atualizada com sucesso."
+                    ])
+            )
+
+        } catch (NumberFormatException e) {
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            response.writer.write(
+                    JsonOutput.toJson([erro: "ID da vaga ou ID da empresa inválido."])
+            )
+
+        } catch (JsonException e) {
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            response.writer.write(
+                    JsonOutput.toJson([erro: "JSON inválido."])
+            )
+
+        } catch (Exception e) {
+            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+            response.writer.write(
+                    JsonOutput.toJson([
+                            erro: "Erro interno ao atualizar vaga."
+                    ])
+            )
+        }
+    }
+
 
     private void listarVagas(HttpServletResponse response) {
         try {
