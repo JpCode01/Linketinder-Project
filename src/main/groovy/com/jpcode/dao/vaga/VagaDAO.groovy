@@ -161,6 +161,7 @@ class VagaDAO implements VagaRepository {
         }
     }
 
+
     List<VagaAnonimaDTO> buscarTodasAsVagas() {
         String sql = """
         SELECT
@@ -174,7 +175,7 @@ class VagaDAO implements VagaRepository {
         LEFT JOIN competencias comp
             ON comp.id = vc.id_competencia
         ORDER BY v.id
-        """
+    """
 
         try (
                 def connection = connectionFactory.getConnection()
@@ -183,38 +184,40 @@ class VagaDAO implements VagaRepository {
             def resultSet = statement.executeQuery()
 
             List<VagaAnonimaDTO> vagas = []
-
             VagaAnonimaDTO vagaAtual = null
-            List<Competencia> competencias = []
+            Set<Long> competenciasAdicionadas = []
 
             while (resultSet.next()) {
                 Long idVaga = resultSet.getLong("id")
 
                 if (vagaAtual == null || vagaAtual.id != idVaga) {
-
                     if (vagaAtual != null) {
                         vagas.add(vagaAtual)
                     }
 
-                    vagas = []
+                    competenciasAdicionadas = []
 
                     vagaAtual = new VagaAnonimaDTO(
                             idVaga,
                             resultSet.getString("descricao"),
-                            competencias
+                            []
                     )
-
                 }
 
                 Long competenciaId = resultSet.getLong("competencia_id")
+                boolean competenciaNula = resultSet.wasNull()
 
-                if (competenciaId != 0) {
-                    competencias.add(
+                if (!competenciaNula &&
+                        !competenciasAdicionadas.contains(competenciaId)) {
+
+                    vagaAtual.competencias.add(
                             new Competencia(
                                     competenciaId,
                                     resultSet.getString("nome_competencia")
                             )
                     )
+
+                    competenciasAdicionadas.add(competenciaId)
                 }
             }
 
@@ -223,9 +226,9 @@ class VagaDAO implements VagaRepository {
             }
 
             return vagas
-
         }
     }
+
 
     void deletar(Long id) {
         String sql = """

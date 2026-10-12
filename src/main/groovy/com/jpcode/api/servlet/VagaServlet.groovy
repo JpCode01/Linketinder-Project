@@ -24,7 +24,7 @@ class VagaServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8")
 
         try {
-            Map dados = new JsonSlurper().parse(request.inputStream)
+            Map dados = new JsonSlurper().parse(request.inputStream) as Map
 
             CadastrarVagaDTO dto = new CadastrarVagaDTO(
                     dados.nome as String,
@@ -55,7 +55,36 @@ class VagaServlet extends HttpServlet {
 
         String idPath = request.pathInfo?.substring(1)
 
-        if (!idPath || !(idPath ==~ /\d+/)) {
+        if (!idPath) {
+            listarVagas(response)
+            return
+        }
+
+        buscarVagaPorId(idPath, response)
+    }
+
+    private void listarVagas(HttpServletResponse response) {
+        try {
+            response.status = HttpServletResponse.SC_OK
+            response.writer.write(
+                    JsonOutput.toJson(vagaController.buscarTodasAsVagas())
+            )
+
+        } catch (Exception e) {
+            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+            response.writer.write(
+                    JsonOutput.toJson([
+                            erro: "Erro interno ao listar vagas."
+                    ])
+            )
+        }
+    }
+
+    private void buscarVagaPorId(
+            String idPath,
+            HttpServletResponse response
+    ) {
+        if (!(idPath ==~ /\d+/)) {
             response.status = HttpServletResponse.SC_BAD_REQUEST
             response.writer.write(
                     JsonOutput.toJson([erro: "ID da vaga inválido."])
@@ -85,7 +114,9 @@ class VagaServlet extends HttpServlet {
         } catch (Exception e) {
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
             response.writer.write(
-                    JsonOutput.toJson([erro: "Erro interno ao consultar vaga."])
+                    JsonOutput.toJson([
+                            erro: "Erro interno ao consultar vaga."
+                    ])
             )
         }
     }
