@@ -121,7 +121,7 @@ class VagaDAO implements VagaRepository {
             while (resultSet.next()) {
 
                 Long idVaga = resultSet.getLong("id")
-                // Apenas cria quando o id da vaga for diferente da vaga atual, caso contrário, considera a mesma vaga e add as competencias
+
                 if (vagaAtual == null || vagaAtual.id != idVaga) {
 
                     if (vagaAtual != null) {
