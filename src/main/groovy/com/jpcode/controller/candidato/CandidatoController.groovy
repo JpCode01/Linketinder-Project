@@ -2,6 +2,7 @@ package com.jpcode.controller.candidato
 
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
+import com.jpcode.dto.candidato.CandidatoProfileViewDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.service.CandidatoService
@@ -18,7 +19,7 @@ class CandidatoController {
         candidatoService.cadastrarCandidato(cadastrarCandidatoDTO)
     }
 
-    Candidato buscarCandidato(Long idCandidato) {
+    CandidatoProfileViewDTO buscarCandidato(Long idCandidato) {
         return candidatoService.buscarCandidato(idCandidato)
     }
 

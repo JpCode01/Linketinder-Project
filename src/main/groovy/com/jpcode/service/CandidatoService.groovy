@@ -8,6 +8,7 @@ import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.contrato.ReferenciaRepository
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
+import com.jpcode.dto.candidato.CandidatoProfileViewDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.exception.candidato.CandidatoLoginException
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
@@ -82,10 +83,29 @@ class CandidatoService {
         }
     }
 
-    Candidato buscarCandidato(Long idCandidato) {
-        return candidatoRepository.buscarPorId(idCandidato)
-        .orElseThrow(() ->
-                    new CandidatoNaoEncontradoPorIdException(idCandidato))
+
+    CandidatoProfileViewDTO buscarCandidato(Long idCandidato) {
+        Candidato candidato = candidatoRepository.buscarPorId(idCandidato)
+                .orElseThrow(() ->
+                        new CandidatoNaoEncontradoPorIdException(idCandidato)
+                )
+
+        List<Competencia> competencias =
+                competenciasCandidatoRepository.buscarPorCandidato(idCandidato)
+
+        return new CandidatoProfileViewDTO(
+                candidato.id,
+                candidato.nome,
+                candidato.sobrenome,
+                candidato.email,
+                candidato.idEstado,
+                candidato.cep,
+                candidato.descricao,
+                candidato.idPais,
+                candidato.idade,
+                candidato.dataNascimento,
+                competencias
+        )
     }
 
     Candidato logar(String email, String senha) {

@@ -2,6 +2,7 @@ package com.jpcode.config
 
 import com.jpcode.api.servlet.CompetenciaServlet
 import com.jpcode.api.servlet.CandidatoServlet
+import com.jpcode.api.servlet.VagaServlet
 import org.apache.catalina.Context
 import org.apache.catalina.startup.Tomcat
 import com.jpcode.api.servlet.EmpresaServlet
@@ -22,6 +23,7 @@ class ApiServletConfig {
         registrarCompetenciaServlet()
         registrarCandidatoServlet()
         registrarEmpresaServlet()
+        registrarVagaServlet()
     }
 
     private void registrarCompetenciaServlet() {
@@ -50,6 +52,11 @@ class ApiServletConfig {
                 "/candidatos",
                 "candidatoServlet"
         )
+
+        contexto.addServletMapping(
+                "/candidatos/*",
+                "candidatoServlet"
+        )
     }
 
     private void registrarEmpresaServlet() {
@@ -64,6 +71,21 @@ class ApiServletConfig {
         contexto.addServletMapping(
                 "/empresas",
                 "empresaServlet"
+        )
+    }
+
+    private void registrarVagaServlet() {
+        tomcat.addServlet(
+                contexto,
+                "vagaServlet",
+                new VagaServlet(
+                        controllerConfig.vagaController
+                )
+        )
+
+        contexto.addServletMapping(
+                "/vagas",
+                "vagaServlet"
         )
     }
 }

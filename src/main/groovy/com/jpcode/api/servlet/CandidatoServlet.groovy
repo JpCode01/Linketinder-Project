@@ -2,6 +2,8 @@ package com.jpcode.api.servlet
 
 import com.jpcode.controller.candidato.CandidatoController
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
+import com.jpcode.dto.candidato.CandidatoProfileViewDTO
+import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import jakarta.servlet.http.HttpServlet
@@ -46,9 +48,49 @@ class CandidatoServlet extends HttpServlet {
                     JsonOutput.toJson([erro: "JSON inválido ou campos em formato incorreto, verifique se o Estado e País estão disponíveis."])
             )
         }
-
-        
     }
+
+
+    @Override
+    protected void doGet(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        response.setContentType("application/json")
+        response.setCharacterEncoding("UTF-8")
+
+        String idPath = request.pathInfo?.substring(1)
+
+        if (!idPath || !(idPath ==~ /\d+/)) {
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            response.writer.write(
+                    JsonOutput.toJson([erro: "ID do candidato inválido."])
+            )
+            return
+        }
+
+        try {
+            Long idCandidato = idPath.toLong()
+
+            CandidatoProfileViewDTO candidato =
+                    candidatoController.buscarCandidato(idCandidato)
+
+            response.status = HttpServletResponse.SC_OK
+            response.writer.write(JsonOutput.toJson(candidato))
+
+        } catch (CandidatoNaoEncontradoPorIdException e) {
+            response.status = HttpServletResponse.SC_NOT_FOUND
+            response.writer.write(
+                    JsonOutput.toJson([erro: "Candidato não encontrado."])
+            )
+        } catch (Exception e) {
+            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+            response.writer.write(
+                    JsonOutput.toJson([erro: "Erro interno ao consultar candidato."])
+            )
+        }
+    }
+
 
 
 }
