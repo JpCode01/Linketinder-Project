@@ -43,7 +43,7 @@ class CandidatoServlet extends HttpServlet {
         } catch (Exception e) {
             response.status = HttpServletResponse.SC_BAD_REQUEST
             response.writer.write(
-                    JsonOutput.toJson([erro: "JSON inválido ou campos em formato incorreto."])
+                    JsonOutput.toJson([erro: "JSON inválido ou campos em formato incorreto, verifique se o Estado e País estão disponíveis."])
             )
         }
 
