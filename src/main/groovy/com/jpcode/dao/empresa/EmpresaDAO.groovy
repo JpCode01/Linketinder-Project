@@ -54,7 +54,7 @@ class EmpresaDAO implements
         }
     }
 
-    Empresa buscarPorId(Long id) {
+    Optional<Empresa> buscarPorId(Long id) {
         String sql = """
             SELECT id, nome, cnpj, email_corporativo, descricao, 
             id_pais, cep, id_estado, ativo, senha
@@ -71,10 +71,10 @@ class EmpresaDAO implements
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next()) {
-                return null
+                return Optional.empty()
             }
 
-            return new Empresa(
+            Empresa empresa = new Empresa(
                     resultSet.getLong("id"),
                     resultSet.getString("nome"),
                     resultSet.getString("email_corporativo"),
@@ -88,6 +88,8 @@ class EmpresaDAO implements
 
 
             )
+
+            return Optional.of(empresa)
         }
     }
 

@@ -4,6 +4,7 @@ import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.dto.empresa.AtualizarEmpresaDTO
 import com.jpcode.dto.empresa.CadastrarEmpresaDTO
+import com.jpcode.dto.empresa.EmpresaProfileViewDTO
 import com.jpcode.model.core.Empresa
 import com.jpcode.service.EmpresaService
 
@@ -27,14 +28,8 @@ class EmpresaController {
         return empresaService.buscarCandidatosQueCurtiram(idVaga)
     }
 
-    void curtirCandidato(
-            Long idEmpresa,
-            Long idCandidato
-    ) {
-        empresaService.curtirCandidato(
-                idEmpresa,
-                idCandidato
-        )
+    EmpresaProfileViewDTO buscarEmpresa(Long idEmpresa) {
+        return empresaService.buscarEmpresa(idEmpresa)
     }
 
     List<CandidatoAnonimoDTO> buscarCandidatosCurtidos(Long idEmpresa) {

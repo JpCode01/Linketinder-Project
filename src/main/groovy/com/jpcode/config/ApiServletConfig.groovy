@@ -72,6 +72,11 @@ class ApiServletConfig {
                 "/empresas",
                 "empresaServlet"
         )
+
+        contexto.addServletMapping(
+                "/empresas/*",
+                "empresaServlet"
+        )
     }
 
     private void registrarVagaServlet() {

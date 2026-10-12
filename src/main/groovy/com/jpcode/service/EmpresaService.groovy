@@ -12,7 +12,9 @@ import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.dto.empresa.AtualizarEmpresaDTO
 import com.jpcode.dto.empresa.CadastrarEmpresaDTO
+import com.jpcode.dto.empresa.EmpresaProfileViewDTO
 import com.jpcode.exception.empresa.EmpresaLoginException
+import com.jpcode.exception.empresa.EmpresaNaoEncontradaPorIdException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Empresa
@@ -65,6 +67,23 @@ class EmpresaService {
         )
         
         return empresaRepository.salvar(empresa)
+    }
+
+    EmpresaProfileViewDTO buscarEmpresa(Long idEmpresa) {
+        Empresa empresa = empresaRepository.buscarPorId(idEmpresa)
+        .orElseThrow(() ->
+            new EmpresaNaoEncontradaPorIdException(idEmpresa)
+        )
+
+        return new EmpresaProfileViewDTO(
+                empresa.id,
+                empresa.nome,
+                empresa.email,
+                empresa.idEstado,
+                empresa.cep,
+                empresa.descricao,
+                empresa.idPais
+        )
     }
 
     Empresa logar(String email, String senha) {
