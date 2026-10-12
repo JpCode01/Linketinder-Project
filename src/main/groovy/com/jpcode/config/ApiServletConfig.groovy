@@ -92,5 +92,10 @@ class ApiServletConfig {
                 "/vagas",
                 "vagaServlet"
         )
+
+        contexto.addServletMapping(
+                "/vagas/*",
+                "vagaServlet"
+        )
     }
 }
