@@ -12,6 +12,7 @@ repositories {
 
 dependencies {
     implementation 'org.apache.groovy:groovy:5.0.8'
+    implementation 'org.apache.groovy:groovy-json:5.0.8'
 
     testImplementation platform('org.junit:junit-bom:6.0.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -21,6 +22,8 @@ dependencies {
 
     implementation 'net.bytebuddy:byte-buddy:1.18.12'
     implementation 'org.postgresql:postgresql:42.7.13'
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.26'
 }
 
 test {

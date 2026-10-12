@@ -36,20 +36,26 @@ class VagaService {
                         cadastrarVagaDTO.idEmpresa
                 )
         )
+        salvarCompetencias(cadastrarVagaDTO.competencias, vagaSalva.id)
+    }
 
-        cadastrarVagaDTO.competencias.each { competencia ->
-            Long idCompetencia = competenciaDAO
-                    .buscarIdPorNome(competencia)
-                    .orElseThrow(() ->
-                            new CompetenciaNaoEncontradaException(competencia)
-                    )
+    private salvarCompetencias(List<String> competencias, Long idVaga) {
+        competencias.each {
+            competencia ->
+                Long idCompetencia = competenciaDAO
+                        .buscarIdPorNome(competencia)
+                        .orElseThrow(() ->
+                                new CompetenciaNaoEncontradaException(competencia)
+                        )
 
-            competenciasVagaRepository.salvar(
-                    vagaSalva.id,
-                    idCompetencia
-            )
+                competenciasVagaRepository.salvar(
+                        idVaga,
+                        idCompetencia
+                )
         }
     }
+
+
 
     void curtir(Long idCandidato, Long idVaga) {
         candidatoCurtirRepository.salvar(idCandidato, idVaga)

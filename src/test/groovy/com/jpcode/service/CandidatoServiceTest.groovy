@@ -7,6 +7,8 @@ import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
 import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.contrato.ReferenciaRepository
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
+import com.jpcode.dto.candidato.CandidatoComReferenciasDTO
+import com.jpcode.dto.candidato.CandidatoViewDTO
 import com.jpcode.exception.candidato.CandidatoLoginException
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import com.jpcode.model.core.Candidato
@@ -47,6 +49,7 @@ class CandidatoServiceTest extends Specification {
     def "deve buscar candidato pelo id"() {
         given:
         Candidato candidato = new Candidato(
+                1L,
                 "João",
                 "Pedro",
                 "joao@email.com",
@@ -57,18 +60,46 @@ class CandidatoServiceTest extends Specification {
                 25,
                 2L,
                 "12900000",
-                "Desenvolvedor"
+                "Desenvolvedor",
+                true
         )
 
-        candidatoRepository.buscarPorId(1L) >> Optional.of(candidato)
+        Estado estado = new Estado(2L, "SP")
+        Pais pais = new Pais(1L, "BRASIL")
 
-        expect:
-        service.buscarCandidato(1L) == candidato
+        CandidatoComReferenciasDTO resultado =
+                new CandidatoComReferenciasDTO(candidato, estado, pais)
+
+        Competencia java = new Competencia(10L, "JAVA")
+        Competencia spring = new Competencia(20L, "SPRING")
+
+        candidatoRepository.buscarPorIdComReferencias(1L) >>
+                Optional.of(resultado)
+
+        competenciasCandidatoRepository.buscarPorCandidato(1L) >>
+                [java, spring]
+
+        when:
+        CandidatoViewDTO candidatoEncontrado = service.buscarCandidato(1L)
+
+        then:
+        candidatoEncontrado.id == 1L
+        candidatoEncontrado.nome == "João"
+        candidatoEncontrado.sobrenome == "Pedro"
+        candidatoEncontrado.email == "joao@email.com"
+        candidatoEncontrado.estado == estado
+        candidatoEncontrado.pais == pais
+        candidatoEncontrado.cep == "12900000"
+        candidatoEncontrado.descricao == "Desenvolvedor"
+        candidatoEncontrado.idade == 25
+        candidatoEncontrado.dataNascimento == LocalDate.of(2000, 10, 10)
+        candidatoEncontrado.competencias == [java, spring]
     }
 
     def "deve lançar exceção quando candidato não for encontrado pelo id"() {
         given:
-        candidatoRepository.buscarPorId(1L) >> Optional.empty()
+        candidatoRepository.buscarPorIdComReferencias(1L) >>
+                Optional.empty()
 
         when:
         service.buscarCandidato(1L)

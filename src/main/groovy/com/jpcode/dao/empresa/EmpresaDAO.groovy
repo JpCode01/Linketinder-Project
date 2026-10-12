@@ -4,7 +4,11 @@ import com.jpcode.dao.empresa.contrato.EmpresaAutenticacao
 import com.jpcode.dao.empresa.contrato.EmpresaDesativacao
 import com.jpcode.dao.empresa.contrato.EmpresaRepository
 import com.jpcode.database.ConnectionFactory
+import com.jpcode.dto.empresa.EmpresaComReferenciasDTO
+import com.jpcode.dto.empresa.EmpresaViewListDTO
 import com.jpcode.model.core.Empresa
+import com.jpcode.model.referencia.Estado
+import com.jpcode.model.referencia.Pais
 
 import java.sql.Statement
 
@@ -54,7 +58,7 @@ class EmpresaDAO implements
         }
     }
 
-    Empresa buscarPorId(Long id) {
+    Optional<Empresa> buscarPorId(Long id) {
         String sql = """
             SELECT id, nome, cnpj, email_corporativo, descricao, 
             id_pais, cep, id_estado, ativo, senha
@@ -71,10 +75,10 @@ class EmpresaDAO implements
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next()) {
-                return null
+                return Optional.empty()
             }
 
-            return new Empresa(
+            Empresa empresa = new Empresa(
                     resultSet.getLong("id"),
                     resultSet.getString("nome"),
                     resultSet.getString("email_corporativo"),
@@ -88,6 +92,8 @@ class EmpresaDAO implements
 
 
             )
+
+            return Optional.of(empresa)
         }
     }
 
@@ -178,5 +184,99 @@ class EmpresaDAO implements
         }
 
         return empresa
+    }
+
+
+    Optional<EmpresaComReferenciasDTO> buscarPorIdComReferencias(Long id) {
+        String sql = """
+        SELECT
+            e.id,
+            e.nome,
+            e.cnpj,
+            e.email_corporativo,
+            e.descricao,
+            e.id_pais,
+            e.cep,
+            e.id_estado,
+            e.ativo,
+            e.senha,
+            es.sigla AS estado_sigla,
+            p.nome AS pais_nome
+        FROM empresas e
+        JOIN estados es ON es.id = e.id_estado
+        JOIN pais p ON p.id = e.id_pais
+        WHERE e.id = ?
+    """
+
+        try (
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, id)
+
+            def resultSet = statement.executeQuery()
+
+            if (!resultSet.next()) {
+                return Optional.empty()
+            }
+
+            Empresa empresa = new Empresa(
+                    resultSet.getLong("id"),
+                    resultSet.getString("nome"),
+                    resultSet.getString("email_corporativo"),
+                    resultSet.getString("senha"),
+                    resultSet.getString("cnpj"),
+                    resultSet.getLong("id_pais"),
+                    resultSet.getLong("id_estado"),
+                    resultSet.getString("cep"),
+                    resultSet.getString("descricao"),
+                    resultSet.getBoolean("ativo")
+            )
+
+            Estado estado = new Estado(
+                    resultSet.getLong("id_estado"),
+                    resultSet.getString("estado_sigla")
+            )
+
+            Pais pais = new Pais(
+                    resultSet.getLong("id_pais"),
+                    resultSet.getString("pais_nome")
+            )
+
+            return Optional.of(
+                    new EmpresaComReferenciasDTO(empresa, estado, pais)
+            )
+        }
+    }
+
+    List<EmpresaViewListDTO> buscarEmpresas() {
+        String sql = """
+        SELECT
+            id,
+            nome,
+            email_corporativo,
+            descricao
+        FROM empresas
+        ORDER BY id
+    """
+
+        try (
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+                def resultSet = statement.executeQuery()
+        ) {
+            List<EmpresaViewListDTO> empresas = []
+
+            while (resultSet.next()) {
+                empresas.add(new EmpresaViewListDTO(
+                        resultSet.getLong("id"),
+                        resultSet.getString("nome"),
+                        resultSet.getString("email_corporativo"),
+                        resultSet.getString("descricao")
+                ))
+            }
+
+            return empresas
+        }
     }
 }

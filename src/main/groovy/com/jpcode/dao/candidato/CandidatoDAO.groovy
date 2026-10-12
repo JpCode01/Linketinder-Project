@@ -4,7 +4,11 @@ import com.jpcode.dao.candidato.contrato.CandidatoAutenticacao
 import com.jpcode.dao.candidato.contrato.CandidatoDesativacao
 import com.jpcode.dao.candidato.contrato.CandidatoRepository
 import com.jpcode.database.ConnectionFactory
+import com.jpcode.dto.candidato.CandidatoComReferenciasDTO
+import com.jpcode.dto.candidato.CandidatoViewListDTO
 import com.jpcode.model.core.Candidato
+import com.jpcode.model.referencia.Estado
+import com.jpcode.model.referencia.Pais
 
 import java.sql.Date
 import java.sql.Statement
@@ -205,4 +209,107 @@ class CandidatoDAO implements
 
         return candidato
     }
+
+
+    Optional<CandidatoComReferenciasDTO> buscarPorIdComReferencias(Long id) {
+        String sql = """
+        SELECT
+            c.id,
+            c.nome,
+            c.sobrenome,
+            c.email,
+            c.data_nascimento,
+            c.cpf,
+            c.idade,
+            c.id_pais,
+            c.cep,
+            c.descricao,
+            c.ativo,
+            c.senha,
+            c.id_estado,
+            e.sigla AS estado_sigla,
+            p.nome AS pais_nome
+        FROM candidatos c
+        JOIN estados e ON e.id = c.id_estado
+        JOIN pais p ON p.id = c.id_pais
+        WHERE c.id = ?
+    """
+
+        try (
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, id)
+
+            def resultSet = statement.executeQuery()
+
+            if (!resultSet.next()) {
+                return Optional.empty()
+            }
+
+            Candidato candidato = new Candidato(
+                    resultSet.getLong("id"),
+                    resultSet.getString("nome"),
+                    resultSet.getString("sobrenome"),
+                    resultSet.getString("email"),
+                    resultSet.getString("senha"),
+                    resultSet.getString("cpf"),
+                    resultSet.getDate("data_nascimento").toLocalDate(),
+                    resultSet.getLong("id_pais"),
+                    resultSet.getInt("idade"),
+                    resultSet.getLong("id_estado"),
+                    resultSet.getString("cep"),
+                    resultSet.getString("descricao"),
+                    resultSet.getBoolean("ativo")
+            )
+
+            Estado estado = new Estado(
+                    resultSet.getLong("id_estado"),
+                    resultSet.getString("estado_sigla")
+            )
+
+            Pais pais = new Pais(
+                    resultSet.getLong("id_pais"),
+                    resultSet.getString("pais_nome")
+            )
+
+            return Optional.of(
+                    new CandidatoComReferenciasDTO(candidato, estado, pais)
+            )
+        }
+    }
+
+    List<CandidatoViewListDTO> buscarCandidatos() {
+        String sql = """
+        SELECT
+            c.id,
+            c.nome,
+            c.sobrenome,
+            c.email
+        FROM candidatos c
+        ORDER BY c.id
+    """
+
+        try (
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+                def resultSet = statement.executeQuery()
+        ) {
+            List<CandidatoViewListDTO> candidatos = []
+
+            while (resultSet.next()) {
+                candidatos.add(new CandidatoViewListDTO(
+                        resultSet.getLong("id"),
+                        resultSet.getString("nome"),
+                        resultSet.getString("sobrenome"),
+                        resultSet.getString("email"),
+                        []
+                ))
+            }
+
+            return candidatos
+        }
+    }
+    
+
 }

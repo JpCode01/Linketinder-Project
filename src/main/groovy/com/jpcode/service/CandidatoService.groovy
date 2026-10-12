@@ -6,8 +6,7 @@ import com.jpcode.dao.candidato.contrato.CandidatoRepository
 import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
 import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.contrato.ReferenciaRepository
-import com.jpcode.dto.candidato.AtualizarCandidatoDTO
-import com.jpcode.dto.candidato.CadastrarCandidatoDTO
+import com.jpcode.dto.candidato.*
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.exception.candidato.CandidatoLoginException
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
@@ -82,11 +81,35 @@ class CandidatoService {
         }
     }
 
-    Candidato buscarCandidato(Long idCandidato) {
-        return candidatoRepository.buscarPorId(idCandidato)
-        .orElseThrow(() ->
-                    new CandidatoNaoEncontradoPorIdException(idCandidato))
+
+
+    CandidatoViewDTO buscarCandidato(Long idCandidato) {
+        CandidatoComReferenciasDTO resultado = candidatoRepository
+                .buscarPorIdComReferencias(idCandidato)
+                .orElseThrow(() ->
+                        new CandidatoNaoEncontradoPorIdException(idCandidato)
+                )
+
+        List<Competencia> competencias =
+                competenciasCandidatoRepository.buscarPorCandidato(idCandidato)
+
+        Candidato candidato = resultado.candidato
+
+        return new CandidatoViewDTO(
+                candidato.id,
+                candidato.nome,
+                candidato.sobrenome,
+                candidato.email,
+                resultado.estado,
+                candidato.cep,
+                candidato.descricao,
+                resultado.pais,
+                candidato.idade,
+                candidato.dataNascimento,
+                competencias
+        )
     }
+
 
     Candidato logar(String email, String senha) {
         return candidatoAutenticacao.buscarPorEmailESenha(email, senha)
@@ -147,6 +170,21 @@ class CandidatoService {
 
     List<String> competenciasEmString(Long idCandidato) {
         return competenciasCandidatoRepository.buscarPorCandidatoString(idCandidato)
+    }
+
+    List<CandidatoViewListDTO> buscarCandidatos() {
+        return candidatoRepository.buscarCandidatos().collect { candidato ->
+            List<Competencia> competencias =
+                    competenciasCandidatoRepository.buscarPorCandidato(candidato.id)
+
+            return new CandidatoViewListDTO(
+                    candidato.id,
+                    candidato.nome,
+                    candidato.sobrenome,
+                    candidato.email,
+                    competencias
+            )
+        }
     }
     
 }
