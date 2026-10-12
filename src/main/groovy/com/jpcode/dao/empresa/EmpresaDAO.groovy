@@ -5,6 +5,7 @@ import com.jpcode.dao.empresa.contrato.EmpresaDesativacao
 import com.jpcode.dao.empresa.contrato.EmpresaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.empresa.EmpresaComReferenciasDTO
+import com.jpcode.dto.empresa.EmpresaViewListDTO
 import com.jpcode.model.core.Empresa
 import com.jpcode.model.referencia.Estado
 import com.jpcode.model.referencia.Pais
@@ -248,4 +249,34 @@ class EmpresaDAO implements
         }
     }
 
+    List<EmpresaViewListDTO> buscarEmpresas() {
+        String sql = """
+        SELECT
+            id,
+            nome,
+            email_corporativo,
+            descricao
+        FROM empresas
+        ORDER BY id
+    """
+
+        try (
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+                def resultSet = statement.executeQuery()
+        ) {
+            List<EmpresaViewListDTO> empresas = []
+
+            while (resultSet.next()) {
+                empresas.add(new EmpresaViewListDTO(
+                        resultSet.getLong("id"),
+                        resultSet.getString("nome"),
+                        resultSet.getString("email_corporativo"),
+                        resultSet.getString("descricao")
+                ))
+            }
+
+            return empresas
+        }
+    }
 }

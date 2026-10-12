@@ -3,7 +3,7 @@ package com.jpcode.dto.empresa
 import com.jpcode.model.referencia.Estado
 import com.jpcode.model.referencia.Pais
 
-class EmpresaProfileViewDTO {
+class EmpresaViewDTO {
     Long id
     String nome
     String email
@@ -12,7 +12,7 @@ class EmpresaProfileViewDTO {
     String descricao
     Pais pais
 
-    EmpresaProfileViewDTO(
+    EmpresaViewDTO(
             Long id,
             String nome,
             String email,

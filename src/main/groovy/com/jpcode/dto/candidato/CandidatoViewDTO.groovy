@@ -7,7 +7,7 @@ import com.jpcode.model.referencia.Pais
 
 import java.time.LocalDate
 
-class CandidatoProfileViewDTO {
+class CandidatoViewDTO {
     Long id
     String nome
     String sobrenome
@@ -20,7 +20,7 @@ class CandidatoProfileViewDTO {
     LocalDate dataNascimento
     List<Competencia> competencias
 
-    CandidatoProfileViewDTO(
+    CandidatoViewDTO(
             Long id,
             String nome,
             String sobrenome,

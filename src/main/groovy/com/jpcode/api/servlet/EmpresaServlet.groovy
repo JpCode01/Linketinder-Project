@@ -2,7 +2,7 @@ package com.jpcode.api.servlet
 
 import com.jpcode.controller.empresa.EmpresaController
 import com.jpcode.dto.empresa.CadastrarEmpresaDTO
-import com.jpcode.dto.empresa.EmpresaProfileViewDTO
+import com.jpcode.dto.empresa.EmpresaViewDTO
 import com.jpcode.exception.empresa.EmpresaNaoEncontradaPorIdException
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
@@ -52,14 +52,40 @@ class EmpresaServlet extends HttpServlet {
     @Override
     protected void doGet(
             HttpServletRequest request,
-            HttpServletResponse response) {
-
+            HttpServletResponse response
+    ) {
         response.setContentType("application/json")
         response.setCharacterEncoding("UTF-8")
 
         String idPath = request.pathInfo?.substring(1)
 
-        if (!idPath || !(idPath ==~ /\d+/)) {
+        if (!idPath) {
+            listarEmpresas(response)
+            return
+        }
+
+        buscarEmpresaPorId(idPath, response)
+    }
+
+    private void listarEmpresas(HttpServletResponse response) {
+        try {
+            response.status = HttpServletResponse.SC_OK
+            response.writer.write(
+                    JsonOutput.toJson(empresaController.buscarEmpresas())
+            )
+        } catch (Exception e) {
+            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+            response.writer.write(
+                    JsonOutput.toJson([erro: "Erro interno ao listar empresas."])
+            )
+        }
+    }
+
+    private void buscarEmpresaPorId(
+            String idPath,
+            HttpServletResponse response
+    ) {
+        if (!(idPath ==~ /\d+/)) {
             response.status = HttpServletResponse.SC_BAD_REQUEST
             response.writer.write(
                     JsonOutput.toJson([erro: "ID da empresa inválido."])
@@ -68,10 +94,8 @@ class EmpresaServlet extends HttpServlet {
         }
 
         try {
-            Long idEmpresa = idPath.toLong()
-
-            EmpresaProfileViewDTO empresa =
-                    empresaController.buscarEmpresa(idEmpresa)
+            EmpresaViewDTO empresa =
+                    empresaController.buscarEmpresa(idPath.toLong())
 
             response.status = HttpServletResponse.SC_OK
             response.writer.write(JsonOutput.toJson(empresa))
@@ -81,7 +105,6 @@ class EmpresaServlet extends HttpServlet {
             response.writer.write(
                     JsonOutput.toJson([erro: "Empresa não encontrada."])
             )
-
         } catch (Exception e) {
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
             response.writer.write(

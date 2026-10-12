@@ -13,7 +13,8 @@ import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.dto.empresa.AtualizarEmpresaDTO
 import com.jpcode.dto.empresa.CadastrarEmpresaDTO
 import com.jpcode.dto.empresa.EmpresaComReferenciasDTO
-import com.jpcode.dto.empresa.EmpresaProfileViewDTO
+import com.jpcode.dto.empresa.EmpresaViewDTO
+import com.jpcode.dto.empresa.EmpresaViewListDTO
 import com.jpcode.exception.empresa.EmpresaLoginException
 import com.jpcode.exception.empresa.EmpresaNaoEncontradaPorIdException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
@@ -69,15 +70,15 @@ class EmpresaService {
         
         return empresaRepository.salvar(empresa)
     }
-    
-    EmpresaProfileViewDTO buscarEmpresa(Long idEmpresa) {
+
+    EmpresaViewDTO buscarEmpresa(Long idEmpresa) {
         EmpresaComReferenciasDTO resultado = empresaRepository
                 .buscarPorIdComReferencias(idEmpresa)
                 .orElseThrow(() ->
                         new EmpresaNaoEncontradaPorIdException(idEmpresa)
                 )
 
-        return new EmpresaProfileViewDTO(
+        return new EmpresaViewDTO(
                 resultado.empresa.id,
                 resultado.empresa.nome,
                 resultado.empresa.email,
@@ -142,5 +143,9 @@ class EmpresaService {
     
     void removerCompetencia(Long idVaga, Long idCompetencia) {
         competenciasVagaRepository.removerCompetencia(idVaga, idCompetencia)
+    }
+
+    List<EmpresaViewListDTO> buscarEmpresas() {
+        return empresaRepository.buscarEmpresas()
     }
 }

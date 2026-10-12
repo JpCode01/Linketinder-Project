@@ -5,6 +5,7 @@ import com.jpcode.dao.candidato.contrato.CandidatoDesativacao
 import com.jpcode.dao.candidato.contrato.CandidatoRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.candidato.CandidatoComReferenciasDTO
+import com.jpcode.dto.candidato.CandidatoViewListDTO
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.referencia.Estado
 import com.jpcode.model.referencia.Pais
@@ -277,5 +278,38 @@ class CandidatoDAO implements
             )
         }
     }
+
+    List<CandidatoViewListDTO> buscarCandidatos() {
+        String sql = """
+        SELECT
+            c.id,
+            c.nome,
+            c.sobrenome,
+            c.email
+        FROM candidatos c
+        ORDER BY c.id
+    """
+
+        try (
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+                def resultSet = statement.executeQuery()
+        ) {
+            List<CandidatoViewListDTO> candidatos = []
+
+            while (resultSet.next()) {
+                candidatos.add(new CandidatoViewListDTO(
+                        resultSet.getLong("id"),
+                        resultSet.getString("nome"),
+                        resultSet.getString("sobrenome"),
+                        resultSet.getString("email"),
+                        []
+                ))
+            }
+
+            return candidatos
+        }
+    }
+    
 
 }

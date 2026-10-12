@@ -2,7 +2,7 @@ package com.jpcode.api.servlet
 
 import com.jpcode.controller.candidato.CandidatoController
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
-import com.jpcode.dto.candidato.CandidatoProfileViewDTO
+import com.jpcode.dto.candidato.CandidatoViewDTO
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
@@ -61,7 +61,33 @@ class CandidatoServlet extends HttpServlet {
 
         String idPath = request.pathInfo?.substring(1)
 
-        if (!idPath || !(idPath ==~ /\d+/)) {
+        if (!idPath) {
+            listarCandidatos(response)
+            return
+        }
+
+        buscarCandidatoPorId(idPath, response)
+    }
+
+    private void listarCandidatos(HttpServletResponse response) {
+        try {
+            response.status = HttpServletResponse.SC_OK
+            response.writer.write(
+                    JsonOutput.toJson(candidatoController.buscarCandidatos())
+            )
+        } catch (Exception e) {
+            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+            response.writer.write(
+                    JsonOutput.toJson([erro: "Erro interno ao listar candidatos."])
+            )
+        }
+    }
+
+    private void buscarCandidatoPorId(
+            String idPath,
+            HttpServletResponse response
+    ) {
+        if (!(idPath ==~ /\d+/)) {
             response.status = HttpServletResponse.SC_BAD_REQUEST
             response.writer.write(
                     JsonOutput.toJson([erro: "ID do candidato inválido."])
@@ -70,10 +96,8 @@ class CandidatoServlet extends HttpServlet {
         }
 
         try {
-            Long idCandidato = idPath.toLong()
-
-            CandidatoProfileViewDTO candidato =
-                    candidatoController.buscarCandidato(idCandidato)
+            CandidatoViewDTO candidato =
+                    candidatoController.buscarCandidato(idPath.toLong())
 
             response.status = HttpServletResponse.SC_OK
             response.writer.write(JsonOutput.toJson(candidato))

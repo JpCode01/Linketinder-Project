@@ -6,10 +6,7 @@ import com.jpcode.dao.candidato.contrato.CandidatoRepository
 import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
 import com.jpcode.dao.referencia.CompetenciaDAO
 import com.jpcode.dao.referencia.contrato.ReferenciaRepository
-import com.jpcode.dto.candidato.AtualizarCandidatoDTO
-import com.jpcode.dto.candidato.CadastrarCandidatoDTO
-import com.jpcode.dto.candidato.CandidatoComReferenciasDTO
-import com.jpcode.dto.candidato.CandidatoProfileViewDTO
+import com.jpcode.dto.candidato.*
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.exception.candidato.CandidatoLoginException
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
@@ -86,7 +83,7 @@ class CandidatoService {
 
 
 
-    CandidatoProfileViewDTO buscarCandidato(Long idCandidato) {
+    CandidatoViewDTO buscarCandidato(Long idCandidato) {
         CandidatoComReferenciasDTO resultado = candidatoRepository
                 .buscarPorIdComReferencias(idCandidato)
                 .orElseThrow(() ->
@@ -98,7 +95,7 @@ class CandidatoService {
 
         Candidato candidato = resultado.candidato
 
-        return new CandidatoProfileViewDTO(
+        return new CandidatoViewDTO(
                 candidato.id,
                 candidato.nome,
                 candidato.sobrenome,
@@ -173,6 +170,21 @@ class CandidatoService {
 
     List<String> competenciasEmString(Long idCandidato) {
         return competenciasCandidatoRepository.buscarPorCandidatoString(idCandidato)
+    }
+
+    List<CandidatoViewListDTO> buscarCandidatos() {
+        return candidatoRepository.buscarCandidatos().collect { candidato ->
+            List<Competencia> competencias =
+                    competenciasCandidatoRepository.buscarPorCandidato(candidato.id)
+
+            return new CandidatoViewListDTO(
+                    candidato.id,
+                    candidato.nome,
+                    candidato.sobrenome,
+                    candidato.email,
+                    competencias
+            )
+        }
     }
     
 }
