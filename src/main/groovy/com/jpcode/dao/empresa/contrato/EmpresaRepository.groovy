@@ -1,5 +1,6 @@
 package com.jpcode.dao.empresa.contrato
 
+import com.jpcode.dto.empresa.EmpresaComReferenciasDTO
 import com.jpcode.model.core.Empresa
 
 interface EmpresaRepository {
@@ -8,4 +9,6 @@ interface EmpresaRepository {
     Optional<Empresa> buscarPorId(Long id)
 
     Empresa atualizarDados(Empresa empresa)
+
+    Optional<EmpresaComReferenciasDTO> buscarPorIdComReferencias(Long id)
 }

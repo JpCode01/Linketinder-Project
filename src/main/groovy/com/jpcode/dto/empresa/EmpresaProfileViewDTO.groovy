@@ -1,29 +1,32 @@
 package com.jpcode.dto.empresa
 
+import com.jpcode.model.referencia.Estado
+import com.jpcode.model.referencia.Pais
+
 class EmpresaProfileViewDTO {
     Long id
     String nome
     String email
-    Long idEstado
+    Estado estado
     String cep
     String descricao
-    Long idPais
+    Pais pais
 
     EmpresaProfileViewDTO(
             Long id,
             String nome,
             String email,
-            Long idEstado,
+            Estado estado,
             String cep,
             String descricao,
-            Long idPais
+            Pais pais
     ) {
         this.id = id
         this.nome = nome
         this.email = email
-        this.idEstado = idEstado
+        this.estado = estado
         this.cep = cep
         this.descricao = descricao
-        this.idPais = idPais
+        this.pais = pais
     }
 }

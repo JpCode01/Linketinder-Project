@@ -28,7 +28,7 @@ class PaisDAO implements ReferenciaRepository {
             def resultSet = statement.executeQuery()
 
             if (!resultSet.next()) {
-                return null
+                return Optional.empty()
             }
 
             Pais pais = new Pais(
