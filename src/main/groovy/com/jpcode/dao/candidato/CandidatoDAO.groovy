@@ -213,7 +213,7 @@ class CandidatoDAO implements
 
     Optional<CandidatoComReferenciasDTO> buscarPorIdComReferencias(Long id) {
         String sql = """
-        SELECT
+        SELECT 
             c.id,
             c.nome,
             c.sobrenome,
