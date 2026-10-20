@@ -2,6 +2,7 @@ import { CandidatoService } from "../../services/CandidatoService"
 import { RepositoryConfig } from "../../config/RepositoryConfig"
 import { ServiceConfig } from "../../config/ServiceConfig"
 import { LoginCandidatoStrategy } from "../../strategy/login/LoginCandidatoStrategy"
+import { LoginStrategy } from "../../strategy/login/LoginStrategy";
 
 const repositoryConfig: RepositoryConfig = new RepositoryConfig()
 const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
@@ -9,7 +10,7 @@ const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
 const candidatoService: CandidatoService =
     serviceConfig.criarCandidatoService()
 
-const loginStrategy: LoginCandidatoStrategy =
+const loginStrategy: LoginStrategy =
     new LoginCandidatoStrategy(candidatoService)
 
 export function loginCandidato(): void {

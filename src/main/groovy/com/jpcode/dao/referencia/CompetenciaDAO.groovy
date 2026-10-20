@@ -6,7 +6,7 @@ import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.model.referencia.Competencia
 
 class CompetenciaDAO implements ReferenciaRepository {
-
+    
     private final ConnectionFactory connectionFactory
 
     CompetenciaDAO(ConnectionFactory connectionFactory) {
