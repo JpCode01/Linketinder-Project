@@ -2,6 +2,7 @@ import { EmpresaService } from "../../services/EmpresaService"
 import { RepositoryConfig } from "../../config/RepositoryConfig"
 import { ServiceConfig } from "../../config/ServiceConfig"
 import { LoginEmpresaStrategy } from "../../strategy/login/LoginEmpresaStrategy"
+import { LoginStrategy } from "../../strategy/login/LoginStrategy";
 
 const repositoryConfig: RepositoryConfig = new RepositoryConfig()
 const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
@@ -9,7 +10,7 @@ const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
 const empresaService: EmpresaService =
     serviceConfig.criarEmpresaService()
 
-const loginStrategy: LoginEmpresaStrategy =
+const loginStrategy: LoginStrategy =
     new LoginEmpresaStrategy(empresaService)
 
 export function loginEmpresa(): void {
