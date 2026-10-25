@@ -1,6 +1,6 @@
 package com.jpcode.dao.vaga
 
-import com.jpcode.dao.vaga.contrato.VagaRepository
+import com.jpcode.dao.contratos.VagaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO

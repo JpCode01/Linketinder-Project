@@ -1,13 +1,13 @@
 package com.jpcode.dao.relacionamento
 
-import com.jpcode.dao.relacionamento.contrato.EmpresaCurtirRepository
+import com.jpcode.dao.contratos.CurtidaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
 
-class EmpresaCurtirDAO implements EmpresaCurtirRepository {
+class EmpresaCurtirDAO implements CurtidaRepository<CandidatoAnonimoDTO> {
 
     private final ConnectionFactory connectionFactory
 
@@ -34,7 +34,7 @@ class EmpresaCurtirDAO implements EmpresaCurtirRepository {
         }
     }
 
-    List<CandidatoAnonimoDTO> buscarCandidatosCurtidos(Long idEmpresa) {
+    List<CandidatoAnonimoDTO> buscarCurtidas(Long idEmpresa) {
         String sql = """
         SELECT
             c.id,

@@ -1,8 +1,7 @@
-package com.jpcode.dao.relacionamento.contrato
+package com.jpcode.dao.contratos
 
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 
-interface CandidatoCurtirConsulta {
+interface CandidatoCurtidasConsultaRepository {
     List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Long idVaga)
-
 }

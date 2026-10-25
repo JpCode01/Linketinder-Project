@@ -1,49 +1,37 @@
 package com.jpcode.service
 
-import com.jpcode.dao.empresa.contrato.EmpresaAutenticacao
-import com.jpcode.dao.empresa.contrato.EmpresaDesativacao
-import com.jpcode.dao.empresa.contrato.EmpresaRepository
-import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.referencia.contrato.ReferenciaRepository
-import com.jpcode.dao.relacionamento.contrato.CandidatoCurtirConsulta
-import com.jpcode.dao.relacionamento.contrato.EmpresaCurtirRepository
-import com.jpcode.dao.vaga.contrato.CompetenciasVagaRepository
+import com.jpcode.dao.contratos.CandidatoCurtidasConsultaRepository
+import com.jpcode.dao.contratos.CompetenciaRepository
+import com.jpcode.dao.contratos.CurtidaRepository
+import com.jpcode.dao.contratos.UsuarioRepository
+import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
-import com.jpcode.dto.empresa.AtualizarEmpresaDTO
-import com.jpcode.dto.empresa.CadastrarEmpresaDTO
-import com.jpcode.dto.empresa.EmpresaComReferenciasDTO
-import com.jpcode.dto.empresa.EmpresaViewDTO
-import com.jpcode.dto.empresa.EmpresaViewListDTO
+import com.jpcode.dto.empresa.*
 import com.jpcode.exception.empresa.EmpresaLoginException
 import com.jpcode.exception.empresa.EmpresaNaoEncontradaPorIdException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Empresa
+import com.jpcode.model.referencia.Competencia
 import com.jpcode.model.referencia.Estado
 import com.jpcode.model.referencia.Pais
 
 class EmpresaService {
     final ReferenciaRepository<Pais> paisRepository
     final ReferenciaRepository<Estado> estadoRepository
-    final EmpresaRepository empresaRepository
-    final EmpresaAutenticacao empresaAutenticacao
-    final EmpresaDesativacao empresaDesativacao
-    final CandidatoCurtirConsulta candidatoCurtirConsulta
-    final EmpresaCurtirRepository empresaCurtirRepository
-    final CompetenciasVagaRepository competenciasVagaRepository
-    final CompetenciaDAO competenciaDAO
+    final UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository
+    final CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository
+    final CurtidaRepository<CandidatoAnonimoDTO> empresaCurtirRepository
+    final CompetenciaRepository competenciasVagaRepository
 
-    EmpresaService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, EmpresaRepository empresaRepository, EmpresaAutenticacao empresaAutenticacao, EmpresaDesativacao empresaDesativacao, CandidatoCurtirConsulta candidatoCurtirConsulta, EmpresaCurtirRepository empresaCurtirRepository, CompetenciasVagaRepository competenciasVagaRepository, CompetenciaDAO competenciaDAO) {
+    EmpresaService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository, CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository, CurtidaRepository<CandidatoAnonimoDTO> empresaCurtirRepository, CompetenciaRepository competenciasVagaRepository) {
         this.paisRepository = paisRepository
         this.estadoRepository = estadoRepository
         this.empresaRepository = empresaRepository
-        this.empresaAutenticacao = empresaAutenticacao
-        this.empresaDesativacao = empresaDesativacao
-        this.candidatoCurtirConsulta = candidatoCurtirConsulta
+        this.candidatoCurtidasConsultaRepository = candidatoCurtidasConsultaRepository
         this.empresaCurtirRepository = empresaCurtirRepository
         this.competenciasVagaRepository = competenciasVagaRepository
-        this.competenciaDAO = competenciaDAO
     }
 
     Empresa cadastrarEmpresa(CadastrarEmpresaDTO cadastrarEmpresaDTO) {
@@ -90,13 +78,13 @@ class EmpresaService {
     }
 
     Empresa logar(String email, String senha) {
-        return empresaAutenticacao.buscarPorEmailESenha(email, senha)
+        return empresaRepository.buscarPorEmailESenha(email, senha)
         .orElseThrow(() ->
         new EmpresaLoginException(email, senha))
     }
     
     List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Long idVaga) {
-        return candidatoCurtirConsulta.buscarCandidatosQueCurtiram(idVaga)
+        return candidatoCurtidasConsultaRepository.buscarCandidatosQueCurtiram(idVaga)
     }
 
     void curtirCandidato(Long idEmpresa,Long idCandidato) {
@@ -104,11 +92,11 @@ class EmpresaService {
     }
 
     List<CandidatoAnonimoDTO> buscarCandidatosCurtidos(Long idEmpresa) {
-        return empresaCurtirRepository.buscarCandidatosCurtidos(idEmpresa)
+        return empresaCurtirRepository.buscarCurtidas(idEmpresa)
     }
 
     void desativarEmpresa(Long idEmpresa) {
-        empresaDesativacao.desativar(idEmpresa)
+        empresaRepository.desativar(idEmpresa)
     }
 
     void atualizarEmpresa(AtualizarEmpresaDTO atualizarEmpresaDTO) {
@@ -138,7 +126,7 @@ class EmpresaService {
     }
 
     List<RemoverCompetenciaDTO> listaParaRemover(Long idVaga) {
-        return competenciaDAO.converterCompetenciasParaDTO(competenciasVagaRepository.buscarPorVaga(idVaga))
+        return converterCompetenciasParaDTO(competenciasVagaRepository.buscarPorId(idVaga))
     }
     
     void removerCompetencia(Long idVaga, Long idCompetencia) {
@@ -146,6 +134,18 @@ class EmpresaService {
     }
 
     List<EmpresaViewListDTO> buscarEmpresas() {
-        return empresaRepository.buscarEmpresas()
+        return empresaRepository.buscar()
+    }
+
+    private List<RemoverCompetenciaDTO> converterCompetenciasParaDTO(List<Competencia> competencias) {
+        List<RemoverCompetenciaDTO> competenciasConvertidas = []
+        competencias.each { competencia ->
+            competenciasConvertidas.add(
+                    new RemoverCompetenciaDTO(competencia.id,
+                            competencia.nome
+                    ))
+        }
+
+        return competenciasConvertidas
     }
 }

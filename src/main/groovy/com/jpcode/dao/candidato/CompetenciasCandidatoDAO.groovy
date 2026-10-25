@@ -1,10 +1,10 @@
 package com.jpcode.dao.candidato
 
-import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
+import com.jpcode.dao.contratos.CompetenciaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.referencia.Competencia
 
-class CompetenciasCandidatoDAO implements CompetenciasCandidatoRepository {
+class CompetenciasCandidatoDAO implements CompetenciaRepository {
 
     private final ConnectionFactory connectionFactory
 
@@ -31,7 +31,7 @@ class CompetenciasCandidatoDAO implements CompetenciasCandidatoRepository {
         }
     }
 
-    List<Competencia> buscarPorCandidato(Long idCandidato) {
+    List<Competencia> buscarPorId(Long idCandidato) {
         String sql = """
         SELECT c.id, c.nome_competencia
         FROM competencias c
@@ -63,7 +63,7 @@ class CompetenciasCandidatoDAO implements CompetenciasCandidatoRepository {
         }
     }
 
-    List<String> buscarPorCandidatoString(Long idCandidato) {
+    List<String> buscarEmString(Long idCandidato) {
         String sql = """
         SELECT c.nome_competencia
         FROM competencias c

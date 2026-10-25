@@ -50,8 +50,8 @@ class DaoConfig {
             new VagaDAO(connectionFactory)
 
     final MatchDAO matchDAO = new MatchDAO(
+            connectionFactory,
             competenciasCandidatoDAO,
-            competenciasVagaDAO,
-            connectionFactory
+            competenciasVagaDAO
     )
 }

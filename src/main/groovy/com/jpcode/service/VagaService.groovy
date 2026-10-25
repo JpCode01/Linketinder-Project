@@ -1,9 +1,6 @@
 package com.jpcode.service
 
-import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.relacionamento.contrato.CandidatoCurtirRepository
-import com.jpcode.dao.vaga.contrato.CompetenciasVagaRepository
-import com.jpcode.dao.vaga.contrato.VagaRepository
+import com.jpcode.dao.contratos.*
 import com.jpcode.dto.vaga.AtualizarVagaDTO
 import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
@@ -15,16 +12,18 @@ import com.jpcode.model.referencia.Competencia
 
 class VagaService {
 
-    final CompetenciaDAO competenciaDAO
-    final CompetenciasVagaRepository competenciasVagaRepository
     final VagaRepository vagaRepository
-    final CandidatoCurtirRepository candidatoCurtirRepository
+    final ReferenciaRepository<Competencia> referenciaRepository
+    final ReferenciaCompetenciaRepository referenciaCompetencia
+    final CompetenciaRepository competenciaRepository
+    final CurtidaRepository<VagaAnonimaDTO> curtidaRepository
 
-    VagaService(CompetenciaDAO competenciaDAO, CompetenciasVagaRepository competenciasVagaRepository, VagaRepository vagaRepository, CandidatoCurtirRepository candidatoCurtirRepository) {
-        this.competenciaDAO = competenciaDAO
-        this.competenciasVagaRepository = competenciasVagaRepository
+    VagaService(VagaRepository vagaRepository, ReferenciaRepository<Competencia> referenciaRepository, ReferenciaCompetenciaRepository referenciaCompetencia, CompetenciaRepository competenciaRepository, CurtidaRepository<VagaAnonimaDTO> curtidaRepository) {
         this.vagaRepository = vagaRepository
-        this.candidatoCurtirRepository = candidatoCurtirRepository
+        this.referenciaRepository = referenciaRepository
+        this.referenciaCompetencia = referenciaCompetencia
+        this.competenciaRepository = competenciaRepository
+        this.curtidaRepository = curtidaRepository
     }
 
     void criarVaga(CadastrarVagaDTO cadastrarVagaDTO) {
@@ -42,23 +41,21 @@ class VagaService {
     private salvarCompetencias(List<String> competencias, Long idVaga) {
         competencias.each {
             competencia ->
-                Long idCompetencia = competenciaDAO
+                Long idCompetencia = referenciaRepository
                         .buscarIdPorNome(competencia)
                         .orElseThrow(() ->
                                 new CompetenciaNaoEncontradaException(competencia)
                         )
 
-                competenciasVagaRepository.salvar(
+                competenciaRepository.salvar(
                         idVaga,
                         idCompetencia
                 )
         }
     }
 
-
-
     void curtir(Long idCandidato, Long idVaga) {
-        candidatoCurtirRepository.salvar(idCandidato, idVaga)
+        curtidaRepository.salvar(idCandidato, idVaga)
     }
 
     List<VagaEmpresaDTO> listarVagas(Long idEmpresa) {
@@ -72,7 +69,7 @@ class VagaService {
     }
 
     List<VagaAnonimaDTO> listarVagasCurtidas(long idCandidato) {
-        return candidatoCurtirRepository.buscarVagasCurtidas(idCandidato)
+        return curtidaRepository.buscarCurtidas(idCandidato)
     }
 
     List<VagaAnonimaDTO> buscarTodasAsVagas() {
@@ -80,7 +77,7 @@ class VagaService {
     }
 
     List<Competencia> buscarCompetenciasDeVaga(Long idVaga) {
-        return competenciasVagaRepository.buscarPorVaga(idVaga)
+        return competenciaRepository.buscarPorId(idVaga)
     }
 
     void deletarVaga(Long idVaga) {
@@ -100,16 +97,15 @@ class VagaService {
     }
 
     List<String> competenciasEmString(Long idVaga) {
-        return competenciasVagaRepository.buscarPorVagaString(idVaga)
+        return competenciaRepository.buscarEmString(idVaga)
     }
 
     void adicionarCompetencias(Long idVaga, List<String> competenciasNovas) {
         List<Competencia> converterParaCompetencia = []
         competenciasNovas.each { competenciaString ->
             converterParaCompetencia.add(
-                    competenciaDAO.buscarPorNome(competenciaString))
+                    referenciaCompetencia.buscarPorNome(competenciaString))
         }
-        competenciasVagaRepository.atualizar(idVaga, converterParaCompetencia)
+        competenciaRepository.atualizar(idVaga, converterParaCompetencia)
     }
-
 }

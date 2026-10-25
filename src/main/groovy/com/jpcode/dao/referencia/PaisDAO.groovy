@@ -1,6 +1,6 @@
 package com.jpcode.dao.referencia
 
-import com.jpcode.dao.referencia.contrato.ReferenciaRepository
+import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.referencia.Pais
 

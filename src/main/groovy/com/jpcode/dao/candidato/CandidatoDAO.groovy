@@ -1,8 +1,6 @@
 package com.jpcode.dao.candidato
 
-import com.jpcode.dao.candidato.contrato.CandidatoAutenticacao
-import com.jpcode.dao.candidato.contrato.CandidatoDesativacao
-import com.jpcode.dao.candidato.contrato.CandidatoRepository
+import com.jpcode.dao.contratos.UsuarioRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.candidato.CandidatoComReferenciasDTO
 import com.jpcode.dto.candidato.CandidatoViewListDTO
@@ -14,9 +12,7 @@ import java.sql.Date
 import java.sql.Statement
 
 class CandidatoDAO implements
-        CandidatoAutenticacao,
-        CandidatoRepository,
-        CandidatoDesativacao
+        UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO>
 {
 
     private final ConnectionFactory connectionFactory
@@ -279,7 +275,7 @@ class CandidatoDAO implements
         }
     }
 
-    List<CandidatoViewListDTO> buscarCandidatos() {
+    List<CandidatoViewListDTO> buscar() {
         String sql = """
         SELECT
             c.id,

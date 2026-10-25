@@ -1,22 +1,25 @@
 package com.jpcode.service
 
-import com.jpcode.dao.referencia.CompetenciaDAO
+import com.jpcode.dao.contratos.ReferenciaCompetenciaRepository
+import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 import com.jpcode.model.referencia.Competencia
 
 class CompetenciaService {
-    final CompetenciaDAO competenciaDAO
+    final ReferenciaCompetenciaRepository referenciaCompetenciaRepository
+    final ReferenciaRepository<Competencia> referenciaRepository
 
-    CompetenciaService(CompetenciaDAO competenciaDAO) {
-        this.competenciaDAO = competenciaDAO
+    CompetenciaService(ReferenciaCompetenciaRepository referenciaCompetenciaRepository, ReferenciaRepository<Competencia> referenciaRepository) {
+        this.referenciaCompetenciaRepository = referenciaCompetenciaRepository
+        this.referenciaRepository = referenciaRepository
     }
 
     List<String> listarCompetencias() {
-        return competenciaDAO.listarTodasCompetencias()
+        return referenciaCompetenciaRepository.listarTodasCompetencias()
     }
 
     Competencia buscarCompetencia(Long idCompetencia) {
-        return competenciaDAO.buscarPorId(idCompetencia)
+        return referenciaRepository.buscarPorId(idCompetencia)
         .orElseThrow(() ->
                 new CompetenciaNaoEncontradaException(idCompetencia))
     }
