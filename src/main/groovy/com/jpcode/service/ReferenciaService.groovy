@@ -1,6 +1,6 @@
 package com.jpcode.service
 
-import com.jpcode.dao.referencia.contrato.ReferenciaRepository
+import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.referencia.Estado

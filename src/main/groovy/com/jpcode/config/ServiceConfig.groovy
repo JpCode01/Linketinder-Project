@@ -20,18 +20,16 @@ class ServiceConfig {
                 daoConfig.paisDAO,
                 daoConfig.estadoDAO,
                 daoConfig.empresaDAO,
-                daoConfig.empresaDAO,
-                daoConfig.empresaDAO,
                 daoConfig.candidatoCurtirDAO,
                 daoConfig.empresaCurtirDAO,
-                daoConfig.competenciasVagaDAO,
-                daoConfig.competenciaDAO
+                daoConfig.competenciasVagaDAO
         )
 
         vagaService = new VagaService(
+                daoConfig.vagaDAO,
+                daoConfig.competenciaDAO,
                 daoConfig.competenciaDAO,
                 daoConfig.competenciasVagaDAO,
-                daoConfig.vagaDAO,
                 daoConfig.candidatoCurtirDAO
         )
 
@@ -39,9 +37,8 @@ class ServiceConfig {
                 daoConfig.paisDAO,
                 daoConfig.estadoDAO,
                 daoConfig.competenciaDAO,
-                daoConfig.getCompetenciasCandidatoDAO(),
-                daoConfig.candidatoDAO,
-                daoConfig.candidatoDAO,
+                daoConfig.competenciaDAO,
+                daoConfig.competenciasCandidatoDAO,
                 daoConfig.candidatoDAO
         )
 
@@ -50,6 +47,7 @@ class ServiceConfig {
         )
 
         competenciaService = new CompetenciaService(
+                daoConfig.competenciaDAO,
                 daoConfig.competenciaDAO
         )
 

@@ -1,22 +1,22 @@
 package com.jpcode.dao.match
 
-import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
-import com.jpcode.dao.match.contrato.MatchRepository
-import com.jpcode.dao.vaga.contrato.CompetenciasVagaRepository
+
+import com.jpcode.dao.contratos.CompetenciaRepository
+import com.jpcode.dao.contratos.MatchRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.Match.MatchEncontradoDTO
 import com.jpcode.model.referencia.Competencia
 
 class MatchDAO implements MatchRepository {
-
-    final CompetenciasCandidatoRepository competenciasCandidatoRepository
-    final CompetenciasVagaRepository competenciasVagaRepository
+    
     private final ConnectionFactory connectionFactory
+    final CompetenciaRepository competenciasCandidatoRepository
+    final CompetenciaRepository competenciasVagaRepository
 
-    MatchDAO(CompetenciasCandidatoRepository competenciasCandidatoRepository, CompetenciasVagaRepository competenciasVagaRepository, ConnectionFactory connectionFactory) {
+    MatchDAO(ConnectionFactory connectionFactory, CompetenciaRepository competenciasCandidatoRepository, CompetenciaRepository competenciasVagaRepository) {
+        this.connectionFactory = connectionFactory
         this.competenciasCandidatoRepository = competenciasCandidatoRepository
         this.competenciasVagaRepository = competenciasVagaRepository
-        this.connectionFactory = connectionFactory
     }
 
     void salvar(Long idCandidato, Long idEmpresa, Long idVaga) {
@@ -109,10 +109,10 @@ class MatchDAO implements MatchRepository {
                 Long idVaga = resultSet.getLong("id_vaga")
 
                 List<Competencia> competenciasCandidato =
-                        competenciasCandidatoRepository.buscarPorCandidato(idCandidato)
+                        competenciasCandidatoRepository.buscar(idCandidato)
 
                 List<String> competenciasVaga =
-                        competenciasVagaRepository.buscarPorVagaString(idVaga)
+                        competenciasVagaRepository.buscarEmString(idVaga)
 
                 matches.add(
                         new MatchEncontradoDTO(
@@ -215,10 +215,10 @@ class MatchDAO implements MatchRepository {
                 Long idVaga = resultSet.getLong("id_vaga")
 
                 List<Competencia> competenciasCandidato =
-                        competenciasCandidatoRepository.buscarPorCandidato(idCandidato)
+                        competenciasCandidatoRepository.buscarPorId(idCandidato)
 
                 List<String> competenciasVaga =
-                        competenciasVagaRepository.buscarPorVagaString(idVaga)
+                        competenciasVagaRepository.buscarEmString(idVaga)
 
                 matches.add(
                         new MatchEncontradoDTO(

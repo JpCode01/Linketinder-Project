@@ -1,11 +1,9 @@
 package com.jpcode.service
 
-import com.jpcode.dao.candidato.contrato.CandidatoAutenticacao
-import com.jpcode.dao.candidato.contrato.CandidatoDesativacao
-import com.jpcode.dao.candidato.contrato.CandidatoRepository
-import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
-import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.referencia.contrato.ReferenciaRepository
+import com.jpcode.dao.contratos.CompetenciaRepository
+import com.jpcode.dao.contratos.ReferenciaCompetenciaRepository
+import com.jpcode.dao.contratos.ReferenciaRepository
+import com.jpcode.dao.contratos.UsuarioRepository
 import com.jpcode.dto.candidato.*
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.exception.candidato.CandidatoLoginException
@@ -21,20 +19,18 @@ import com.jpcode.model.referencia.Pais
 class CandidatoService {
     final ReferenciaRepository<Pais> paisRepository
     final ReferenciaRepository<Estado> estadoRepository
-    final CompetenciaDAO competenciaDAO
-    final CompetenciasCandidatoRepository competenciasCandidatoRepository
-    final CandidatoRepository candidatoRepository
-    final CandidatoAutenticacao candidatoAutenticacao
-    final CandidatoDesativacao candidatoDesativacao
+    final ReferenciaRepository<Competencia> competenciaRepository
+    final ReferenciaCompetenciaRepository referenciaCompetenciaRepository
+    final CompetenciaRepository competenciasCandidatoRepository
+    final UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository
 
-    CandidatoService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, CompetenciaDAO competenciaDAO, CompetenciasCandidatoRepository competenciasCandidatoRepository, CandidatoRepository candidatoRepository, CandidatoAutenticacao candidatoAutenticacao, CandidatoDesativacao candidatoDesativacao) {
+    CandidatoService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, ReferenciaRepository<Competencia> competenciaRepository, ReferenciaCompetenciaRepository referenciaCompetenciaRepository, CompetenciaRepository competenciasCandidatoRepository, UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository) {
         this.paisRepository = paisRepository
         this.estadoRepository = estadoRepository
-        this.competenciaDAO = competenciaDAO
+        this.competenciaRepository = competenciaRepository
+        this.referenciaCompetenciaRepository = referenciaCompetenciaRepository
         this.competenciasCandidatoRepository = competenciasCandidatoRepository
         this.candidatoRepository = candidatoRepository
-        this.candidatoAutenticacao = candidatoAutenticacao
-        this.candidatoDesativacao = candidatoDesativacao
     }
 
     void cadastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
@@ -68,7 +64,7 @@ class CandidatoService {
     private salvarCompetencias(List<String> competencias, Long idCandidato) {
         competencias.each {
             competencia ->
-                Long idCompetencia = competenciaDAO
+                Long idCompetencia = competenciaRepository
                         .buscarIdPorNome(competencia)
                         .orElseThrow(() ->
                                 new CompetenciaNaoEncontradaException(competencia)
@@ -81,8 +77,6 @@ class CandidatoService {
         }
     }
 
-
-
     CandidatoViewDTO buscarCandidato(Long idCandidato) {
         CandidatoComReferenciasDTO resultado = candidatoRepository
                 .buscarPorIdComReferencias(idCandidato)
@@ -91,7 +85,7 @@ class CandidatoService {
                 )
 
         List<Competencia> competencias =
-                competenciasCandidatoRepository.buscarPorCandidato(idCandidato)
+                competenciasCandidatoRepository.buscarPorId(idCandidato)
 
         Candidato candidato = resultado.candidato
 
@@ -109,16 +103,15 @@ class CandidatoService {
                 competencias
         )
     }
-
-
+    
     Candidato logar(String email, String senha) {
-        return candidatoAutenticacao.buscarPorEmailESenha(email, senha)
+        return candidatoRepository.buscarPorEmailESenha(email, senha)
         .orElseThrow(() ->
         new CandidatoLoginException(email, senha))
     }
 
     void desativarCandidato(Long idCandidato) {
-        candidatoDesativacao.desativar(idCandidato)
+        candidatoRepository.desativar(idCandidato)
     }
     
     void atualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
@@ -147,15 +140,13 @@ class CandidatoService {
                         atualizarCandidatoDTO.descricao,
                         atualizarCandidatoDTO.ativo
                 ))
-
     }
-
-
+    
     void adicionarCompetencias(Long idCandidato, List<String> competenciasNovas) {
         List<Competencia> converterParaCompetencia = []
         competenciasNovas.each {competenciaString ->
             converterParaCompetencia.add(
-                    competenciaDAO.buscarPorNome(competenciaString))
+                    referenciaCompetenciaRepository.buscarPorNome(competenciaString))
         }
         competenciasCandidatoRepository.atualizar(idCandidato, converterParaCompetencia)
     }
@@ -165,17 +156,18 @@ class CandidatoService {
     }
 
     List<RemoverCompetenciaDTO> listaParaRemover(Long idCandidato) {
-        return competenciaDAO.converterCompetenciasParaDTO(competenciasCandidatoRepository.buscarPorCandidato(idCandidato))
+        return converterCompetenciasParaDTO(competenciasCandidatoRepository.buscarPorId(idCandidato))
     }
 
     List<String> competenciasEmString(Long idCandidato) {
-        return competenciasCandidatoRepository.buscarPorCandidatoString(idCandidato)
+        return competenciasCandidatoRepository
+                .buscarEmString(idCandidato)
     }
 
     List<CandidatoViewListDTO> buscarCandidatos() {
-        return candidatoRepository.buscarCandidatos().collect { candidato ->
+        return candidatoRepository.buscar().collect { candidato ->
             List<Competencia> competencias =
-                    competenciasCandidatoRepository.buscarPorCandidato(candidato.id)
+                    competenciasCandidatoRepository.buscarPorId(candidato.id)
 
             return new CandidatoViewListDTO(
                     candidato.id,
@@ -186,5 +178,16 @@ class CandidatoService {
             )
         }
     }
-    
+
+    private List<RemoverCompetenciaDTO> converterCompetenciasParaDTO(List<Competencia> competencias) {
+        List<RemoverCompetenciaDTO> competenciasConvertidas = []
+        competencias.each { competencia ->
+            competenciasConvertidas.add(
+                    new RemoverCompetenciaDTO(competencia.id,
+                            competencia.nome
+                    ))
+        }
+
+        return competenciasConvertidas
+    }
 }

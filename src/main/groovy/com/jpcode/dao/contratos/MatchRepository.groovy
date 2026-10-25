@@ -1,4 +1,4 @@
-package com.jpcode.dao.match.contrato
+package com.jpcode.dao.contratos
 
 import com.jpcode.dto.Match.MatchEncontradoDTO
 

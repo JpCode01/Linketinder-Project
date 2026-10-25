@@ -1,6 +1,6 @@
 package com.jpcode.service
 
-import com.jpcode.dao.match.contrato.MatchRepository
+import com.jpcode.dao.contratos.MatchRepository
 import com.jpcode.dto.Match.MatchEncontradoDTO
 import spock.lang.Specification
 

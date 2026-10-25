@@ -1,12 +1,12 @@
 package com.jpcode.dao.vaga
 
-import com.jpcode.dao.vaga.contrato.CompetenciasVagaRepository
+import com.jpcode.dao.contratos.CompetenciaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
 
-class CompetenciasVagaDAO implements CompetenciasVagaRepository {
+class CompetenciasVagaDAO implements CompetenciaRepository {
 
     private final ConnectionFactory connectionFactory
 
@@ -33,7 +33,7 @@ class CompetenciasVagaDAO implements CompetenciasVagaRepository {
         }
     }
 
-    List<Competencia> buscarPorVaga(Long idVaga) {
+    List<Competencia> buscarPorId(Long idVaga) {
         String sql = """
             SELECT c.id, c.nome_competencia
             FROM competencias c
@@ -64,7 +64,7 @@ class CompetenciasVagaDAO implements CompetenciasVagaRepository {
         }
     }
 
-    List<String> buscarPorVagaString(Long idVaga) {
+    List<String> buscarEmString(Long idVaga) {
         String sql = """
         SELECT c.nome_competencia
         FROM competencias c

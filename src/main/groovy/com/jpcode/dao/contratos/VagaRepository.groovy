@@ -1,4 +1,4 @@
-package com.jpcode.dao.vaga.contrato
+package com.jpcode.dao.contratos
 
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.dto.vaga.VagaEmpresaDTO

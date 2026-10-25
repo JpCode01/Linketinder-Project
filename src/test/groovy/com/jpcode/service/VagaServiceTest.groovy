@@ -1,9 +1,6 @@
 package com.jpcode.service
 
-import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.relacionamento.contrato.CandidatoCurtirRepository
-import com.jpcode.dao.vaga.contrato.CompetenciasVagaRepository
-import com.jpcode.dao.vaga.contrato.VagaRepository
+import com.jpcode.dao.contratos.*
 import com.jpcode.dto.vaga.AtualizarVagaDTO
 import com.jpcode.dto.vaga.CadastrarVagaDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
@@ -16,19 +13,21 @@ import spock.lang.Specification
 
 class VagaServiceTest extends Specification {
 
-    CompetenciaDAO competenciaDAO = Mock()
-    CompetenciasVagaRepository competenciasVagaRepository = Mock()
+    ReferenciaRepository<Competencia> referenciaRepository = Mock()
+    ReferenciaCompetenciaRepository referenciaCompetencia = Mock()
+    CompetenciaRepository competenciaRepository = Mock()
     VagaRepository vagaRepository = Mock()
-    CandidatoCurtirRepository candidatoCurtirRepository = Mock()
+    CurtidaRepository<VagaAnonimaDTO> curtidaRepository = Mock()
 
     VagaService service
 
     def setup() {
         service = new VagaService(
-                competenciaDAO,
-                competenciasVagaRepository,
                 vagaRepository,
-                candidatoCurtirRepository
+                referenciaRepository,
+                referenciaCompetencia,
+                competenciaRepository,
+                curtidaRepository
         )
     }
 
@@ -55,7 +54,7 @@ class VagaServiceTest extends Specification {
 
         then:
         1 * vagaRepository.salvar(_) >> vagaSalva
-        0 * competenciasVagaRepository.salvar(_, _)
+        0 * competenciaRepository.salvar(_, _)
     }
 
     def "deve criar vaga e cadastrar competencias"() {
@@ -76,16 +75,16 @@ class VagaServiceTest extends Specification {
                 10L
         )
 
-        competenciaDAO.buscarIdPorNome("JAVA") >> Optional.of(1L)
-        competenciaDAO.buscarIdPorNome("SPRING") >> Optional.of(2L)
+        referenciaRepository.buscarIdPorNome("JAVA") >> Optional.of(1L)
+        referenciaRepository.buscarIdPorNome("SPRING") >> Optional.of(2L)
 
         when:
         service.criarVaga(cadastrarVagaDTO)
 
         then:
         1 * vagaRepository.salvar(_) >> vagaSalva
-        1 * competenciasVagaRepository.salvar(1L, 1L)
-        1 * competenciasVagaRepository.salvar(1L, 2L)
+        1 * competenciaRepository.salvar(1L, 1L)
+        1 * competenciaRepository.salvar(1L, 2L)
     }
 
     def "deve lançar exceção quando competencia não existir"() {
@@ -106,7 +105,7 @@ class VagaServiceTest extends Specification {
                 10L
         )
 
-        competenciaDAO.buscarIdPorNome("JAVA") >> Optional.empty()
+        referenciaRepository.buscarIdPorNome("JAVA") >> Optional.empty()
 
         when:
         service.criarVaga(cadastrarVagaDTO)
@@ -114,7 +113,7 @@ class VagaServiceTest extends Specification {
         then:
         1 * vagaRepository.salvar(_) >> vagaSalva
         thrown(CompetenciaNaoEncontradaException)
-        0 * competenciasVagaRepository.salvar(_, _)
+        0 * competenciaRepository.salvar(_, _)
     }
 
     def "deve curtir vaga"() {
@@ -122,7 +121,7 @@ class VagaServiceTest extends Specification {
         service.curtir(1L, 5L)
 
         then:
-        1 * candidatoCurtirRepository.salvar(1L, 5L)
+        1 * curtidaRepository.salvar(1L, 5L)
     }
 
     def "deve listar vagas da empresa"() {
@@ -166,7 +165,7 @@ class VagaServiceTest extends Specification {
         given:
         List<VagaAnonimaDTO> vagas = []
 
-        candidatoCurtirRepository.buscarVagasCurtidas(1L) >> vagas
+        curtidaRepository.buscarCurtidas(1L) >> vagas
 
         expect:
         service.listarVagasCurtidas(1L) == vagas
@@ -189,7 +188,7 @@ class VagaServiceTest extends Specification {
                 new Competencia(2L, "SPRING")
         ]
 
-        competenciasVagaRepository.buscarPorVaga(1L) >> competencias
+        competenciaRepository.buscarPorId(1L) >> competencias
 
         expect:
         service.buscarCompetenciasDeVaga(1L) == competencias
@@ -224,7 +223,7 @@ class VagaServiceTest extends Specification {
         given:
         List<String> competencias = ["JAVA", "SPRING"]
 
-        competenciasVagaRepository.buscarPorVagaString(1L) >> competencias
+        competenciaRepository.buscarEmString(1L) >> competencias
 
         expect:
         service.competenciasEmString(1L) == competencias
@@ -235,8 +234,8 @@ class VagaServiceTest extends Specification {
         Competencia java = new Competencia(1L, "JAVA")
         Competencia spring = new Competencia(2L, "SPRING")
 
-        competenciaDAO.buscarPorNome("JAVA") >> java
-        competenciaDAO.buscarPorNome("SPRING") >> spring
+        referenciaCompetencia.buscarPorNome("JAVA") >> java
+        referenciaCompetencia.buscarPorNome("SPRING") >> spring
 
         when:
         service.adicionarCompetencias(
@@ -245,7 +244,7 @@ class VagaServiceTest extends Specification {
         )
 
         then:
-        1 * competenciasVagaRepository.atualizar(
+        1 * competenciaRepository.atualizar(
                 1L,
                 [java, spring]
         )

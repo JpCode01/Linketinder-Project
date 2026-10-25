@@ -1,4 +1,4 @@
-package com.jpcode.dao.referencia.contrato
+package com.jpcode.dao.contratos
 
 interface ReferenciaRepository<T> {
     Optional<T> buscarPorId(Long id)

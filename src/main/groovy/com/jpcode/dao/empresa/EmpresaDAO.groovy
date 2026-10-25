@@ -1,8 +1,6 @@
 package com.jpcode.dao.empresa
 
-import com.jpcode.dao.empresa.contrato.EmpresaAutenticacao
-import com.jpcode.dao.empresa.contrato.EmpresaDesativacao
-import com.jpcode.dao.empresa.contrato.EmpresaRepository
+import com.jpcode.dao.contratos.UsuarioRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.empresa.EmpresaComReferenciasDTO
 import com.jpcode.dto.empresa.EmpresaViewListDTO
@@ -13,9 +11,8 @@ import com.jpcode.model.referencia.Pais
 import java.sql.Statement
 
 class EmpresaDAO implements
-        EmpresaRepository,
-        EmpresaAutenticacao,
-        EmpresaDesativacao {
+        UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO>
+         {
 
     private final ConnectionFactory connectionFactory
 
@@ -249,7 +246,7 @@ class EmpresaDAO implements
         }
     }
 
-    List<EmpresaViewListDTO> buscarEmpresas() {
+    List<EmpresaViewListDTO> buscar() {
         String sql = """
         SELECT
             id,
