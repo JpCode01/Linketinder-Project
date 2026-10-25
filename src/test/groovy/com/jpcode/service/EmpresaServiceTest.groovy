@@ -1,17 +1,12 @@
 package com.jpcode.service
 
-import com.jpcode.dao.empresa.contrato.EmpresaAutenticacao
-import com.jpcode.dao.empresa.contrato.EmpresaDesativacao
-import com.jpcode.dao.empresa.contrato.EmpresaRepository
-import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.referencia.contrato.ReferenciaRepository
-import com.jpcode.dao.relacionamento.contrato.CandidatoCurtirConsulta
-import com.jpcode.dao.relacionamento.contrato.EmpresaCurtirRepository
-import com.jpcode.dao.vaga.contrato.CompetenciasVagaRepository
+import com.jpcode.dao.contratos.*
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.dto.empresa.AtualizarEmpresaDTO
 import com.jpcode.dto.empresa.CadastrarEmpresaDTO
+import com.jpcode.dto.empresa.EmpresaComReferenciasDTO
+import com.jpcode.dto.empresa.EmpresaViewListDTO
 import com.jpcode.exception.empresa.EmpresaLoginException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
@@ -26,15 +21,11 @@ class EmpresaServiceTest extends Specification {
     ReferenciaRepository<Pais> paisRepository = Mock()
     ReferenciaRepository<Estado> estadoRepository = Mock()
 
-    EmpresaRepository empresaRepository = Mock()
-    EmpresaAutenticacao empresaAutenticacao = Mock()
-    EmpresaDesativacao empresaDesativacao = Mock()
+    UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository = Mock()
 
-    CandidatoCurtirConsulta candidatoCurtirConsulta = Mock()
-    EmpresaCurtirRepository empresaCurtirRepository = Mock()
-    CompetenciasVagaRepository competenciasVagaRepository = Mock()
-
-    CompetenciaDAO competenciaDAO = Mock()
+    CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository = Mock()
+    CurtidaRepository<CandidatoAnonimoDTO> empresaCurtirRepository = Mock()
+    CompetenciaRepository competenciasVagaRepository = Mock()
 
     EmpresaService service
 
@@ -43,12 +34,9 @@ class EmpresaServiceTest extends Specification {
                 paisRepository,
                 estadoRepository,
                 empresaRepository,
-                empresaAutenticacao,
-                empresaDesativacao,
-                candidatoCurtirConsulta,
+                candidatoCurtidasConsultaRepository,
                 empresaCurtirRepository,
-                competenciasVagaRepository,
-                competenciaDAO
+                competenciasVagaRepository
         )
     }
 
@@ -149,7 +137,7 @@ class EmpresaServiceTest extends Specification {
                 "Empresa de tecnologia"
         )
 
-        empresaAutenticacao.buscarPorEmailESenha(
+        empresaRepository.buscarPorEmailESenha(
                 "empresa@email.com",
                 "123"
         ) >> Optional.of(empresa)
@@ -160,7 +148,7 @@ class EmpresaServiceTest extends Specification {
 
     def "deve lançar exceção quando login da empresa não for encontrado"() {
         given:
-        empresaAutenticacao.buscarPorEmailESenha(
+        empresaRepository.buscarPorEmailESenha(
                 "empresa@email.com",
                 "123"
         ) >> Optional.empty()
@@ -176,7 +164,7 @@ class EmpresaServiceTest extends Specification {
         given:
         List<CandidatoAnonimoDTO> candidatos = []
 
-        candidatoCurtirConsulta.buscarCandidatosQueCurtiram(1L) >> candidatos
+        candidatoCurtidasConsultaRepository.buscarCandidatosQueCurtiram(1L) >> candidatos
 
         expect:
         service.buscarCandidatosQueCurtiram(1L) == candidatos
@@ -194,7 +182,7 @@ class EmpresaServiceTest extends Specification {
         given:
         List<CandidatoAnonimoDTO> candidatos = []
 
-        empresaCurtirRepository.buscarCandidatosCurtidos(1L) >> candidatos
+        empresaCurtirRepository.buscarCurtidas(1L) >> candidatos
 
         expect:
         service.buscarCandidatosCurtidos(1L) == candidatos
@@ -205,7 +193,7 @@ class EmpresaServiceTest extends Specification {
         service.desativarEmpresa(1L)
 
         then:
-        1 * empresaDesativacao.desativar(1L)
+        1 * empresaRepository.desativar(1L)
     }
 
     def "deve atualizar empresa"() {
@@ -248,12 +236,15 @@ class EmpresaServiceTest extends Specification {
                 new Competencia(2L, "SPRING")
         ]
 
-        List<RemoverCompetenciaDTO> resultadoDTO = []
-
-        competenciasVagaRepository.buscarPorVaga(1L) >> competencias
-        competenciaDAO.converterCompetenciasParaDTO(competencias) >> resultadoDTO
+        competenciasVagaRepository.buscarPorId(1L) >> competencias
 
         expect:
-        service.listaParaRemover(1L) == resultadoDTO
+        List<RemoverCompetenciaDTO> resultado = service.listaParaRemover(1L)
+
+        resultado.size() == 2
+        resultado[0].id == 1L
+        resultado[0].nome == "JAVA"
+        resultado[1].id == 2L
+        resultado[1].nome == "SPRING"
     }
 }

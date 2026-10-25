@@ -39,8 +39,7 @@ class ServiceConfig {
                 daoConfig.competenciaDAO,
                 daoConfig.competenciaDAO,
                 daoConfig.competenciasCandidatoDAO,
-                daoConfig.candidatoDAO,
-                daoConfig.competenciasCandidatoDAO
+                daoConfig.candidatoDAO
         )
 
         matchService = new MatchService(

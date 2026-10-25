@@ -23,16 +23,14 @@ class CandidatoService {
     final ReferenciaCompetenciaRepository referenciaCompetenciaRepository
     final CompetenciaRepository competenciasCandidatoRepository
     final UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository
-    final CompetenciaRepository competenciaCandidatoRepository
 
-    CandidatoService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, ReferenciaRepository<Competencia> competenciaRepository, ReferenciaCompetenciaRepository referenciaCompetenciaRepository, CompetenciaRepository competenciasCandidatoRepository, UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository, CompetenciaRepository competenciaCandidatoRepository) {
+    CandidatoService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, ReferenciaRepository<Competencia> competenciaRepository, ReferenciaCompetenciaRepository referenciaCompetenciaRepository, CompetenciaRepository competenciasCandidatoRepository, UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository) {
         this.paisRepository = paisRepository
         this.estadoRepository = estadoRepository
         this.competenciaRepository = competenciaRepository
         this.referenciaCompetenciaRepository = referenciaCompetenciaRepository
         this.competenciasCandidatoRepository = competenciasCandidatoRepository
         this.candidatoRepository = candidatoRepository
-        this.competenciaCandidatoRepository = competenciaCandidatoRepository
     }
 
     void cadastrarCandidato(CadastrarCandidatoDTO cadastrarCandidatoDTO) {
@@ -87,7 +85,7 @@ class CandidatoService {
                 )
 
         List<Competencia> competencias =
-                competenciaRepository.buscarPorId(idCandidato)
+                competenciasCandidatoRepository.buscarPorId(idCandidato)
 
         Candidato candidato = resultado.candidato
 
@@ -162,7 +160,7 @@ class CandidatoService {
     }
 
     List<String> competenciasEmString(Long idCandidato) {
-        return competenciaCandidatoRepository
+        return competenciasCandidatoRepository
                 .buscarEmString(idCandidato)
     }
 

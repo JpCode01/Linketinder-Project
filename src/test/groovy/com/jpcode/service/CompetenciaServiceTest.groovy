@@ -1,24 +1,29 @@
 package com.jpcode.service
 
-import com.jpcode.dao.referencia.CompetenciaDAO
+import com.jpcode.dao.contratos.ReferenciaCompetenciaRepository
+import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
+import com.jpcode.model.referencia.Competencia
 import spock.lang.Specification
 
 class CompetenciaServiceTest extends Specification {
 
-    CompetenciaDAO competenciaDAO = Mock()
+    ReferenciaCompetenciaRepository referenciaCompetenciaRepository = Mock()
+    ReferenciaRepository<Competencia> referenciaRepository = Mock()
 
     CompetenciaService service
 
     def setup() {
-        service = new CompetenciaService(competenciaDAO)
+        service = new CompetenciaService(
+                referenciaCompetenciaRepository,
+                referenciaRepository
+        )
     }
-
     def "deve listar todas as competencias"() {
         given:
         List<String> competencias = ["JAVA", "SPRING", "GROOVY"]
 
-        competenciaDAO.listarTodasCompetencias() >> competencias
+        referenciaCompetenciaRepository.listarTodasCompetencias() >> competencias
 
         expect:
         service.listarCompetencias() == competencias
@@ -26,7 +31,7 @@ class CompetenciaServiceTest extends Specification {
 
     def "deve lançar exceção quando competencia não for encontrada pelo id"() {
         given:
-        competenciaDAO.buscarPorId(1L) >> Optional.empty()
+        referenciaRepository.buscarPorId(1L) >> Optional.empty()
 
         when:
         service.buscarCompetencia(1L)

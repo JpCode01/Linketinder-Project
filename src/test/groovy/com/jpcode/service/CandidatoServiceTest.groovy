@@ -1,14 +1,13 @@
 package com.jpcode.service
 
-import com.jpcode.dao.candidato.contrato.CandidatoAutenticacao
-import com.jpcode.dao.candidato.contrato.CandidatoDesativacao
-import com.jpcode.dao.candidato.contrato.CandidatoRepository
-import com.jpcode.dao.candidato.contrato.CompetenciasCandidatoRepository
-import com.jpcode.dao.referencia.CompetenciaDAO
-import com.jpcode.dao.referencia.contrato.ReferenciaRepository
+import com.jpcode.dao.contratos.CompetenciaRepository
+import com.jpcode.dao.contratos.ReferenciaCompetenciaRepository
+import com.jpcode.dao.contratos.ReferenciaRepository
+import com.jpcode.dao.contratos.UsuarioRepository
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.candidato.CandidatoComReferenciasDTO
 import com.jpcode.dto.candidato.CandidatoViewDTO
+import com.jpcode.dto.candidato.CandidatoViewListDTO
 import com.jpcode.exception.candidato.CandidatoLoginException
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import com.jpcode.model.core.Candidato
@@ -24,13 +23,13 @@ class CandidatoServiceTest extends Specification {
 
     ReferenciaRepository<Pais> paisRepository = Mock()
     ReferenciaRepository<Estado> estadoRepository = Mock()
-    CompetenciaDAO competenciaDAO = Mock()
+    ReferenciaRepository<Competencia> competenciaRepository = Mock()
 
-    CompetenciasCandidatoRepository competenciasCandidatoRepository = Mock()
+    ReferenciaCompetenciaRepository referenciaCompetenciaRepository = Mock()
 
-    CandidatoRepository candidatoRepository = Mock()
-    CandidatoAutenticacao candidatoAutenticacao = Mock()
-    CandidatoDesativacao candidatoDesativacao = Mock()
+    CompetenciaRepository competenciasCandidatoRepository = Mock()
+
+    UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository = Mock()
 
     CandidatoService service
 
@@ -38,11 +37,10 @@ class CandidatoServiceTest extends Specification {
         service = new CandidatoService(
                 paisRepository,
                 estadoRepository,
-                competenciaDAO,
+                competenciaRepository,
+                referenciaCompetenciaRepository,
                 competenciasCandidatoRepository,
-                candidatoRepository,
-                candidatoAutenticacao,
-                candidatoDesativacao
+                candidatoRepository
         )
     }
 
@@ -76,7 +74,7 @@ class CandidatoServiceTest extends Specification {
         candidatoRepository.buscarPorIdComReferencias(1L) >>
                 Optional.of(resultado)
 
-        competenciasCandidatoRepository.buscarPorCandidato(1L) >>
+        competenciasCandidatoRepository.buscarPorId(1L) >>
                 [java, spring]
 
         when:
@@ -113,13 +111,13 @@ class CandidatoServiceTest extends Specification {
         service.desativarCandidato(1L)
 
         then:
-        1 * candidatoDesativacao.desativar(1L)
+        1 * candidatoRepository.desativar(1L)
     }
 
     @Unroll
     def "deve lançar exceção quando login não for encontrado para email '#email' e senha informados"() {
         given:
-        candidatoAutenticacao.buscarPorEmailESenha(email, senha) >> Optional.empty()
+        candidatoRepository.buscarPorEmailESenha(email, senha) >> Optional.empty()
 
         when:
         service.logar(email, senha)
@@ -150,7 +148,7 @@ class CandidatoServiceTest extends Specification {
                 "Desenvolvedor"
         )
 
-        candidatoAutenticacao.buscarPorEmailESenha(
+        candidatoRepository.buscarPorEmailESenha(
                 "joao@email.com",
                 "123"
         ) >> Optional.of(candidato)
@@ -195,8 +193,8 @@ class CandidatoServiceTest extends Specification {
         paisRepository.buscarIdPorNome("BRASIL") >> Optional.of(1L)
         estadoRepository.buscarIdPorNome("SP") >> Optional.of(2L)
 
-        competenciaDAO.buscarIdPorNome("JAVA") >> Optional.of(10L)
-        competenciaDAO.buscarIdPorNome("SPRING") >> Optional.of(20L)
+        competenciaRepository.buscarIdPorNome("JAVA") >> Optional.of(10L)
+        competenciaRepository.buscarIdPorNome("SPRING") >> Optional.of(20L)
 
         when:
         service.cadastrarCandidato(cadastrarCandidatoDTO)
@@ -212,8 +210,8 @@ class CandidatoServiceTest extends Specification {
         Competencia java = new Competencia(1L, "JAVA")
         Competencia spring = new Competencia(2L, "SPRING")
 
-        competenciaDAO.buscarPorNome("JAVA") >> java
-        competenciaDAO.buscarPorNome("SPRING") >> spring
+        referenciaCompetenciaRepository.buscarPorNome("JAVA") >> java
+        referenciaCompetenciaRepository.buscarPorNome("SPRING") >> spring
 
         when:
         service.adicionarCompetencias(
@@ -240,7 +238,7 @@ class CandidatoServiceTest extends Specification {
         given:
         List<String> competencias = ["JAVA", "SPRING"]
 
-        competenciasCandidatoRepository.buscarPorCandidatoString(1L) >> competencias
+        competenciasCandidatoRepository.buscarEmString(1L) >> competencias
 
         expect:
         service.competenciasEmString(1L) == competencias
