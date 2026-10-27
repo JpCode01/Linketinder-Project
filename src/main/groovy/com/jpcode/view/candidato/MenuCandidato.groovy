@@ -1,8 +1,8 @@
 package com.jpcode.view.candidato
 
-import com.jpcode.exception.candidato.CandidatoLoginException
-import com.jpcode.model.core.Candidato
 import com.jpcode.controller.candidato.CandidatoController
+import com.jpcode.exception.LoginException
+import com.jpcode.model.core.Candidato
 
 class MenuCandidato {
     final Scanner scanner
@@ -45,7 +45,7 @@ class MenuCandidato {
             Candidato candidatoEncontrado = candidatoController.logar(email, senha)
             println("Candidato Logado com sucesso!")
             menuCandidato(candidatoEncontrado)
-        } catch (CandidatoLoginException e) {
+        } catch (LoginException e) {
             println(e.getMessage())
         }
     }

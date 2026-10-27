@@ -1,14 +1,10 @@
 package com.jpcode.service
 
-import com.jpcode.dao.contratos.CandidatoCurtidasConsultaRepository
-import com.jpcode.dao.contratos.CompetenciaRepository
-import com.jpcode.dao.contratos.CurtidaRepository
-import com.jpcode.dao.contratos.UsuarioRepository
-import com.jpcode.dao.contratos.ReferenciaRepository
+import com.jpcode.dao.contratos.*
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.dto.empresa.*
-import com.jpcode.exception.empresa.EmpresaLoginException
+import com.jpcode.exception.LoginException
 import com.jpcode.exception.empresa.EmpresaNaoEncontradaPorIdException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
@@ -80,7 +76,7 @@ class EmpresaService {
     Empresa logar(String email, String senha) {
         return empresaRepository.buscarPorEmailESenha(email, senha)
         .orElseThrow(() ->
-        new EmpresaLoginException(email, senha))
+        new LoginException())
     }
     
     List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Long idVaga) {

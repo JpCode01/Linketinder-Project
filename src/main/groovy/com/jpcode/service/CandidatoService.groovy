@@ -6,7 +6,7 @@ import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.dao.contratos.UsuarioRepository
 import com.jpcode.dto.candidato.*
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
-import com.jpcode.exception.candidato.CandidatoLoginException
+import com.jpcode.exception.LoginException
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
@@ -107,7 +107,7 @@ class CandidatoService {
     Candidato logar(String email, String senha) {
         return candidatoRepository.buscarPorEmailESenha(email, senha)
         .orElseThrow(() ->
-        new CandidatoLoginException(email, senha))
+        new LoginException())
     }
 
     void desativarCandidato(Long idCandidato) {
