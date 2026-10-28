@@ -85,13 +85,13 @@ function criarCardCandidato(
         criarTopoCandidato()
     )
 
-    article.appendChild(
-        criarSecaoFormacao(candidato)
-    )
+    // article.appendChild(
+    //     criarSecaoFormacao(candidato)
+    // )
 
-    article.appendChild(
-        criarSecaoCompetencias(candidato)
-    )
+    // article.appendChild(
+    //     criarSecaoCompetencias(candidato)
+    // )
 
     article.appendChild(
         criarSecaoVaga(vaga)
@@ -124,48 +124,48 @@ function criarTopoCandidato(): HTMLElement {
     return topo
 }
 
-function criarSecaoFormacao(
-    candidato: Candidato
-): HTMLElement {
-    const secao = document.createElement("div")
-    secao.className = "candidate-section"
+// function criarSecaoFormacao(
+//     candidato: Candidato
+// ): HTMLElement {
+//     const secao = document.createElement("div")
+//     secao.className = "candidate-section"
 
-    const titulo = document.createElement("strong")
-    titulo.textContent = "Formação"
+//     const titulo = document.createElement("strong")
+//     titulo.textContent = "Formação"
 
-    const formacao = document.createElement("p")
-    formacao.textContent = candidato.formacao
+//     const formacao = document.createElement("p")
+//     formacao.textContent = candidato.formacao
 
-    secao.appendChild(titulo)
-    secao.appendChild(formacao)
+//     secao.appendChild(titulo)
+//     secao.appendChild(formacao)
 
-    return secao
-}
+//     return secao
+// }
 
-function criarSecaoCompetencias(
-    candidato: Candidato
-): HTMLElement {
-    const secao = document.createElement("div")
-    secao.className = "candidate-section"
+// function criarSecaoCompetencias(
+//     candidato: Candidato
+// ): HTMLElement {
+//     const secao = document.createElement("div")
+//     secao.className = "candidate-section"
 
-    const titulo = document.createElement("strong")
-    titulo.textContent = "Competências"
+//     const titulo = document.createElement("strong")
+//     titulo.textContent = "Competências"
 
-    const tags = document.createElement("div")
-    tags.className = "job-tags"
+//     const tags = document.createElement("div")
+//     tags.className = "job-tags"
 
-    candidato.competencias.forEach((competencia) => {
-        const tag = document.createElement("span")
-        tag.textContent = competencia
+//     candidato.competencias.forEach((competencia) => {
+//         const tag = document.createElement("span")
+//         tag.textContent = competencia.nome
 
-        tags.appendChild(tag)
-    })
+//         tags.appendChild(tag)
+//     })
 
-    secao.appendChild(titulo)
-    secao.appendChild(tags)
+//     secao.appendChild(titulo)
+//     secao.appendChild(tags)
 
-    return secao
-}
+//     return secao
+// }
 
 function criarSecaoVaga(
     vaga: Vaga

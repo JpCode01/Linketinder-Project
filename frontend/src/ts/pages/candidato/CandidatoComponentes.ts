@@ -46,9 +46,9 @@ export function criarCardVaga(
     card.appendChild(nome)
     card.appendChild(descricao)
 
-    card.appendChild(
-        criarCompetenciasVaga(vaga)
-    )
+    // card.appendChild(
+    //     criarCompetenciasVaga(vaga)
+    // )
 
     card.appendChild(
         criarRodapeVaga(
@@ -87,25 +87,25 @@ function criarRodapeVaga(
     return rodape
 }
 
-function criarCompetenciasVaga(
-    vaga: Vaga
-): HTMLElement {
-    const competencias = document.createElement("div")
-    competencias.classList.add("job-tags")
+// function criarCompetenciasVaga(
+//     vaga: Vaga
+// ): HTMLElement {
+//     const competencias = document.createElement("div")
+//     competencias.classList.add("job-tags")
 
-    for (const competencia of vaga.competencias) {
-        const competenciaElement =
-            document.createElement("span")
+//     for (const competencia of vaga.competencias) {
+//         const competenciaElement =
+//             document.createElement("span")
 
-        competenciaElement.textContent = competencia
+//         competenciaElement.textContent = competencia
 
-        competencias.appendChild(
-            competenciaElement
-        )
-    }
+//         competencias.appendChild(
+//             competenciaElement
+//         )
+//     }
 
-    return competencias
-}
+//     return competencias
+// }
 
 function criarTopoVaga(
     vaga: Vaga

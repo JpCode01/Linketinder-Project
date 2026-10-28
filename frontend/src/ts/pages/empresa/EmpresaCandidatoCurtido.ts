@@ -129,7 +129,7 @@ function criarSecaoFormacao(
     titulo.textContent = "Formação"
 
     const formacao = document.createElement("p")
-    formacao.textContent = candidato.formacao
+    // formacao.textContent = candidato.formacao
 
     secao.appendChild(titulo)
     secao.appendChild(formacao)
@@ -151,7 +151,7 @@ function criarSecaoCompetencias(
 
     candidato.competencias.forEach((competencia) => {
         const tag = document.createElement("span")
-        tag.textContent = competencia
+        // tag.textContent = competencia
 
         tags.appendChild(tag)
     })

@@ -5,36 +5,18 @@ import { EmpresaConsultaRepository } from "../repository/empresa/contrato/Empres
 import { EmailJaCadastradoException } from "../exceptions/EmailJaCadastradoException"
 import { CpfJaCadastradoException } from "../exceptions/CpfJaCadastradoException"
 import { CandidatoNaoEncontradoException } from "../exceptions/candidato/CandidatoNaoEncontradoException"
+import { CadastrarCandidatoRequestDTO } from "../api/dto/candidato/CadastrarCandidatoRequestDTO";
+import { CandidatoApiClient } from "../api/clientes/CandidatoApiClient";
 
 export class CandidatoService {
 
-
     constructor(
-        private candidatoCadastroRepository: CadastroRepository<Candidato>,
-        private candidatoConsultaRepository: CandidatoConsultaRepository,
-        private empresaConsultaRepository: EmpresaConsultaRepository
+        private candidatoApiClient: CandidatoApiClient,
+        private candidatoConsultaRepository: CandidatoConsultaRepository
     ) {}
 
-    salvar(candidato: Candidato): void {
-
-        const candidatoPorEmail =
-            this.candidatoConsultaRepository.buscarPorEmail(candidato.email)
-
-        const empresaPorEmail =
-            this.empresaConsultaRepository.buscarPorEmail(candidato.email)
-
-        const candidatoPorCpf =
-            this.candidatoConsultaRepository.buscarPorCpf(candidato.cpf)
-
-        if ((candidatoPorEmail != undefined) || (empresaPorEmail != undefined)) {
-            throw new EmailJaCadastradoException()
-        }
-
-        if (candidatoPorCpf != undefined) {
-            throw new CpfJaCadastradoException()
-        }
-
-        this.candidatoCadastroRepository.salvar(candidato)
+    async cadastrar(dados: CadastrarCandidatoRequestDTO): Promise<void> {
+        await this.candidatoApiClient.cadastrar(dados)
     }
 
     buscarTodos(): Candidato[] {
@@ -42,18 +24,24 @@ export class CandidatoService {
     }
 
     buscarPorId(id: number): Candidato {
-        const candidatoPorId = this.candidatoConsultaRepository.buscarPorId(id)
+        const candidatoPorId =
+            this.candidatoConsultaRepository.buscarPorId(id)
+
         if (candidatoPorId == undefined) {
             throw new CandidatoNaoEncontradoException(id)
         }
+
         return candidatoPorId
     }
 
     buscarPorEmail(email: string): Candidato {
-        const candidatoPorEmail = this.candidatoConsultaRepository.buscarPorEmail(email)
+        const candidatoPorEmail =
+            this.candidatoConsultaRepository.buscarPorEmail(email)
+
         if (candidatoPorEmail == undefined) {
             throw new CandidatoNaoEncontradoException(email)
         }
+
         return candidatoPorEmail
     }
 }

@@ -6,6 +6,8 @@ import { CurtidaCandidatoService } from "../services/CurtidaCandidatoService"
 import { RelatorioCompetenciasService } from "../services/RelatorioCompetenciasService"
 
 import { RepositoryConfig } from "./RepositoryConfig"
+import { CandidatoApiClient } from "../api/clientes/CandidatoApiClient";
+import { EmpresaApiClient } from "../api/clientes/EmpresaApiClient"
 
 export class ServiceConfig {
 
@@ -13,9 +15,8 @@ export class ServiceConfig {
 
     criarCandidatoService(): CandidatoService {
         return new CandidatoService(
-            this.repositoryConfig.candidatoRepository,
-            this.repositoryConfig.candidatoRepository,
-            this.repositoryConfig.empresaRepository
+            new CandidatoApiClient(),
+            this.repositoryConfig.candidatoRepository
         )
     }
 
@@ -28,12 +29,13 @@ export class ServiceConfig {
     }
 
     criarEmpresaService(): EmpresaService {
-        return new EmpresaService(
-            this.repositoryConfig.empresaRepository,
-            this.repositoryConfig.empresaRepository,
-            this.repositoryConfig.candidatoRepository
-        )
-    }
+    return new EmpresaService(
+        this.repositoryConfig.empresaRepository,
+        this.repositoryConfig.empresaRepository,
+        this.repositoryConfig.candidatoRepository,
+        new EmpresaApiClient()
+    )
+}
 
     criarVagaService(): VagaService {
         return new VagaService(

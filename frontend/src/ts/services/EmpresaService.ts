@@ -5,14 +5,21 @@ import { CandidatoConsultaRepository } from "../repository/candidato/contrato/Ca
 import { EmailJaCadastradoException } from "../exceptions/EmailJaCadastradoException"
 import { CnpjJaCadastradoException } from "../exceptions/CnpjJaCadastradoException"
 import { EmpresaNaoEncontradaException } from "../exceptions/empresa/EmpresaNaoEncontradaException"
+import { CadastrarEmpresaRequestDTO } from "../api/dto/empresa/CadastrarEmpresaRequestDTO"
+import { EmpresaApiClient } from "../api/clientes/EmpresaApiClient"
 
 export class EmpresaService {
 
     constructor(
         private empresaCadastroRepository: CadastroRepository<Empresa>,
         private empresaConsultaRepository: EmpresaConsultaRepository,
-        private candidatoConsultaRepository: CandidatoConsultaRepository
+        private candidatoConsultaRepository: CandidatoConsultaRepository,
+        private empresaApiClient: EmpresaApiClient
     ) {}
+
+    async cadastrar(dados: CadastrarEmpresaRequestDTO): Promise<void> {
+        await this.empresaApiClient.cadastrar(dados)
+    }
 
     salvar(empresa: Empresa): void {
         const empresaPorEmail =

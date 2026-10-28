@@ -25,9 +25,10 @@ export class RelatorioCompetenciasService {
                 )
 
                 for (const competencia of candidato.competencias) {
-                    const quantidade = competencias.get(competencia) ?? 0
+                    const nomeCompetencia = competencia.nome
+                    const quantidade = competencias.get(nomeCompetencia) ?? 0
 
-                    competencias.set(competencia, quantidade + 1)
+                    competencias.set(nomeCompetencia, quantidade + 1)
                 }
             }
         }

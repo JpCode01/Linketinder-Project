@@ -24,34 +24,34 @@ class EmpresaServlet extends HttpServlet {
     @Override
     protected void doPost(
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response
+    ) {
         response.setContentType("application/json")
         response.setCharacterEncoding("UTF-8")
 
         try {
-            Map dados = new JsonSlurper().parse(request.inputStream)
-
-            CadastrarEmpresaDTO dto = new CadastrarEmpresaDTO(
-                    dados.nome as String,
-                    dados.email as String,
-                    dados.senha as String,
-                    dados.cnpj as String,
-                    dados.pais as String,
-                    dados.estado as String,
-                    dados.cep as String,
-                    dados.descricao as String
-            )
+            CadastrarEmpresaDTO dto = criarCadastrarEmpresaDTO(request)
 
             empresaController.cadastrarEmpresa(dto)
 
             response.status = HttpServletResponse.SC_CREATED
+
+        } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
+            responderErro(
+                    response,
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    e.message
+            )
+
         } catch (Exception e) {
-            response.status = HttpServletResponse.SC_BAD_REQUEST
-            response.writer.write([erro: "JSON inválido ou campos em formato incorreto, verifique se o Estado e País estão disponíveis."])
+            responderErro(
+                    response,
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Erro interno ao cadastrar empresa."
+            )
         }
     }
-
-
+    
     @Override
     protected void doGet(
             HttpServletRequest request,
@@ -183,6 +183,34 @@ class EmpresaServlet extends HttpServlet {
                     JsonOutput.toJson([erro: "Erro interno ao consultar empresa."])
             )
         }
+    }
+
+    private CadastrarEmpresaDTO criarCadastrarEmpresaDTO(
+            HttpServletRequest request
+    ) {
+        Map dados = new JsonSlurper().parse(request.inputStream) as Map
+
+        return new CadastrarEmpresaDTO(
+                dados.nome as String,
+                dados.email as String,
+                dados.senha as String,
+                dados.cnpj as String,
+                dados.pais as String,
+                dados.estado as String,
+                dados.cep as String,
+                dados.descricao as String
+        )
+    }
+
+    private void responderErro(
+            HttpServletResponse response,
+            int status,
+            String mensagem
+    ) {
+        response.status = status
+        response.writer.write(
+                JsonOutput.toJson([erro: mensagem])
+        )
     }
 
 }

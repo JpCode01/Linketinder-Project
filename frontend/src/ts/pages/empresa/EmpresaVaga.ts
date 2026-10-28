@@ -35,41 +35,41 @@ export function carregarOpcoesCompetencias(): void {
     })
 }
 
-function capturarDadosVaga(): DadosVagaFormulario {
-    const nome =
-        (document.getElementById("job-title") as HTMLInputElement).value
+// function capturarDadosVaga(): DadosVagaFormulario {
+//     const nome =
+//         (document.getElementById("job-title") as HTMLInputElement).value
 
-    const tipo =
-        (document.getElementById("job-type") as HTMLSelectElement).value
+//     const tipo =
+//         (document.getElementById("job-type") as HTMLSelectElement).value
 
-    const localizacao =
-        (document.getElementById("job-location") as HTMLInputElement).value
+//     const localizacao =
+//         (document.getElementById("job-location") as HTMLInputElement).value
 
-    const descricao =
-        (document.getElementById("job-description") as HTMLTextAreaElement).value
+//     const descricao =
+//         (document.getElementById("job-description") as HTMLTextAreaElement).value
 
-    const competencias =
-        capturarCompetenciasSelecionadas()
+//     const competencias =
+//         capturarCompetenciasSelecionadas()
 
-    return {
-        nome,
-        descricao,
-        tipo,
-        localizacao,
-        competencias
-    }
-}
+//     return {
+//         nome,
+//         descricao,
+//         tipo,
+//         localizacao,
+//         competencias
+//     }
+// }
 
-function capturarCompetenciasSelecionadas(): Competencia[] {
-    const checkboxes =
-        document.querySelectorAll(
-            "#skills-options input[type='checkbox']:checked"
-        )
+// function capturarCompetenciasSelecionadas(): Competencia[] {
+//     const checkboxes =
+//         document.querySelectorAll(
+//             "#skills-options input[type='checkbox']:checked"
+//         )
 
-    return Array.from(checkboxes).map(
-        checkbox => (checkbox as HTMLInputElement).value as Competencia
-    )
-}
+//     return Array.from(checkboxes).map(
+//         checkbox => (checkbox as HTMLInputElement).value as Competencia
+//     )
+// }
 
 function construirVaga(
     dados: DadosVagaFormulario,
@@ -98,19 +98,19 @@ export function configurarCriacaoVaga(
         return
     }
 
-    botao.onclick = (): void => {
-        const dados = capturarDadosVaga()
+    // botao.onclick = (): void => {
+    //     const dados = capturarDadosVaga()
 
-        const vaga = construirVaga(
-            dados,
-            idEmpresa
-        )
+    //     const vaga = construirVaga(
+    //         dados,
+    //         idEmpresa
+    //     )
 
-        vagaService.salvar(vaga)
+    //     vagaService.salvar(vaga)
 
-        limparFormularioVaga()
-        exibirVagasEmpresa(idEmpresa, vagaService)
-    }
+    //     limparFormularioVaga()
+    //     exibirVagasEmpresa(idEmpresa, vagaService)
+    // }
 }
 
 export function exibirVagasEmpresa(
@@ -152,12 +152,12 @@ function criarCardVaga(vaga: Vaga): HTMLElement {
     const tags = document.createElement("div")
     tags.className = "job-tags"
 
-    vaga.competencias.forEach((competencia) => {
-        const tag = document.createElement("span")
-        tag.textContent = competencia
+    // vaga.competencias.forEach((competencia) => {
+    //     const tag = document.createElement("span")
+    //     tag.textContent = competencia
 
-        tags.appendChild(tag)
-    })
+    //     tags.appendChild(tag)
+    // })
 
     const localizacao = document.createElement("span")
     localizacao.className = "job-location"

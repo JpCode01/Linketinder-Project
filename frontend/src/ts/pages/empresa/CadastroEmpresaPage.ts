@@ -1,92 +1,153 @@
-import { Empresa } from "../../models/Empresa"
 
-import { EmpresaService } from "../../services/EmpresaService"
-
+import { ReferenciaApiClient } from "../../api/clientes/ReferenciaApiClient"
+import { CadastrarEmpresaRequestDTO } from "../../api/dto/empresa/CadastrarEmpresaRequestDTO"
+import { Estado } from "../../models/Estado"
+import { Pais } from "../../models/Pais"
+import { LoginEmpresaStrategy } from "../../strategy/login/LoginEmpresaStrategy"
 import { RepositoryConfig } from "../../config/RepositoryConfig"
 import { ServiceConfig } from "../../config/ServiceConfig"
-
-import { EmailJaCadastradoException } from "../../exceptions/EmailJaCadastradoException"
-import { CnpjJaCadastradoException } from "../../exceptions/CnpjJaCadastradoException"
-
-
-interface DadosEmpresaFormulario {
-    nome: string
-    email: string
-    cnpj: string
-    pais: string
-    estado: string
-    cep: string
-    descricao: string
-}
-
 
 const repositoryConfig: RepositoryConfig = new RepositoryConfig()
 const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
 
-const empresaService: EmpresaService =
-    serviceConfig.criarEmpresaService()
+const empresaService = serviceConfig.criarEmpresaService()
 
+const referenciaApiClient: ReferenciaApiClient =
+    new ReferenciaApiClient()
 
 export function cadastrarEmpresa(): void {
-    document.getElementById("register-company")!.onclick = (): void => {
-        limparErros()
+    const formulario = document.getElementById(
+        "company-registration-form"
+    ) as HTMLFormElement | null
 
-        const dados: DadosEmpresaFormulario =
-            capturarDadosEmpresa()
+    const botaoCadastro = document.getElementById(
+        "register-company"
+    ) as HTMLButtonElement | null
 
-        const empresa: Empresa =
-            construirEmpresa(dados)
+    if (formulario == null || botaoCadastro == null) {
+        console.error("Elementos do formulário de cadastro não encontrados.")
+        return
+    }
+
+    botaoCadastro.disabled = true
+
+    void carregarOpcoesFormulario()
+        .then((): void => {
+            botaoCadastro.disabled = false
+        })
+        .catch((erro: unknown): void => {
+            mostrarErro(
+                `Não foi possível carregar as opções do cadastro. ${obterMensagemErro(erro)}`
+            )
+        })
+
+    botaoCadastro.onclick = async (): Promise<void> => {
+        if (!formulario.reportValidity()) {
+            return
+        }
+
+        limparErro()
+        botaoCadastro.disabled = true
+
+        let cadastroConcluido = false
 
         try {
-            empresaService.salvar(empresa)
+            const dados: CadastrarEmpresaRequestDTO =
+                capturarDadosEmpresa()
 
-            adicionarNaSessao(empresa.id, "EMPRESA")
+            await empresaService.cadastrar(dados)
+            cadastroConcluido = true
 
-            window.location.href = "./empresa.html"
+            const login: LoginEmpresaStrategy =
+                new LoginEmpresaStrategy()
 
-        } catch (erro) {
+            await login.login(dados.email, dados.senha)
+        } catch (erro: unknown) {
+            const mensagem: string = obterMensagemErro(erro)
 
-            if (erro instanceof EmailJaCadastradoException) {
-                mostrarErroEmail("E-mail já cadastrado.")
-                return
+            if (cadastroConcluido) {
+                mostrarErro(
+                    "Cadastro realizado, mas não foi possível entrar automaticamente. " +
+                    "Acesse a tela de login. " + mensagem
+                )
+            } else {
+                mostrarErro(mensagem)
             }
-
-            if (erro instanceof CnpjJaCadastradoException) {
-                mostrarErroCnpj("CNPJ já cadastrado.")
-                return
-            }
-
-            throw erro
+        } finally {
+            botaoCadastro.disabled = false
         }
     }
 }
 
+async function carregarOpcoesFormulario(): Promise<void> {
+    const paises: Pais[] =
+        await referenciaApiClient.buscarPaises()
 
-function capturarDadosEmpresa(): DadosEmpresaFormulario {
-    const nome: string =
-        (document.getElementById("name") as HTMLInputElement).value
+    const estados: Estado[] =
+        await referenciaApiClient.buscarEstados()
 
-    const email: string =
-        (document.getElementById("email") as HTMLInputElement).value
+    preencherPaises(paises)
+    preencherEstados(estados)
+}
 
-    const cnpj: string =
-        (document.getElementById("cnpj") as HTMLInputElement).value
+function preencherPaises(paises: Pais[]): void {
+    const campoPais = document.getElementById(
+        "country"
+    ) as HTMLSelectElement | null
 
-    const pais: string =
-        (document.getElementById("country") as HTMLInputElement).value
+    if (campoPais == null) {
+        throw new Error("Campo de país não encontrado.")
+    }
 
-    const estado: string =
-        (document.getElementById("state") as HTMLInputElement).value
+    campoPais.innerHTML = '<option value="">Selecione um país</option>'
 
-    const cep: string =
-        (document.getElementById("cep") as HTMLInputElement).value
+    for (const pais of paises) {
+        const opcao: HTMLOptionElement =
+            document.createElement("option")
 
-    const descricao: string =
-        (document.getElementById("description") as HTMLTextAreaElement).value
+        opcao.value = pais.nome
+        opcao.textContent = pais.nome
+
+        campoPais.appendChild(opcao)
+    }
+}
+
+function preencherEstados(estados: Estado[]): void {
+    const campoEstado = document.getElementById(
+        "state"
+    ) as HTMLSelectElement | null
+
+    if (campoEstado == null) {
+        throw new Error("Campo de estado não encontrado.")
+    }
+
+    campoEstado.innerHTML = '<option value="">Selecione um estado</option>'
+
+    for (const estado of estados) {
+        const opcao: HTMLOptionElement =
+            document.createElement("option")
+
+        opcao.value = estado.sigla
+        opcao.textContent = estado.sigla
+
+        campoEstado.appendChild(opcao)
+    }
+}
+
+function capturarDadosEmpresa(): CadastrarEmpresaRequestDTO {
+    const nome: string = obterValor("name")
+    const email: string = obterValor("email")
+    const senha: string = obterValor("password")
+    const cnpj: string = obterValor("cnpj")
+    const pais: string = obterValor("country")
+    const estado: string = obterValor("state")
+    const cep: string = obterValor("cep")
+    const descricao: string = obterValor("description")
 
     return {
         nome,
         email,
+        senha,
         cnpj,
         pais,
         estado,
@@ -95,74 +156,49 @@ function capturarDadosEmpresa(): DadosEmpresaFormulario {
     }
 }
 
+function obterValor(id: string): string {
+    const campo = document.getElementById(id) as
+        | HTMLInputElement
+        | HTMLSelectElement
+        | HTMLTextAreaElement
+        | null
 
-function construirEmpresa(dados: DadosEmpresaFormulario): Empresa {
-    return new Empresa(
-        dados.cnpj,
-        dados.pais,
-        dados.nome,
-        dados.email,
-        dados.estado,
-        dados.cep,
-        dados.descricao
-    )
+    if (campo == null) {
+        throw new Error(`Campo '${id}' não encontrado.`)
+    }
+
+    return campo.value.trim()
 }
 
+function mostrarErro(mensagem: string): void {
+    const elementoErro = document.getElementById("registration-error")
 
-function mostrarErroEmail(mensagem: string): void {
-    const inputEmail =
-        document.getElementById("email") as HTMLInputElement
+    if (elementoErro == null) {
+        console.error(mensagem)
+        return
+    }
 
-    inputEmail.classList.add("input-error")
-
-    const mensagemErro: HTMLSpanElement =
-        document.createElement("span")
-
-    mensagemErro.id = "erro-email"
-    mensagemErro.classList.add("error-message")
-    mensagemErro.textContent = mensagem
-
-    inputEmail.parentElement!.appendChild(mensagemErro)
+    elementoErro.textContent = mensagem
+    elementoErro.hidden = false
 }
 
+function limparErro(): void {
+    const elementoErro = document.getElementById("registration-error")
 
-function mostrarErroCnpj(mensagem: string): void {
-    const inputCnpj =
-        document.getElementById("cnpj") as HTMLInputElement
-
-    inputCnpj.classList.add("input-error")
-
-    const mensagemErro: HTMLSpanElement =
-        document.createElement("span")
-
-    mensagemErro.id = "erro-cnpj"
-    mensagemErro.classList.add("error-message")
-    mensagemErro.textContent = mensagem
-
-    inputCnpj.parentElement!.appendChild(mensagemErro)
+    if (elementoErro != null) {
+        elementoErro.textContent = ""
+        elementoErro.hidden = true
+    }
 }
 
+function obterMensagemErro(erro: unknown): string {
+    if (erro instanceof TypeError) {
+        return "Não foi possível conectar ao servidor. Verifique se o backend está em execução."
+    }
 
-function limparErros(): void {
-    document
-        .getElementById("email")
-        ?.classList.remove("input-error")
+    if (erro instanceof Error) {
+        return erro.message
+    }
 
-    document
-        .getElementById("cnpj")
-        ?.classList.remove("input-error")
-
-    document.getElementById("erro-email")?.remove()
-    document.getElementById("erro-cnpj")?.remove()
-}
-
-
-function adicionarNaSessao(id: number, tipo: string): void {
-    localStorage.setItem(
-        "sessao",
-        JSON.stringify({
-            id: id,
-            tipo: tipo
-        })
-    )
+    return "Ocorreu um erro inesperado ao cadastrar."
 }
