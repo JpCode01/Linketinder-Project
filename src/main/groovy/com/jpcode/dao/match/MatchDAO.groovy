@@ -109,7 +109,7 @@ class MatchDAO implements MatchRepository {
                 Long idVaga = resultSet.getLong("id_vaga")
 
                 List<Competencia> competenciasCandidato =
-                        competenciasCandidatoRepository.buscar(idCandidato)
+                        competenciasCandidatoRepository.buscarPorId(idCandidato)
 
                 List<String> competenciasVaga =
                         competenciasVagaRepository.buscarEmString(idVaga)

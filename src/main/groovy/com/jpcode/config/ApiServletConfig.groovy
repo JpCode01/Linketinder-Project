@@ -2,7 +2,9 @@ package com.jpcode.config
 
 import com.jpcode.api.servlet.CompetenciaServlet
 import com.jpcode.api.servlet.CandidatoServlet
+import com.jpcode.api.servlet.CurtidaServlet
 import com.jpcode.api.servlet.LoginServlet
+import com.jpcode.api.servlet.MatchServlet
 import com.jpcode.api.servlet.ReferenciaServlet
 import com.jpcode.api.servlet.VagaServlet
 import com.jpcode.api.servlet.filter.CorsFilter
@@ -33,6 +35,8 @@ class ApiServletConfig {
         registrarVagaServlet()
         registrarLoginServlet()
         registrarReferenciaServlet()
+        registrarCurtidaServlet()
+        registrarMatchServlet()
     }
 
     private void registrarCompetenciaServlet() {
@@ -152,6 +156,38 @@ class ApiServletConfig {
         contexto.addServletMapping(
                 "/referencias/*",
                 "referenciaServlet"
+        )
+    }
+
+    private void registrarCurtidaServlet() {
+        tomcat.addServlet(
+                contexto,
+                "curtidaServlet",
+                new CurtidaServlet(
+                        controllerConfig.vagaController,
+                        controllerConfig.empresaController,
+                        controllerConfig.matchController
+                )
+        )
+
+        contexto.addServletMapping(
+                "/curtidas/*",
+                "curtidaServlet"
+        )
+    }
+
+    private void registrarMatchServlet() {
+        tomcat.addServlet(
+                contexto,
+                "matchServlet",
+                new MatchServlet(
+                        controllerConfig.matchController
+                )
+        )
+
+        contexto.addServletMapping(
+                "/matches/*",
+                "matchServlet"
         )
     }
 }
