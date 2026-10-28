@@ -16,7 +16,7 @@ class CompetenciaServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        List<String> competenicas = competenciaController.listarCompetencias()
+        List<String> competenicas = competenciaController.listarCompetenciasEmString()
 
         response.setContentType("application/json")
         response.setCharacterEncoding("UTF-8")

@@ -4,7 +4,7 @@ import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.referencia.Pais
 
-class PaisDAO implements ReferenciaRepository {
+class PaisDAO implements ReferenciaRepository<Pais> {
 
     private final ConnectionFactory connectionFactory
 
@@ -61,6 +61,32 @@ class PaisDAO implements ReferenciaRepository {
             }
 
             return Optional.of(resultSet.getLong("id"))
+        }
+    }
+
+    List<Pais> listarTodos() {
+        String sql = """
+        SELECT id, nome
+        FROM pais
+    """
+
+        try (
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            def resultSet = statement.executeQuery()
+            List<Pais> paises = []
+
+            while (resultSet.next()) {
+                Pais pais = new Pais(
+                        resultSet.getLong("id"),
+                        resultSet.getString("nome")
+                )
+
+                paises.add(pais)
+            }
+
+            return paises
         }
     }
 }

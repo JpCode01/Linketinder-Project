@@ -6,7 +6,7 @@ import com.jpcode.model.referencia.Pais
 class EmpresaViewDTO {
     Long id
     String nome
-    String email
+    String email    
     Estado estado
     String cep
     String descricao

@@ -1,19 +1,18 @@
 import { Pessoa } from "./Pessoa"
-
+import { Estado } from "./Estado"
+import { Pais } from "./Pais"
 
 export class Empresa extends Pessoa {
-    public id: number
     constructor(
-                public cnpj: string,
-                public pais: string,
-                nome: string,
-                email: string,
-                estado: string,
-                cep: string,
-                descricao: string
+        public cnpj: string,
+        id: number,
+        nome: string,
+        email: string,
+        estado: Estado,
+        pais: Pais,
+        cep: string,
+        descricao: string
     ) {
-        super(nome, email, estado, cep, descricao)
-        this.id = 0
+        super(id, nome, email, estado, pais, cep, descricao)
     }
 }
-

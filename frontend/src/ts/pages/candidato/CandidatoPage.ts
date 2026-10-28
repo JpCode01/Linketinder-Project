@@ -3,6 +3,7 @@ import { ServiceConfig } from "../../config/ServiceConfig"
 import { CandidatoService } from "../../services/CandidatoService"
 import { VagaService } from "../../services/VagaService"
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
+import { CandidatoApiClient } from "../../api/clientes/CandidatoApiClient"
 
 import { exibirDadosCandidato } from "./CandidatoPerfil"
 import { exibirVagas } from "./CandidatoVaga"
@@ -25,10 +26,23 @@ const vagaService: VagaService =
 const curtidaVagaService: CurtidaVagaService =
     serviceConfig.criarCurtidaVagaService()
 
-export function exibirPageCandidato(): void {
+const candidatoApiClient: CandidatoApiClient =
+    new CandidatoApiClient()
+
+export async function exibirPageCandidato(): Promise<void> {
     const sessao = obterSessao()
 
     if (sessao == undefined || sessao.tipo !== "CANDIDATO") {
+        return
+    }
+
+    try {
+        const candidatoDto = 
+            await candidatoApiClient.buscarPorId(sessao.id)
+    
+        exibirDadosCandidato(candidatoDto)
+    } catch (erro) {
+        console.error("Erro ao carregar perfil do candidato:", erro)
         return
     }
 
