@@ -5,6 +5,9 @@ export function exibirDadosCandidato(
 ): void {
     const iniciais = obterIniciais(candidato.nome)
 
+    const nomeCompleto = 
+    `${candidato.nome} ${candidato.sobrenome}`
+
     document.getElementById("profile-avatar")!.textContent =
         iniciais
 
@@ -12,10 +15,10 @@ export function exibirDadosCandidato(
         iniciais
 
     document.getElementById("profile-name")!.textContent =
-        candidato.nome
+        nomeCompleto
 
     document.getElementById("user-name")!.textContent =
-        candidato.nome
+        nomeCompleto
 
     document.getElementById("profile-description")!.textContent =
         candidato.descricao

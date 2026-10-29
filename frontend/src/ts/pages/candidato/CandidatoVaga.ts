@@ -1,9 +1,6 @@
-import { Candidato } from "../../models/Candidato"
-import { Vaga } from "../../models/Vaga"
-import { CurtidaVaga } from "../../models/CurtidaVaga"
+import { VagaAnonimaResponseDTO } from "../../api/dto/vaga/VagaAnonimaResponseDTO"
 import { VagaService } from "../../services/VagaService"
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
-import { VagaJaCurtidaException } from "../../exceptions/vaga/VagaJaCurtidaException"
 
 import {
     atualizarContador,
@@ -11,11 +8,11 @@ import {
     atualizarCardCurtido
 } from "./CandidatoComponentes"
 
-export function exibirVagas(
-    candidato: Candidato,
+export async function exibirVagas(
+    idCandidato: number,
     vagaService: VagaService,
     curtidaVagaService: CurtidaVagaService
-): void {
+): Promise<void> {
     const listaVagas =
         document.getElementById("job-grid")
 
@@ -26,70 +23,81 @@ export function exibirVagas(
         return
     }
 
-    const vagas = vagaService.buscarTodos()
-
-    const curtidas =
-        curtidaVagaService.buscarPorCandidato(
-            candidato.id
-        )
-
     listaVagas.innerHTML = ""
 
-    atualizarContador({
-        contador: contador,
-        quantidade: vagas.length,
-        singular: "vaga",
-        plural: "vagas"
-    })
+    try {
+        const vagas =
+            await vagaService.buscarTodasAsVagasAnonimas()
 
-    for (const vaga of vagas) {
-        const vagaJaCurtida =
-            vagaFoiCurtida(vaga, curtidas)
+        const curtidas =
+            await curtidaVagaService.buscarVagasCurtidas(
+                idCandidato
+            )
 
-        const card = criarCardVaga(
-            vaga,
-            vagaJaCurtida,
-            () =>
-                curtirVaga(
-                    candidato.id,
-                    vaga,
-                    card,
-                    curtidaVagaService
-                )
+        const idsVagasCurtidas = new Set<number>(
+            curtidas.map(curtida => curtida.id)
         )
 
-        listaVagas.appendChild(card)
+        atualizarContador({
+            contador,
+            quantidade: vagas.length,
+            singular: "vaga",
+            plural: "vagas"
+        })
+
+        for (const vaga of vagas) {
+            const vagaJaCurtida =
+                idsVagasCurtidas.has(vaga.id)
+
+            const card = criarCardVaga(
+                vaga,
+                vagaJaCurtida,
+                () => {
+                    void curtirVaga(
+                        idCandidato,
+                        vaga,
+                        card,
+                        curtidaVagaService
+                    )
+                }
+            )
+
+            listaVagas.appendChild(card)
+        }
+    } catch (erro: unknown) {
+        console.error("Erro ao carregar vagas:", erro)
+
+        if (contador != null) {
+            contador.textContent = "Erro ao carregar vagas"
+        }
     }
 }
 
-function curtirVaga(
+async function curtirVaga(
     idCandidato: number,
-    vaga: Vaga,
+    vaga: VagaAnonimaResponseDTO,
     card: HTMLElement,
     curtidaVagaService: CurtidaVagaService
-): void {
+): Promise<void> {
+    const botao =
+        card.querySelector<HTMLButtonElement>(".btn-like")
+
+    if (botao == null || botao.disabled) {
+        return
+    }
+
+    botao.disabled = true
+
     try {
-        curtidaVagaService.curtir(
+        await curtidaVagaService.curtirViaApi(
             idCandidato,
             vaga.id
         )
 
         atualizarCardCurtido(card)
-    } catch (erro) {
-        if (erro instanceof VagaJaCurtidaException) {
-            atualizarCardCurtido(card)
-            return
-        }
+    } catch (erro: unknown) {
+        console.error("Erro ao curtir vaga:", erro)
 
-        throw erro
+        botao.disabled = false
     }
-}
-
-function vagaFoiCurtida(
-    vaga: Vaga,
-    curtidas: CurtidaVaga[]
-): boolean {
-    return curtidas.some(
-        curtida => curtida.idVaga === vaga.id
-    )
 }

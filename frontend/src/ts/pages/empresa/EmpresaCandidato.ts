@@ -184,28 +184,37 @@ function criarRodapeCandidato(
     return rodape
 }
 
-function curtirCandidato(
+async function curtirCandidato(
     idEmpresa: number,
     idCandidato: number,
     idVaga: number,
     card: HTMLElement,
     curtidaCandidatoService: CurtidaCandidatoService
-): void {
+): Promise<void> {
+    const botao = card.querySelector(".btn-like") as HTMLButtonElement | null
+
+    if (botao == null || botao.disabled) {
+        return
+    }
+
+    botao.disabled = true
+
     try {
-        curtidaCandidatoService.curtir(
+        await curtidaCandidatoService.curtir(
             idEmpresa,
             idCandidato,
             idVaga
         )
 
         atualizarCardCandidatoCurtido(card)
-    } catch (erro) {
-        if (erro instanceof CandidatoJaCurtidoException) {
-            atualizarCardCandidatoCurtido(card)
-            return
-        }
-
-        throw erro
+    } catch (erro: unknown) {
+        botao.disabled = false
+        console.error("Erro ao curtir candidato:", erro)
+        alert(
+            erro instanceof Error
+                ? erro.message
+                : "Não foi possível registrar a curtida."
+        )
     }
 }
 

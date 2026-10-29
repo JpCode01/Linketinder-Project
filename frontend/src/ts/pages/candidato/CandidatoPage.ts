@@ -1,13 +1,14 @@
 import { RepositoryConfig } from "../../config/RepositoryConfig"
 import { ServiceConfig } from "../../config/ServiceConfig"
-import { CandidatoService } from "../../services/CandidatoService"
 import { VagaService } from "../../services/VagaService"
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
 import { CandidatoApiClient } from "../../api/clientes/CandidatoApiClient"
+import { MatchService } from "../../services/MatchService"
 
 import { exibirDadosCandidato } from "./CandidatoPerfil"
 import { exibirVagas } from "./CandidatoVaga"
 import { exibirVagasCurtidas } from "./CandidatoVagaCurtida"
+import { exibirMatchesCandidato } from "./CandidatoMatch"
 
 interface Sessao {
     id: number
@@ -17,8 +18,8 @@ interface Sessao {
 const repositoryConfig: RepositoryConfig = new RepositoryConfig()
 const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
 
-const candidatoService: CandidatoService =
-    serviceConfig.criarCandidatoService()
+const matchService: MatchService =
+    serviceConfig.criarMatchService()
 
 const vagaService: VagaService =
     serviceConfig.criarVagaService()
@@ -37,30 +38,33 @@ export async function exibirPageCandidato(): Promise<void> {
     }
 
     try {
-        const candidatoDto = 
+        const candidatoDto =
             await candidatoApiClient.buscarPorId(sessao.id)
-    
+
         exibirDadosCandidato(candidatoDto)
     } catch (erro) {
-        console.error("Erro ao carregar perfil do candidato:", erro)
+        console.error(
+            "Erro ao carregar perfil do candidato:",
+            erro
+        )
         return
     }
 
-    const candidato = candidatoService.buscarPorId(sessao.id)
-
-    exibirDadosCandidato(candidato)
-
-    exibirVagas(
-        candidato,
-        vagaService,
-        curtidaVagaService
-    )
-
-    exibirVagasCurtidas(
-        candidato,
-        vagaService,
-        curtidaVagaService
-    )
+    await Promise.all([
+        exibirVagas(
+            sessao.id,
+            vagaService,
+            curtidaVagaService
+        ),
+        exibirVagasCurtidas(
+            sessao.id,
+            curtidaVagaService
+        ),
+        exibirMatchesCandidato(
+            sessao.id,
+            matchService
+        )
+    ])
 }
 
 function obterSessao(): Sessao | undefined {

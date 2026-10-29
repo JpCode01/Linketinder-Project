@@ -17,6 +17,8 @@ import { exibirCandidatosEmpresa } from "./EmpresaCandidato"
 import { exibirCandidatosCurtidos } from "./EmpresaCandidatoCurtido"
 import { criarGraficoCompetencias } from "../../charts/CompetenciaChart"
 import { EmpresaApiClient } from "../../api/clientes/EmpresaApiClient"
+import { MatchService } from "../../services/MatchService";
+import { exibirMatchesEmpresa } from "./EmpresaMatch"
 
 interface Sessao {
     id: number
@@ -26,6 +28,9 @@ interface Sessao {
 const repositoryConfig: RepositoryConfig = new RepositoryConfig()
 const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
 const empresaApiClient: EmpresaApiClient = new EmpresaApiClient()
+
+const matchService: MatchService =
+    serviceConfig.criarMatchService()
 
 const empresaService: EmpresaService =
     serviceConfig.criarEmpresaService()
@@ -91,12 +96,9 @@ export async function exibirPageEmpresa(): Promise<void> {
             curtidaCandidatoService
         )
 
-        await exibirCandidatosCurtidos(
+        await exibirMatchesEmpresa(
             empresa.id,
-            vagaService,
-            candidatoService,
-            curtidaVagaService,
-            curtidaCandidatoService
+            matchService
         )
 
         const contagem =

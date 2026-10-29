@@ -1,4 +1,4 @@
-import { Vaga } from "../../models/Vaga"
+import { VagaAnonimaResponseDTO } from "../../api/dto/vaga/VagaAnonimaResponseDTO"
 
 export interface DadosContador {
     contador: HTMLElement | null
@@ -25,106 +25,49 @@ export function atualizarContador(
 }
 
 export function criarCardVaga(
-    vaga: Vaga,
+    vaga: VagaAnonimaResponseDTO,
     vagaJaCurtida: boolean,
     aoCurtir?: () => void
 ): HTMLElement {
     const card = document.createElement("article")
     card.classList.add("job-card")
 
-    card.appendChild(
-        criarTopoVaga(vaga)
-    )
-
-    const nome = document.createElement("h3")
-    nome.textContent = vaga.nome
-
     const descricao = document.createElement("p")
     descricao.classList.add("job-description")
     descricao.textContent = vaga.descricao
 
-    card.appendChild(nome)
     card.appendChild(descricao)
+    card.appendChild(criarCompetenciasVaga(vaga))
 
-    // card.appendChild(
-    //     criarCompetenciasVaga(vaga)
-    // )
+    if (aoCurtir != undefined) {
+        const rodape = document.createElement("div")
+        rodape.classList.add("job-footer")
 
-    card.appendChild(
-        criarRodapeVaga(
-            vaga,
-            vagaJaCurtida,
-            aoCurtir
+        rodape.appendChild(
+            criarBotaoCurtir(vagaJaCurtida, aoCurtir)
         )
-    )
+
+        card.appendChild(rodape)
+    }
 
     return card
 }
 
-function criarRodapeVaga(
-    vaga: Vaga,
-    vagaJaCurtida: boolean,
-    aoCurtir?: () => void
+function criarCompetenciasVaga(
+    vaga: VagaAnonimaResponseDTO
 ): HTMLElement {
-    const rodape = document.createElement("div")
-    rodape.classList.add("job-footer")
+    const competencias = document.createElement("div")
+    competencias.classList.add("job-tags")
 
-    const localizacao = document.createElement("span")
-    localizacao.classList.add("job-location")
-    localizacao.textContent = vaga.localizacao
+    for (const competencia of vaga.competencias) {
+        const competenciaElement = document.createElement("span")
+        competenciaElement.classList.add("job-tag")
+        competenciaElement.textContent = competencia.nome
 
-    rodape.appendChild(localizacao)
-
-    if (aoCurtir != undefined) {
-        const botao = criarBotaoCurtir(
-            vagaJaCurtida,
-            aoCurtir
-        )
-
-        rodape.appendChild(botao)
+        competencias.appendChild(competenciaElement)
     }
 
-    return rodape
-}
-
-// function criarCompetenciasVaga(
-//     vaga: Vaga
-// ): HTMLElement {
-//     const competencias = document.createElement("div")
-//     competencias.classList.add("job-tags")
-
-//     for (const competencia of vaga.competencias) {
-//         const competenciaElement =
-//             document.createElement("span")
-
-//         competenciaElement.textContent = competencia
-
-//         competencias.appendChild(
-//             competenciaElement
-//         )
-//     }
-
-//     return competencias
-// }
-
-function criarTopoVaga(
-    vaga: Vaga
-): HTMLElement {
-    const topo = document.createElement("div")
-    topo.classList.add("job-top")
-
-    const tipo = document.createElement("span")
-    tipo.classList.add("job-type")
-    tipo.textContent = vaga.tipo
-
-    const empresa = document.createElement("span")
-    empresa.classList.add("anonymous")
-    empresa.textContent = "Empresa"
-
-    topo.appendChild(tipo)
-    topo.appendChild(empresa)
-
-    return topo
+    return competencias
 }
 
 function criarBotaoCurtir(
@@ -134,21 +77,12 @@ function criarBotaoCurtir(
     const botao = document.createElement("button")
     botao.classList.add("btn-like")
 
-    botao.textContent =
-        vagaJaCurtida ? "♥" : "♡"
-
-    botao.title =
-        vagaJaCurtida
-            ? "Vaga curtida"
-            : "Curtir vaga"
-
+    botao.textContent = vagaJaCurtida ? "♥" : "♡"
+    botao.title = vagaJaCurtida ? "Vaga curtida" : "Curtir vaga"
     botao.disabled = vagaJaCurtida
 
     if (!vagaJaCurtida) {
-        botao.addEventListener(
-            "click",
-            aoCurtir
-        )
+        botao.addEventListener("click", aoCurtir)
     }
 
     return botao
@@ -158,9 +92,7 @@ export function atualizarCardCurtido(
     card: HTMLElement
 ): void {
     const botao =
-        card.querySelector<HTMLButtonElement>(
-            ".btn-like"
-        )
+        card.querySelector<HTMLButtonElement>(".btn-like")
 
     if (botao == null) {
         return

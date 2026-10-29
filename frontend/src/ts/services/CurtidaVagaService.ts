@@ -8,6 +8,7 @@ import { VagaNaoEncontradaException } from "../exceptions/vaga/VagaNaoEncontrada
 import { VagaJaCurtidaException } from "../exceptions/vaga/VagaJaCurtidaException"
 import { CurtidaVagaApiClient } from "../api/clientes/CurtidaVagaApiClient";
 import { CandidatoAnonimoResponseDTO } from "../api/dto/candidato/CandidatoAnonimoResponseDTO";
+import { VagaAnonimaResponseDTO } from "../api/dto/vaga/VagaAnonimaResponseDTO";
 
 export class CurtidaVagaService {
 
@@ -68,5 +69,23 @@ export class CurtidaVagaService {
         }
 
         return this.curtidaVagaConsultaRepository.buscarPorVaga(idVaga)
+    }
+
+    async buscarVagasCurtidas(
+        idCandidato: number
+    ): Promise<VagaAnonimaResponseDTO[]> {
+        return await this.curtidaVagaApiClient.buscarVagasCurtidas(
+            idCandidato
+        )
+    }
+
+    async curtirViaApi(
+        idCandidato: number,
+        idVaga: number
+    ): Promise<void> {
+        await this.curtidaVagaApiClient.curtirVaga(
+            idCandidato,
+            idVaga
+        )
     }
 }

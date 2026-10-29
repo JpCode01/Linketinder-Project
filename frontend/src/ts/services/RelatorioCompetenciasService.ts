@@ -1,16 +1,13 @@
 
 import { VagaService } from "./VagaService"
 import { CurtidaVagaService } from "./CurtidaVagaService"
-import { CandidatoService } from "./CandidatoService"
 
 export class RelatorioCompetenciasService {
 
     constructor(
         private vagaService: VagaService,
-        private curtidaVagaService: CurtidaVagaService,
-        private candidatoService: CandidatoService
+        private curtidaVagaService: CurtidaVagaService
     ) {}
-
 
     async contarCompetencias(
         idEmpresa: number
@@ -21,15 +18,12 @@ export class RelatorioCompetenciasService {
             await this.vagaService.buscarPorEmpresa(idEmpresa)
 
         for (const vaga of vagas) {
-            const curtidas =
-                this.curtidaVagaService.buscarPorVaga(vaga.id)
+            const candidatos =
+                await this.curtidaVagaService.buscarCandidatosQueCurtiram(
+                    vaga.id
+                )
 
-            for (const curtida of curtidas) {
-                const candidato =
-                    this.candidatoService.buscarPorId(
-                        curtida.idCandidato
-                    )
-
+            for (const candidato of candidatos) {
                 for (const competencia of candidato.competencias) {
                     const nomeCompetencia = competencia.nome
                     const quantidade =
@@ -45,5 +39,4 @@ export class RelatorioCompetenciasService {
 
         return competencias
     }
-
 }

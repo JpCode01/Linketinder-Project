@@ -6,6 +6,7 @@ import { CandidatoConsultaRepository } from "../repository/candidato/contrato/Ca
 import { EmpresaNaoEncontradaException } from "../exceptions/empresa/EmpresaNaoEncontradaException"
 import { CandidatoNaoEncontradoException } from "../exceptions/candidato/CandidatoNaoEncontradoException"
 import { CandidatoJaCurtidoException } from "../exceptions/candidato/CandidatoJaCurtidoException"
+import { CurtidaCandidatoApiClient } from "../api/clientes/CurtidaCandidatoApiClient";
 
 export class CurtidaCandidatoService {
 
@@ -13,40 +14,20 @@ export class CurtidaCandidatoService {
         private curtidaCandidatoCadastroRepository: CadastroRepository<CurtidaCandidato>,
         private curtidaCandidatoConsultaRepository: CurtidaCandidatoConsultaRepository,
         private empresaConsultaRepository: EmpresaConsultaRepository,
-        private candidatoConsultaRepository: CandidatoConsultaRepository
+        private candidatoConsultaRepository: CandidatoConsultaRepository,
+        private curtidaCandidatoApiClient: CurtidaCandidatoApiClient
     ) {}
 
-    curtir(idEmpresa: number, idCandidato: number, idVaga: number): void {
-       const empresa = this.empresaConsultaRepository.buscarPorId(idEmpresa)
-
-        if (empresa == undefined) {
-            throw new EmpresaNaoEncontradaException(idEmpresa)
-        }
-
-        const candidato = this.candidatoConsultaRepository.buscarPorId(idCandidato)
-
-        if (candidato == undefined) {
-            throw new CandidatoNaoEncontradoException(idCandidato)
-        }
-
-        const curtidaExistente =
-            this.curtidaCandidatoConsultaRepository.buscar(
-                idEmpresa,
-                idCandidato,
-                idVaga
-            )
-
-        if (curtidaExistente != undefined) {
-            throw new CandidatoJaCurtidoException(idCandidato)
-        }
-
-        const curtida = new CurtidaCandidato(
+    async curtir(
+        idEmpresa: number,
+        idCandidato: number,
+        idVaga: number
+    ): Promise<void> {
+        await this.curtidaCandidatoApiClient.curtir(
             idEmpresa,
             idCandidato,
             idVaga
         )
-
-        this.curtidaCandidatoCadastroRepository.salvar(curtida)
     }
 
     buscarPorEmpresa(idEmpresa: number): CurtidaCandidato[] {

@@ -10,6 +10,9 @@ import { CandidatoApiClient } from "../api/clientes/CandidatoApiClient";
 import { EmpresaApiClient } from "../api/clientes/EmpresaApiClient"
 import { VagaApiClient } from "../api/clientes/VagaApiClient";
 import { CurtidaVagaApiClient } from "../api/clientes/CurtidaVagaApiClient";
+import { CurtidaCandidatoApiClient } from "../api/clientes/CurtidaCandidatoApiClient";
+import { MatchService } from "../services/MatchService";
+import { MatchApiClient } from "../api/clientes/MatchApiClient";
 
 export class ServiceConfig {
 
@@ -25,8 +28,7 @@ export class ServiceConfig {
     criarRelatorioCompetenciasService(): RelatorioCompetenciasService {
         return new RelatorioCompetenciasService(
             this.criarVagaService(),
-            this.criarCurtidaVagaService(),
-            this.criarCandidatoService()
+            this.criarCurtidaVagaService()
         )
     }
 
@@ -61,7 +63,14 @@ export class ServiceConfig {
             this.repositoryConfig.curtidaCandidatoRepository,
             this.repositoryConfig.curtidaCandidatoRepository,
             this.repositoryConfig.empresaRepository,
-            this.repositoryConfig.candidatoRepository
+            this.repositoryConfig.candidatoRepository,
+            new CurtidaCandidatoApiClient()
+        )
+    }
+
+    criarMatchService(): MatchService {
+        return new MatchService(
+            new MatchApiClient()
         )
     }
 }

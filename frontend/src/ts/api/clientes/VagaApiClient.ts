@@ -1,4 +1,5 @@
 import { CadastrarVagaRequestDTO } from "../dto/vaga/CadastrarVagaRequestDTO"
+import { VagaAnonimaResponseDTO } from "../dto/vaga/VagaAnonimaResponseDTO";
 import { VagaEmpresaResponseDTO } from "../dto/vaga/VagaEmpresaResponseDTO";
 
 export class VagaApiClient {
@@ -61,5 +62,17 @@ export class VagaApiClient {
         }
 
         return await resposta.json() as VagaEmpresaResponseDTO[]
-}
+    }
+
+    async buscarTodasAsVagas(): Promise<VagaAnonimaResponseDTO[]> {
+        const resposta = await fetch(this.baseUrl)
+
+        if (!resposta.ok) {
+            throw new Error(
+                `Erro ao carregar vagas: HTTP ${resposta.status}`
+            )
+        }
+
+        return await resposta.json() as VagaAnonimaResponseDTO[]
+    }
 }

@@ -1,4 +1,5 @@
 import { VagaApiClient } from "../api/clientes/VagaApiClient";
+import { VagaAnonimaResponseDTO } from "../api/dto/vaga/VagaAnonimaResponseDTO";
 import { VagaEmpresaResponseDTO } from "../api/dto/vaga/VagaEmpresaResponseDTO";
 import { VagaNaoEncontradaException } from "../exceptions/vaga/VagaNaoEncontradaException";
 import { Vaga } from "../models/Vaga";
@@ -42,4 +43,8 @@ export class VagaService {
     ): Promise<VagaEmpresaResponseDTO[]> {
         return await this.vagaApiClient.buscarPorEmpresa(idEmpresa)
     }
+
+    async buscarTodasAsVagasAnonimas(): Promise<VagaAnonimaResponseDTO[]> {
+    return await this.vagaApiClient.buscarTodasAsVagas()
+}
 }
