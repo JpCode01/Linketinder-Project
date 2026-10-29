@@ -50,13 +50,9 @@ export class CurtidaCandidatoService {
     }
 
     buscarPorEmpresa(idEmpresa: number): CurtidaCandidato[] {
-        const empresaProcurada = this.empresaConsultaRepository.buscarPorId(idEmpresa)
-
-        if (empresaProcurada == undefined) {
-            throw new EmpresaNaoEncontradaException(idEmpresa)
-        }
-
-        return this.curtidaCandidatoConsultaRepository.buscarPorEmpresa(idEmpresa)
+        return this.curtidaCandidatoConsultaRepository.buscarPorEmpresa(
+            idEmpresa
+        )
     }
 
     buscarPorCandidato(idCandidato: number): CurtidaCandidato[] {

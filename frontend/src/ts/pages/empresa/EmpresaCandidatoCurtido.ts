@@ -5,14 +5,15 @@ import { CandidatoService } from "../../services/CandidatoService"
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
 import { CurtidaCandidatoService } from "../../services/CurtidaCandidatoService"
 import { obterIniciais } from "./EmpresaPerfil"
+import { VagaEmpresaResponseDTO } from "../../api/dto/vaga/VagaEmpresaResponseDTO";
 
-export function exibirCandidatosCurtidos(
+export async function exibirCandidatosCurtidos(
     idEmpresa: number,
     vagaService: VagaService,
     candidatoService: CandidatoService,
     curtidaVagaService: CurtidaVagaService,
     curtidaCandidatoService: CurtidaCandidatoService
-): void {
+): Promise<void> {
     const lista =
         document.getElementById("liked-candidate-grid")
 
@@ -27,7 +28,7 @@ export function exibirCandidatosCurtidos(
         curtidaCandidatoService.buscarPorEmpresa(idEmpresa)
 
     const vagas =
-        vagaService.buscarPorEmpresa(idEmpresa)
+        await vagaService.buscarPorEmpresa(idEmpresa)
 
     lista.innerHTML = ""
 
@@ -74,9 +75,10 @@ export function exibirCandidatosCurtidos(
     }
 }
 
+
 function criarCardCandidatoCurtido(
     candidato: Candidato,
-    vaga: Vaga
+    vaga: VagaEmpresaResponseDTO
 ): HTMLElement {
     const article = document.createElement("article")
     article.className = "candidate-card"
@@ -163,7 +165,7 @@ function criarSecaoCompetencias(
 }
 
 function criarSecaoVaga(
-    vaga: Vaga
+    vaga: VagaEmpresaResponseDTO
 ): HTMLElement {
     const secao = document.createElement("div")
     secao.className = "candidate-section"

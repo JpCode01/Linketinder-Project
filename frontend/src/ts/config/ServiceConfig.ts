@@ -8,6 +8,8 @@ import { RelatorioCompetenciasService } from "../services/RelatorioCompetenciasS
 import { RepositoryConfig } from "./RepositoryConfig"
 import { CandidatoApiClient } from "../api/clientes/CandidatoApiClient";
 import { EmpresaApiClient } from "../api/clientes/EmpresaApiClient"
+import { VagaApiClient } from "../api/clientes/VagaApiClient";
+import { CurtidaVagaApiClient } from "../api/clientes/CurtidaVagaApiClient";
 
 export class ServiceConfig {
 
@@ -40,8 +42,7 @@ export class ServiceConfig {
     criarVagaService(): VagaService {
         return new VagaService(
             this.repositoryConfig.vagaRepository,
-            this.repositoryConfig.vagaRepository,
-            this.repositoryConfig.empresaRepository
+            new VagaApiClient()
         )
     }
 
@@ -50,7 +51,8 @@ export class ServiceConfig {
             this.repositoryConfig.curtidaVagaRepository,
             this.repositoryConfig.curtidaVagaRepository,
             this.repositoryConfig.candidatoRepository,
-            this.repositoryConfig.vagaRepository
+            this.repositoryConfig.vagaRepository,
+            new CurtidaVagaApiClient()
         )
     }
 

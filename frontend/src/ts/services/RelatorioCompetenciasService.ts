@@ -11,28 +11,39 @@ export class RelatorioCompetenciasService {
         private candidatoService: CandidatoService
     ) {}
 
-    contarCompetencias(idEmpresa: number): Map<string, number> {
+
+    async contarCompetencias(
+        idEmpresa: number
+    ): Promise<Map<string, number>> {
         const competencias = new Map<string, number>()
 
-        const vagas = this.vagaService.buscarPorEmpresa(idEmpresa)
+        const vagas =
+            await this.vagaService.buscarPorEmpresa(idEmpresa)
 
         for (const vaga of vagas) {
-            const curtidas = this.curtidaVagaService.buscarPorVaga(vaga.id)
+            const curtidas =
+                this.curtidaVagaService.buscarPorVaga(vaga.id)
 
             for (const curtida of curtidas) {
-                const candidato = this.candidatoService.buscarPorId(
-                    curtida.idCandidato
-                )
+                const candidato =
+                    this.candidatoService.buscarPorId(
+                        curtida.idCandidato
+                    )
 
                 for (const competencia of candidato.competencias) {
                     const nomeCompetencia = competencia.nome
-                    const quantidade = competencias.get(nomeCompetencia) ?? 0
+                    const quantidade =
+                        competencias.get(nomeCompetencia) ?? 0
 
-                    competencias.set(nomeCompetencia, quantidade + 1)
+                    competencias.set(
+                        nomeCompetencia,
+                        quantidade + 1
+                    )
                 }
             }
         }
 
         return competencias
     }
+
 }

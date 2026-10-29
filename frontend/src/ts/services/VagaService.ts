@@ -1,26 +1,26 @@
-import { Vaga } from "../models/Vaga"
-import { CadastroRepository } from "../repository/CadastroRepository"
-import { VagaConsultaRepository } from "../repository/vaga/contrato/VagaConsultaRepository"
-import { EmpresaConsultaRepository } from "../repository/empresa/contrato/EmpresaConsultaRepository"
-import { EmpresaNaoEncontradaException } from "../exceptions/empresa/EmpresaNaoEncontradaException"
-import { VagaNaoEncontradaException } from "../exceptions/vaga/VagaNaoEncontradaException"
+import { VagaApiClient } from "../api/clientes/VagaApiClient";
+import { VagaEmpresaResponseDTO } from "../api/dto/vaga/VagaEmpresaResponseDTO";
+import { VagaNaoEncontradaException } from "../exceptions/vaga/VagaNaoEncontradaException";
+import { Vaga } from "../models/Vaga";
+import { VagaConsultaRepository } from "../repository/vaga/contrato/VagaConsultaRepository";
 
 export class VagaService {
 
     constructor(
-        private vagaCadastroRepository: CadastroRepository<Vaga>,
         private vagaConsultaRepository: VagaConsultaRepository,
-        private empresaConsultaRepository: EmpresaConsultaRepository
+        private vagaApiClient: VagaApiClient
     ) {}
 
-    salvar(vaga: Vaga): void {
-        const empresa = this.empresaConsultaRepository.buscarPorId(vaga.idEmpresa)
-
-        if (empresa == undefined) {
-            throw new EmpresaNaoEncontradaException(vaga.idEmpresa)
-        }
-
-        this.vagaCadastroRepository.salvar(vaga)
+    async salvar(vaga: Vaga): Promise<void> {
+        await this.vagaApiClient.cadastrar({
+            nome: vaga.nome,
+            descricao: vaga.descricao,
+            local: vaga.localizacao,
+            idEmpresa: vaga.idEmpresa,
+            competencias: vaga.competencias.map(
+                (competencia) => competencia.nome
+            )
+        })
     }
 
     buscarTodos(): Vaga[] {
@@ -37,13 +37,9 @@ export class VagaService {
         return procurarVaga
     }
 
-    buscarPorEmpresa(idEmpresa: number): Vaga[] {
-        const empresaProcurada = this.empresaConsultaRepository.buscarPorId(idEmpresa)
-
-        if (empresaProcurada == undefined) {
-            throw new EmpresaNaoEncontradaException(idEmpresa)
-        }
-        
-        return this.vagaConsultaRepository.buscarPorEmpresa(idEmpresa)
+    async buscarPorEmpresa(
+        idEmpresa: number
+    ): Promise<VagaEmpresaResponseDTO[]> {
+        return await this.vagaApiClient.buscarPorEmpresa(idEmpresa)
     }
 }

@@ -6,15 +6,24 @@ import { VagaConsultaRepository } from "../repository/vaga/contrato/VagaConsulta
 import { CandidatoNaoEncontradoException } from "../exceptions/candidato/CandidatoNaoEncontradoException"
 import { VagaNaoEncontradaException } from "../exceptions/vaga/VagaNaoEncontradaException"
 import { VagaJaCurtidaException } from "../exceptions/vaga/VagaJaCurtidaException"
+import { CurtidaVagaApiClient } from "../api/clientes/CurtidaVagaApiClient";
+import { CandidatoAnonimoResponseDTO } from "../api/dto/candidato/CandidatoAnonimoResponseDTO";
 
 export class CurtidaVagaService {
 
-    constructor(
-        private curtidaVagaCadastroRepository: CadastroRepository<CurtidaVaga>,
-        private curtidaVagaConsultaRepository: CurtidaVagaConsultaRepository,
-        private candidatoConsultaRepository: CandidatoConsultaRepository,
-        private vagaConsultaRepository: VagaConsultaRepository
+   constructor(
+    private curtidaVagaCadastroRepository: CadastroRepository<CurtidaVaga>,
+    private curtidaVagaConsultaRepository: CurtidaVagaConsultaRepository,
+    private candidatoConsultaRepository: CandidatoConsultaRepository,
+    private vagaConsultaRepository: VagaConsultaRepository,
+    private curtidaVagaApiClient: CurtidaVagaApiClient
     ) {}
+
+    async buscarCandidatosQueCurtiram(
+        idVaga: number
+    ): Promise<CandidatoAnonimoResponseDTO[]> {
+        return await this.curtidaVagaApiClient.buscarCandidatosQueCurtiram(idVaga)
+    }
 
     curtir(idCandidato: number, idVaga: number): void {
         const candidato = this.candidatoConsultaRepository.buscarPorId(idCandidato)

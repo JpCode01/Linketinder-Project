@@ -5,109 +5,83 @@ import { CandidatoService } from "../../services/CandidatoService"
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
 import { CurtidaCandidatoService } from "../../services/CurtidaCandidatoService"
 import { CandidatoJaCurtidoException } from "../../exceptions/candidato/CandidatoJaCurtidoException"
+import { VagaEmpresaResponseDTO } from "../../api/dto/vaga/VagaEmpresaResponseDTO";
+import { CandidatoAnonimoResponseDTO } from "../../api/dto/candidato/CandidatoAnonimoResponseDTO";
 
-export function exibirCandidatosEmpresa(
+export async function exibirCandidatosEmpresa(
     idEmpresa: number,
     vagaService: VagaService,
     candidatoService: CandidatoService,
     curtidaVagaService: CurtidaVagaService,
     curtidaCandidatoService: CurtidaCandidatoService
-): void {
+): Promise<void> {
     const grid = document.getElementById("candidate-grid")
 
     if (grid == null) {
         return
     }
 
-    const vagas = vagaService.buscarPorEmpresa(idEmpresa)
-
-    const curtidasCandidatos =
-        curtidaCandidatoService.buscarPorEmpresa(idEmpresa)
+    const vagas = await vagaService.buscarPorEmpresa(idEmpresa)
+    const curtidasCandidatos = curtidaCandidatoService.buscarPorEmpresa(idEmpresa)
 
     grid.innerHTML = ""
-
     let quantidadeCandidatos = 0
 
-    vagas.forEach((vaga) => {
-        const curtidas =
-            curtidaVagaService.buscarPorVaga(vaga.id)
+    for (const vaga of vagas) {
+        const candidatos = await curtidaVagaService.buscarCandidatosQueCurtiram(vaga.id)
 
-        const contador =
-            document.getElementById("candidate-count")
-
-        curtidas.forEach((curtida) => {
-            const candidato =
-                candidatoService.buscarPorId(curtida.idCandidato)
-
-            const candidatoJaCurtido =
-                curtidasCandidatos.some(
-                    (curtidaCandidato) =>
-                        curtidaCandidato.idCandidato === candidato.id &&
-                        curtidaCandidato.idVaga === vaga.id
-                )
+        for (const candidato of candidatos) {
+            const candidatoJaCurtido = curtidasCandidatos.some(
+                (curtidaCandidato) =>
+                    curtidaCandidato.idCandidato === candidato.id &&
+                    curtidaCandidato.idVaga === vaga.id
+            )
 
             const card = criarCardCandidato(
                 candidato,
                 vaga,
                 candidatoJaCurtido,
-                () =>
-                    curtirCandidato(
-                        idEmpresa,
-                        candidato.id,
-                        vaga.id,
-                        card,
-                        curtidaCandidatoService
-                    )
+                () => curtirCandidato(
+                    idEmpresa,
+                    candidato.id,
+                    vaga.id,
+                    card,
+                    curtidaCandidatoService
+                )
             )
 
             grid.appendChild(card)
-
             quantidadeCandidatos++
-        })
-
-        if (contador != null) {
-            contador.textContent =
-                quantidadeCandidatos.toString()
         }
-    })
+    }
+
+    const contador = document.getElementById("candidate-count")
+
+    if (contador != null) {
+        contador.textContent = quantidadeCandidatos.toString()
+    }
 }
 
+
 function criarCardCandidato(
-    candidato: Candidato,
-    vaga: Vaga,
+    candidato: CandidatoAnonimoResponseDTO,
+    vaga: VagaEmpresaResponseDTO,
     candidatoJaCurtido: boolean,
     aoCurtir: () => void
 ): HTMLElement {
     const article = document.createElement("article")
     article.className = "candidate-card"
 
-    article.appendChild(
-        criarTopoCandidato()
-    )
-
-    // article.appendChild(
-    //     criarSecaoFormacao(candidato)
-    // )
-
-    // article.appendChild(
-    //     criarSecaoCompetencias(candidato)
-    // )
-
-    article.appendChild(
-        criarSecaoVaga(vaga)
-    )
-
-    article.appendChild(
-        criarRodapeCandidato(
-            candidatoJaCurtido,
-            aoCurtir
-        )
-    )
+    article.appendChild(criarTopoCandidato(candidato))
+    article.appendChild(criarSecaoVaga(vaga))
+    article.appendChild(criarRodapeCandidato(candidatoJaCurtido, aoCurtir))
 
     return article
 }
 
-function criarTopoCandidato(): HTMLElement {
+function criarTopoCandidato(
+    candidato: CandidatoAnonimoResponseDTO
+): HTMLElement {
     const topo = document.createElement("div")
     topo.className = "candidate-top"
 
@@ -115,11 +89,11 @@ function criarTopoCandidato(): HTMLElement {
     avatar.className = "candidate-avatar"
     avatar.textContent = "?"
 
-    const nome = document.createElement("h3")
-    nome.textContent = "Candidato"
+    const descricao = document.createElement("h3")
+    descricao.textContent = candidato.descricao || "Candidato"
 
     topo.appendChild(avatar)
-    topo.appendChild(nome)
+    topo.appendChild(descricao)
 
     return topo
 }
@@ -168,7 +142,7 @@ function criarTopoCandidato(): HTMLElement {
 // }
 
 function criarSecaoVaga(
-    vaga: Vaga
+    vaga: VagaEmpresaResponseDTO
 ): HTMLElement {
     const secao = document.createElement("div")
     secao.className = "candidate-section"

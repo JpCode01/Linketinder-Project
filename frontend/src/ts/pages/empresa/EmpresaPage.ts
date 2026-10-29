@@ -71,19 +71,19 @@ export async function exibirPageEmpresa(): Promise<void> {
     exibirDadosEmpresa(empresa)
 
     try {
-        carregarOpcoesCompetencias()
+        await carregarOpcoesCompetencias()
 
         configurarCriacaoVaga(
             empresa.id,
             vagaService
         )
 
-        exibirVagasEmpresa(
+        await exibirVagasEmpresa(
             empresa.id,
             vagaService
         )
 
-        exibirCandidatosEmpresa(
+        await exibirCandidatosEmpresa(
             empresa.id,
             vagaService,
             candidatoService,
@@ -91,7 +91,7 @@ export async function exibirPageEmpresa(): Promise<void> {
             curtidaCandidatoService
         )
 
-        exibirCandidatosCurtidos(
+        await exibirCandidatosCurtidos(
             empresa.id,
             vagaService,
             candidatoService,
@@ -100,7 +100,7 @@ export async function exibirPageEmpresa(): Promise<void> {
         )
 
         const contagem =
-            relatorioCompetenciasService.contarCompetencias(empresa.id)
+            await relatorioCompetenciasService.contarCompetencias(empresa.id)
 
         criarGraficoCompetencias(contagem)
     } catch (erro: unknown) {
