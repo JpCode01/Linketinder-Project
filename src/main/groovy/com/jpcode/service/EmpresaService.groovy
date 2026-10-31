@@ -144,4 +144,8 @@ class EmpresaService {
 
         return competenciasConvertidas
     }
+
+    boolean jaCurtiuCandidato(Long idEmpresa, Long idCandidato) {
+        return empresaCurtirRepository.jaCurtiu(idEmpresa, idCandidato)
+    }
 }

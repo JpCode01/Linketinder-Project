@@ -1,25 +1,20 @@
-import { Competencia } from "../../models/Competencia"
-
-import { RepositoryConfig } from "../../config/RepositoryConfig"
-import { ServiceConfig } from "../../config/ServiceConfig"
-
-import { CompetenciaApiClient } from "../../api/clientes/CompetenciaApiClient";
-import { ReferenciaApiClient } from "../../api/clientes/ReferenciaApiClient";
 import { CadastrarCandidatoRequestDTO } from "../../api/dto/candidato/CadastrarCandidatoRequestDTO";
+import { ServiceConfig } from "../../config/ServiceConfig";
+import { Competencia } from "../../models/Competencia";
 import { Estado } from "../../models/Estado";
 import { Pais } from "../../models/Pais";
 import { LoginCandidatoStrategy } from "../../strategy/login/LoginCandidatoStrategy";
 
-const repositoryConfig: RepositoryConfig = new RepositoryConfig()
-const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
+const serviceConfig: ServiceConfig = new ServiceConfig()
 
-const candidatoService = serviceConfig.criarCandidatoService()
+const candidatoService = serviceConfig
+    .criarCandidatoService()
 
-const competenciaApiClient: CompetenciaApiClient =
-    new CompetenciaApiClient()
+const competenciaService = serviceConfig
+    .criarCompetenciaService()
 
-const referenciaApiClient: ReferenciaApiClient =
-    new ReferenciaApiClient()
+const referenciaService = serviceConfig
+    .criarReferenciaService()
 
 export function cadastrarCandidato(): void {
     const formulario = document.getElementById(
@@ -95,13 +90,13 @@ export function cadastrarCandidato(): void {
 
 async function carregarOpcoesFormulario(): Promise<void> {
     const competencias: Competencia[] =
-        await competenciaApiClient.buscarTodas()
+        await competenciaService.buscarTodas()
 
     const paises: Pais[] =
-        await referenciaApiClient.buscarPaises()
+        await referenciaService.buscarPaises()
 
     const estados: Estado[] =
-        await referenciaApiClient.buscarEstados()
+        await referenciaService.buscarEstados()
 
     preencherCompetencias(competencias)
     preencherPaises(paises)

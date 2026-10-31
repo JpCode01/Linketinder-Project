@@ -107,4 +107,28 @@ class EmpresaCurtirDAO implements CurtidaRepository<CandidatoAnonimoDTO> {
 
         }
     }
+
+    boolean jaCurtiu(Long idEmpresa, Long idCandidato) {
+        String sql = """
+        SELECT EXISTS (
+            SELECT 1
+            FROM candidatos_curtidos_empresa
+            WHERE id_empresa = ?
+              AND id_candidato = ?
+        )
+    """
+
+        try (
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, idEmpresa)
+            statement.setLong(2, idCandidato)
+
+            def resultSet = statement.executeQuery()
+
+            resultSet.next()
+            return resultSet.getBoolean(1)
+        }
+    }
 }

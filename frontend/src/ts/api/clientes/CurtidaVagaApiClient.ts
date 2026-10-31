@@ -58,4 +58,27 @@ export class CurtidaVagaApiClient {
             )
         }
     }
+
+    
+    async jaCurtiuVaga(
+        idCandidato: number,
+        idVaga: number
+    ): Promise<boolean> {
+        const parametros: URLSearchParams = new URLSearchParams({
+            candidatoId: idCandidato.toString(),
+            vagaId: idVaga.toString()
+        })
+
+        const resposta = await fetch(
+            `${this.baseUrl}/vagas/verificar?${parametros.toString()}`
+        )
+
+        if (!resposta.ok) {
+            throw new Error(
+                `Erro ao verificar curtida da vaga: HTTP ${resposta.status}`
+            )
+        }
+
+        return await resposta.json() as boolean
+    }
 }

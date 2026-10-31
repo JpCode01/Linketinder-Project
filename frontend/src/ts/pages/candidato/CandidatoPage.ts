@@ -1,22 +1,20 @@
-import { RepositoryConfig } from "../../config/RepositoryConfig"
-import { ServiceConfig } from "../../config/ServiceConfig"
-import { VagaService } from "../../services/VagaService"
-import { CurtidaVagaService } from "../../services/CurtidaVagaService"
-import { CandidatoApiClient } from "../../api/clientes/CandidatoApiClient"
-import { MatchService } from "../../services/MatchService"
+import { ServiceConfig } from "../../config/ServiceConfig";
+import { CurtidaVagaService } from "../../services/CurtidaVagaService";
+import { MatchService } from "../../services/MatchService";
+import { VagaService } from "../../services/VagaService";
 
-import { exibirDadosCandidato } from "./CandidatoPerfil"
-import { exibirVagas } from "./CandidatoVaga"
-import { exibirVagasCurtidas } from "./CandidatoVagaCurtida"
-import { exibirMatchesCandidato } from "./CandidatoMatch"
+import { CandidatoService } from "../../services/CandidatoService";
+import { exibirMatchesCandidato } from "./CandidatoMatch";
+import { exibirDadosCandidato } from "./CandidatoPerfil";
+import { exibirVagas } from "./CandidatoVaga";
+import { exibirVagasCurtidas } from "./CandidatoVagaCurtida";
 
 interface Sessao {
     id: number
     tipo: "CANDIDATO" | "EMPRESA"
 }
 
-const repositoryConfig: RepositoryConfig = new RepositoryConfig()
-const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
+const serviceConfig: ServiceConfig = new ServiceConfig()
 
 const matchService: MatchService =
     serviceConfig.criarMatchService()
@@ -27,8 +25,8 @@ const vagaService: VagaService =
 const curtidaVagaService: CurtidaVagaService =
     serviceConfig.criarCurtidaVagaService()
 
-const candidatoApiClient: CandidatoApiClient =
-    new CandidatoApiClient()
+const candidatoService: CandidatoService =
+    serviceConfig.criarCandidatoService()
 
 export async function exibirPageCandidato(): Promise<void> {
     const sessao = obterSessao()
@@ -39,7 +37,7 @@ export async function exibirPageCandidato(): Promise<void> {
 
     try {
         const candidatoDto =
-            await candidatoApiClient.buscarPorId(sessao.id)
+            await candidatoService.buscarPorId(sessao.id)
 
         exibirDadosCandidato(candidatoDto)
     } catch (erro) {

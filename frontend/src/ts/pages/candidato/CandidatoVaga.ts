@@ -29,13 +29,20 @@ export async function exibirVagas(
         const vagas =
             await vagaService.buscarTodasAsVagasAnonimas()
 
-        const curtidas =
-            await curtidaVagaService.buscarVagasCurtidas(
-                idCandidato
-            )
+        const estadosCurtidas = await Promise.all(
+            vagas.map(async (vaga) => ({
+                id: vaga.id,
+                jaCurtiu: await curtidaVagaService.jaCurtiuVaga(
+                    idCandidato,
+                    vaga.id
+                )
+            }))
+        )
 
         const idsVagasCurtidas = new Set<number>(
-            curtidas.map(curtida => curtida.id)
+            estadosCurtidas
+                .filter(estado => estado.jaCurtiu)
+                .map(estado => estado.id)
         )
 
         atualizarContador({

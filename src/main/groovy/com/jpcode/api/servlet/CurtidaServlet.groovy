@@ -161,6 +161,62 @@ class CurtidaServlet extends HttpServlet {
                 return
             }
 
+            if (partes.size() == 3 &&
+                    partes[1] == "candidatos" &&
+                    partes[2] == "verificar") {
+
+                Long idEmpresa = request.getParameter("empresaId")?.toLong()
+                Long idCandidato = request.getParameter("candidatoId")?.toLong()
+
+                if (idEmpresa == null || idCandidato == null) {
+                    response.status = HttpServletResponse.SC_BAD_REQUEST
+                    response.writer.write(
+                            JsonOutput.toJson([erro: "Informe empresaId e candidatoId."])
+                    )
+                    return
+                }
+
+                boolean jaCurtiu = empresaController.jaCurtiuCandidato(
+                        idEmpresa,
+                        idCandidato
+                )
+
+                response.status = HttpServletResponse.SC_OK
+                response.writer.write(JsonOutput.toJson(jaCurtiu))
+                return
+            }
+
+            if (partes.size() == 3 &&
+                    partes[1] == "vagas" &&
+                    partes[2] == "verificar") {
+
+                String candidatoIdParametro = request.getParameter("candidatoId")
+                String vagaIdParametro = request.getParameter("vagaId")
+
+                if (!(candidatoIdParametro ==~ /\d+/) ||
+                        !(vagaIdParametro ==~ /\d+/)) {
+                    response.status = HttpServletResponse.SC_BAD_REQUEST
+                    response.writer.write(
+                            JsonOutput.toJson([
+                                    erro: "Informe candidatoId e vagaId válidos."
+                            ])
+                    )
+                    return
+                }
+
+                Long idCandidato = candidatoIdParametro.toLong()
+                Long idVaga = vagaIdParametro.toLong()
+
+                boolean jaCurtiu = vagaController.jaFoiCurtidaPorCandidato(
+                        idCandidato,
+                        idVaga
+                )
+
+                response.status = HttpServletResponse.SC_OK
+                response.writer.write(JsonOutput.toJson(jaCurtiu))
+                return
+            }
+
             response.status = HttpServletResponse.SC_NOT_FOUND
             response.writer.write(
                     JsonOutput.toJson([

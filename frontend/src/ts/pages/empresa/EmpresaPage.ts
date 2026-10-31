@@ -1,32 +1,29 @@
-import { RepositoryConfig } from "../../config/RepositoryConfig"
-import { ServiceConfig } from "../../config/ServiceConfig"
-import { EmpresaService } from "../../services/EmpresaService"
-import { VagaService } from "../../services/VagaService"
-import { CandidatoService } from "../../services/CandidatoService"
-import { CurtidaVagaService } from "../../services/CurtidaVagaService"
-import { CurtidaCandidatoService } from "../../services/CurtidaCandidatoService"
-import { RelatorioCompetenciasService } from "../../services/RelatorioCompetenciasService"
+import { ServiceConfig } from "../../config/ServiceConfig";
+import { CandidatoService } from "../../services/CandidatoService";
+import { CurtidaCandidatoService } from "../../services/CurtidaCandidatoService";
+import { CurtidaVagaService } from "../../services/CurtidaVagaService";
+import { EmpresaService } from "../../services/EmpresaService";
+import { RelatorioCompetenciasService } from "../../services/RelatorioCompetenciasService";
+import { VagaService } from "../../services/VagaService";
 
-import { exibirDadosEmpresa } from "./EmpresaPerfil"
+import { EmpresaApiClient } from "../../api/clientes/EmpresaApiClient";
+import { criarGraficoCompetencias } from "../../charts/CompetenciaChart";
+import { MatchService } from "../../services/MatchService";
+import { exibirCandidatosEmpresa } from "./EmpresaCandidato";
+import { exibirMatchesEmpresa } from "./EmpresaMatch";
+import { exibirDadosEmpresa } from "./EmpresaPerfil";
 import {
     carregarOpcoesCompetencias,
     configurarCriacaoVaga,
     exibirVagasEmpresa
-} from "./EmpresaVaga"
-import { exibirCandidatosEmpresa } from "./EmpresaCandidato"
-import { exibirCandidatosCurtidos } from "./EmpresaCandidatoCurtido"
-import { criarGraficoCompetencias } from "../../charts/CompetenciaChart"
-import { EmpresaApiClient } from "../../api/clientes/EmpresaApiClient"
-import { MatchService } from "../../services/MatchService";
-import { exibirMatchesEmpresa } from "./EmpresaMatch"
+} from "./EmpresaVaga";
 
 interface Sessao {
     id: number
     tipo: string
 }
 
-const repositoryConfig: RepositoryConfig = new RepositoryConfig()
-const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
+const serviceConfig: ServiceConfig = new ServiceConfig()
 const empresaApiClient: EmpresaApiClient = new EmpresaApiClient()
 
 const matchService: MatchService =

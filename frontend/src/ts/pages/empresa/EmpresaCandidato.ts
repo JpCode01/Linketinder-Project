@@ -22,7 +22,7 @@ export async function exibirCandidatosEmpresa(
     }
 
     const vagas = await vagaService.buscarPorEmpresa(idEmpresa)
-    const curtidasCandidatos = curtidaCandidatoService.buscarPorEmpresa(idEmpresa)
+    
 
     grid.innerHTML = ""
     let quantidadeCandidatos = 0
@@ -31,11 +31,11 @@ export async function exibirCandidatosEmpresa(
         const candidatos = await curtidaVagaService.buscarCandidatosQueCurtiram(vaga.id)
 
         for (const candidato of candidatos) {
-            const candidatoJaCurtido = curtidasCandidatos.some(
-                (curtidaCandidato) =>
-                    curtidaCandidato.idCandidato === candidato.id &&
-                    curtidaCandidato.idVaga === vaga.id
-            )
+            const candidatoJaCurtido =
+                await curtidaCandidatoService.jaCurtiuCandidato(
+                    idEmpresa,
+                    candidato.id
+                )
 
             const card = criarCardCandidato(
                 candidato,
@@ -97,49 +97,6 @@ function criarTopoCandidato(
 
     return topo
 }
-
-// function criarSecaoFormacao(
-//     candidato: Candidato
-// ): HTMLElement {
-//     const secao = document.createElement("div")
-//     secao.className = "candidate-section"
-
-//     const titulo = document.createElement("strong")
-//     titulo.textContent = "Formação"
-
-//     const formacao = document.createElement("p")
-//     formacao.textContent = candidato.formacao
-
-//     secao.appendChild(titulo)
-//     secao.appendChild(formacao)
-
-//     return secao
-// }
-
-// function criarSecaoCompetencias(
-//     candidato: Candidato
-// ): HTMLElement {
-//     const secao = document.createElement("div")
-//     secao.className = "candidate-section"
-
-//     const titulo = document.createElement("strong")
-//     titulo.textContent = "Competências"
-
-//     const tags = document.createElement("div")
-//     tags.className = "job-tags"
-
-//     candidato.competencias.forEach((competencia) => {
-//         const tag = document.createElement("span")
-//         tag.textContent = competencia.nome
-
-//         tags.appendChild(tag)
-//     })
-
-//     secao.appendChild(titulo)
-//     secao.appendChild(tags)
-
-//     return secao
-// }
 
 function criarSecaoVaga(
     vaga: VagaEmpresaResponseDTO

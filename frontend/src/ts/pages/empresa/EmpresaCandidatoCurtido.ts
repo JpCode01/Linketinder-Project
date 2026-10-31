@@ -1,5 +1,4 @@
-import { Candidato } from "../../models/Candidato"
-import { Vaga } from "../../models/Vaga"
+import { CandidatoViewDTO } from "../../api/dto/candidato/CandidatoViewDTO"
 import { VagaService } from "../../services/VagaService"
 import { CandidatoService } from "../../services/CandidatoService"
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
@@ -24,9 +23,6 @@ export async function exibirCandidatosCurtidos(
         return
     }
 
-    const curtidasCandidatos =
-        curtidaCandidatoService.buscarPorEmpresa(idEmpresa)
-
     const vagas =
         await vagaService.buscarPorEmpresa(idEmpresa)
 
@@ -34,50 +30,39 @@ export async function exibirCandidatosCurtidos(
 
     let quantidade = 0
 
-    curtidasCandidatos.forEach((curtidaCandidato) => {
-        const candidato =
-            candidatoService.buscarPorId(
-                curtidaCandidato.idCandidato
+    for (const vaga of vagas) {
+        const candidatos =
+            await curtidaVagaService.buscarCandidatosQueCurtiram(vaga.id)
+
+        for (const candidatoAnonimo of candidatos) {
+            const empresaCurtiuCandidato =
+                await curtidaCandidatoService.jaCurtiuCandidato(
+                    idEmpresa,
+                    candidatoAnonimo.id
+                )
+
+            if (!empresaCurtiuCandidato) {
+                continue
+            }
+
+            const candidato =
+                await candidatoService.buscarPorId(candidatoAnonimo.id)
+
+            lista.appendChild(
+                criarCardCandidatoCurtido(candidato, vaga)
             )
 
-        vagas.forEach((vaga) => {
-            const curtidas =
-                curtidaVagaService.buscarPorVaga(vaga.id)
-
-            const candidatoCurtiuVaga =
-                curtidas.some(
-                    (curtida) =>
-                        curtida.idCandidato === candidato.id
-                )
-
-            const empresaCurtiuCandidatoParaVaga =
-                curtidaCandidato.idVaga === vaga.id
-
-            if (
-                candidatoCurtiuVaga &&
-                empresaCurtiuCandidatoParaVaga
-            ) {
-                lista.appendChild(
-                    criarCardCandidatoCurtido(
-                        candidato,
-                        vaga
-                    )
-                )
-
-                quantidade++
-            }
-        })
-    })
+            quantidade++
+        }
+    }
 
     if (contador != null) {
-        contador.textContent =
-            quantidade.toString()
+        contador.textContent = quantidade.toString()
     }
 }
 
-
 function criarCardCandidatoCurtido(
-    candidato: Candidato,
+    candidato: CandidatoViewDTO,
     vaga: VagaEmpresaResponseDTO
 ): HTMLElement {
     const article = document.createElement("article")
@@ -103,7 +88,7 @@ function criarCardCandidatoCurtido(
 }
 
 function criarTopoCandidatoCurtido(
-    candidato: Candidato
+    candidato: CandidatoViewDTO
 ): HTMLElement {
     const topo = document.createElement("div")
     topo.className = "candidate-top"
@@ -122,7 +107,7 @@ function criarTopoCandidatoCurtido(
 }
 
 function criarSecaoFormacao(
-    candidato: Candidato
+    candidato: CandidatoViewDTO
 ): HTMLElement {
     const secao = document.createElement("div")
     secao.className = "candidate-section"
@@ -131,7 +116,6 @@ function criarSecaoFormacao(
     titulo.textContent = "Formação"
 
     const formacao = document.createElement("p")
-    // formacao.textContent = candidato.formacao
 
     secao.appendChild(titulo)
     secao.appendChild(formacao)
@@ -140,7 +124,7 @@ function criarSecaoFormacao(
 }
 
 function criarSecaoCompetencias(
-    candidato: Candidato
+    candidato: CandidatoViewDTO
 ): HTMLElement {
     const secao = document.createElement("div")
     secao.className = "candidate-section"
@@ -153,8 +137,7 @@ function criarSecaoCompetencias(
 
     candidato.competencias.forEach((competencia) => {
         const tag = document.createElement("span")
-        // tag.textContent = competencia
-
+        tag.textContent = competencia.nome
         tags.appendChild(tag)
     })
 

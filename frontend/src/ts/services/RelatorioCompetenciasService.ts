@@ -1,4 +1,3 @@
-
 import { VagaService } from "./VagaService"
 import { CurtidaVagaService } from "./CurtidaVagaService"
 

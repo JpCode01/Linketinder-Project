@@ -1,19 +1,16 @@
+import { CadastrarEmpresaRequestDTO } from "../../api/dto/empresa/CadastrarEmpresaRequestDTO";
+import { ServiceConfig } from "../../config/ServiceConfig";
+import { Estado } from "../../models/Estado";
+import { Pais } from "../../models/Pais";
+import { LoginEmpresaStrategy } from "../../strategy/login/LoginEmpresaStrategy";
 
-import { ReferenciaApiClient } from "../../api/clientes/ReferenciaApiClient"
-import { CadastrarEmpresaRequestDTO } from "../../api/dto/empresa/CadastrarEmpresaRequestDTO"
-import { Estado } from "../../models/Estado"
-import { Pais } from "../../models/Pais"
-import { LoginEmpresaStrategy } from "../../strategy/login/LoginEmpresaStrategy"
-import { RepositoryConfig } from "../../config/RepositoryConfig"
-import { ServiceConfig } from "../../config/ServiceConfig"
+const serviceConfig: ServiceConfig = new ServiceConfig()
 
-const repositoryConfig: RepositoryConfig = new RepositoryConfig()
-const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
+const empresaService = serviceConfig
+    .criarEmpresaService()
 
-const empresaService = serviceConfig.criarEmpresaService()
-
-const referenciaApiClient: ReferenciaApiClient =
-    new ReferenciaApiClient()
+const referenciaService = serviceConfig
+    .criarReferenciaService()
 
 export function cadastrarEmpresa(): void {
     const formulario = document.getElementById(
@@ -81,10 +78,10 @@ export function cadastrarEmpresa(): void {
 
 async function carregarOpcoesFormulario(): Promise<void> {
     const paises: Pais[] =
-        await referenciaApiClient.buscarPaises()
+        await referenciaService.buscarPaises()
 
     const estados: Estado[] =
-        await referenciaApiClient.buscarEstados()
+        await referenciaService.buscarEstados()
 
     preencherPaises(paises)
     preencherEstados(estados)

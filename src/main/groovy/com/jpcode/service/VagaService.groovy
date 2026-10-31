@@ -108,4 +108,8 @@ class VagaService {
         }
         competenciaRepository.atualizar(idVaga, converterParaCompetencia)
     }
+
+    boolean jaFoiCurtidaPorCandidato(Long idCandidato, Long idVaga) {
+        curtidaRepository.jaCurtiu(idCandidato, idVaga)
+    }
 }

@@ -45,4 +45,26 @@ export class CurtidaCandidatoApiClient {
             throw new Error(mensagemPadrao)
         }
     }
+
+    async jaCurtiuCandidato(
+        idEmpresa: number,
+        idCandidato: number
+    ): Promise<boolean> {
+        const parametros: URLSearchParams = new URLSearchParams({
+            empresaId: idEmpresa.toString(),
+            candidatoId: idCandidato.toString()
+        })
+
+        const resposta = await fetch(
+            `${this.baseUrl}/candidatos/verificar?${parametros.toString()}`
+        )
+
+        if (!resposta.ok) {
+            throw new Error(
+                `Erro ao verificar curtida do candidato: HTTP ${resposta.status}`
+            )
+        }
+
+        return await resposta.json() as boolean
+    }
 }

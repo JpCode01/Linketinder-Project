@@ -65,4 +65,8 @@ class VagaController {
                 competenciasNovas
         )
     }
+
+    boolean jaFoiCurtidaPorCandidato(Long idCandidato, Long idVaga) {
+        vagaService.jaFoiCurtidaPorCandidato(idCandidato, idVaga)
+    }
 }
