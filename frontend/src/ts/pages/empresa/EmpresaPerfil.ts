@@ -1,6 +1,6 @@
-import { Empresa } from "../../models/Empresa"
-
-export function exibirDadosEmpresa(empresa: Empresa): void {
+export function exibirDadosEmpresa(
+    empresa: { nome: string; descricao: string }
+): void {
     const iniciais = obterIniciais(empresa.nome)
 
     document.getElementById("profile-avatar")!.textContent = iniciais

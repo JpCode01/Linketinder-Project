@@ -180,4 +180,28 @@ class CandidatoCurtirDAO implements
 
         }
     }
+
+    boolean jaCurtiu(Long idCandidato, Long idVaga) {
+        String sql = """
+        SELECT EXISTS (
+            SELECT 1
+            FROM vagas_curtidas_candidato
+            WHERE id_candidato = ?
+              AND id_vaga = ?
+        )
+    """
+
+        try (
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, idCandidato)
+            statement.setLong(2, idVaga)
+
+            def resultSet = statement.executeQuery()
+
+            resultSet.next()
+            return resultSet.getBoolean(1)
+        }
+    }
 }

@@ -1,8 +1,8 @@
 package com.jpcode.view.empresa
 
-import com.jpcode.exception.empresa.EmpresaLoginException
-import com.jpcode.model.core.Empresa
 import com.jpcode.controller.empresa.EmpresaController
+import com.jpcode.exception.LoginException
+import com.jpcode.model.core.Empresa
 import com.jpcode.view.vaga.MenuVagaCrud
 
 class MenuEmpresa {
@@ -61,7 +61,7 @@ class MenuEmpresa {
             Empresa empresaEncontrada = empresaController.logar(email, senha)
             println("Empresa Logada com sucesso!")
             menuEmpresa(empresaEncontrada)
-        } catch (EmpresaLoginException e) {
+        } catch (LoginException e) {
             println(e.getMessage())
         }
 

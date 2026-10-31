@@ -1,6 +1,7 @@
 package com.jpcode.api.servlet
 
 import com.jpcode.controller.competencia.CompetenciaController
+import com.jpcode.model.referencia.Competencia
 import groovy.json.JsonOutput
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
@@ -16,7 +17,7 @@ class CompetenciaServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        List<String> competenicas = competenciaController.listarCompetencias()
+        List<Competencia> competenicas = competenciaController.listarCompetencias()
 
         response.setContentType("application/json")
         response.setCharacterEncoding("UTF-8")

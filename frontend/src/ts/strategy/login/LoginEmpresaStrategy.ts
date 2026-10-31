@@ -1,16 +1,34 @@
-import { EmpresaService } from "../../services/EmpresaService"
+import { LoginException } from "../../exceptions/LoginException";
 import { LoginStrategy } from "./LoginStrategy"
 
 export class LoginEmpresaStrategy implements LoginStrategy {
 
-    constructor(
-        private empresaService: EmpresaService
-    ) {}
+    async login(email: string, senha: string): Promise<void> {
 
-    login(email: string): void {
+        const resposta = await fetch(
+            "http://localhost:8080/login/empresa",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: email,
+                    senha: senha
+                })
+            }
+        )
 
-        const empresa =
-            this.empresaService.buscarPorEmail(email)
+        if (resposta.status === 401) {
+            throw new LoginException()
+        }
+
+        if (!resposta.ok) {
+            throw new Error("ERRO_SERVIDOR")
+        }
+
+
+        const empresa = await resposta.json()
 
         localStorage.setItem(
             "sessao",

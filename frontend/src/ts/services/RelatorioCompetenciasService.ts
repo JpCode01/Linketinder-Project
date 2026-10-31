@@ -1,33 +1,37 @@
-
 import { VagaService } from "./VagaService"
 import { CurtidaVagaService } from "./CurtidaVagaService"
-import { CandidatoService } from "./CandidatoService"
 
 export class RelatorioCompetenciasService {
 
     constructor(
         private vagaService: VagaService,
-        private curtidaVagaService: CurtidaVagaService,
-        private candidatoService: CandidatoService
+        private curtidaVagaService: CurtidaVagaService
     ) {}
 
-    contarCompetencias(idEmpresa: number): Map<string, number> {
+    async contarCompetencias(
+        idEmpresa: number
+    ): Promise<Map<string, number>> {
         const competencias = new Map<string, number>()
 
-        const vagas = this.vagaService.buscarPorEmpresa(idEmpresa)
+        const vagas =
+            await this.vagaService.buscarPorEmpresa(idEmpresa)
 
         for (const vaga of vagas) {
-            const curtidas = this.curtidaVagaService.buscarPorVaga(vaga.id)
-
-            for (const curtida of curtidas) {
-                const candidato = this.candidatoService.buscarPorId(
-                    curtida.idCandidato
+            const candidatos =
+                await this.curtidaVagaService.buscarCandidatosQueCurtiram(
+                    vaga.id
                 )
 
+            for (const candidato of candidatos) {
                 for (const competencia of candidato.competencias) {
-                    const quantidade = competencias.get(competencia) ?? 0
+                    const nomeCompetencia = competencia.nome
+                    const quantidade =
+                        competencias.get(nomeCompetencia) ?? 0
 
-                    competencias.set(competencia, quantidade + 1)
+                    competencias.set(
+                        nomeCompetencia,
+                        quantidade + 1
+                    )
                 }
             }
         }

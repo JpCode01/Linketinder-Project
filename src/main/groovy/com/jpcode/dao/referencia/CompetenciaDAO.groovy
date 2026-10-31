@@ -92,7 +92,33 @@ class CompetenciaDAO implements ReferenciaRepository<Competencia>, ReferenciaCom
         }
     }
 
-    List<String> listarTodasCompetencias() {
+    List<Competencia> listarTodos() {
+        String sql = """
+        SELECT id, nome_competencia
+        FROM competencias
+    """
+
+        try (
+                def connection = connectionFactory.getConnection()
+                def statement = connection.prepareStatement(sql)
+        ) {
+            def resultSet = statement.executeQuery()
+            List<Competencia> competencias = []
+
+            while (resultSet.next()) {
+                Competencia competencia = new Competencia(
+                        resultSet.getLong("id"),
+                        resultSet.getString("nome_competencia")
+                )
+
+                competencias.add(competencia)
+            }
+
+            return competencias
+        }
+    }
+
+    List<String> listarCompetenciasEmString() {
         String sql = """
         SELECT nome_competencia
         FROM competencias

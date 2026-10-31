@@ -7,7 +7,6 @@ import org.apache.catalina.startup.Tomcat
 class TomcatConfig {
 
     private final Tomcat tomcat
-    
 
     TomcatConfig(ControllerConfig controllerConfig, int porta) {
         tomcat = new Tomcat()

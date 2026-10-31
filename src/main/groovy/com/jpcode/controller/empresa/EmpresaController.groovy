@@ -62,4 +62,8 @@ class EmpresaController {
     List<EmpresaViewListDTO> buscarEmpresas() {
         return empresaService.buscarEmpresas()
     }
+
+    boolean jaCurtiuCandidato(Long idEmpresa, Long idCandidato) {
+        return empresaService.jaCurtiuCandidato(idEmpresa, idCandidato)
+    }
 }

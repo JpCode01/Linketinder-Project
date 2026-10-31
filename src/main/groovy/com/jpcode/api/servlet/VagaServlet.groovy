@@ -62,9 +62,13 @@ class VagaServlet extends HttpServlet {
             return
         }
 
+        if (idPath.startsWith("empresa/")) {
+            listarVagasDaEmpresa(idPath.substring("empresa/".length()), response)
+            return
+        }
+
         buscarVagaPorId(idPath, response)
     }
-
 
     @Override
     protected void doPut(
@@ -85,6 +89,40 @@ class VagaServlet extends HttpServlet {
         }
 
         atualizarVaga(idPath, request, response)
+    }
+
+    private void listarVagasDaEmpresa(
+            String idPath,
+            HttpServletResponse response
+    ) {
+        if (!(idPath ==~ /\d+/)) {
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            response.writer.write(
+                    JsonOutput.toJson([erro: "ID da empresa inválido."])
+            )
+            return
+        }
+
+        try {
+            Long idEmpresa = idPath.toLong()
+
+            response.status = HttpServletResponse.SC_OK
+            response.writer.write(
+                    JsonOutput.toJson(vagaController.listarVagas(idEmpresa))
+            )
+
+        } catch (NumberFormatException e) {
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            response.writer.write(
+                    JsonOutput.toJson([erro: "ID da empresa inválido."])
+            )
+
+        } catch (Exception e) {
+            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+            response.writer.write(
+                    JsonOutput.toJson([erro: "Erro interno ao listar vagas da empresa."])
+            )
+        }
     }
 
     private void atualizarVaga(

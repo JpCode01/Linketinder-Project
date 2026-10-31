@@ -5,6 +5,7 @@ import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.candidato.CandidatoViewDTO
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
+import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import groovy.json.JsonOutput
@@ -25,37 +26,48 @@ class CandidatoServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+    protected void doPost(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
         response.setContentType("application/json")
         response.setCharacterEncoding("UTF-8")
 
         try {
-            Map dados = new JsonSlurper().parse(request.inputStream)
+            CadastrarCandidatoDTO dto = criarCadastrarCandidatoDTO(request)
 
-            CadastrarCandidatoDTO dto = new CadastrarCandidatoDTO(
-                    dados.nome as String,
-                    dados.sobrenome as String,
-                    dados.email as String,
-                    dados.senha as String,
-                    dados.cpf as String,
-                    LocalDate.parse(dados.dataNascimento as String),
-                    dados.pais as String,
-                    dados.idade as int,
-                    dados.estado as String,
-                    dados.cep as String,
-                    dados.descricao as String,
-                    dados.competencias as List<String>
-            )
             candidatoController.cadastrarCandidato(dto)
-            response.status  = HttpServletResponse.SC_CREATED
+
+            response.status = HttpServletResponse.SC_CREATED
+
+        } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException | CompetenciaNaoEncontradaException e) {
+            responderErro(
+                    response,
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    e.message
+            )
+        } catch (DateTimeParseException e) {
+            responderErro(
+                    response,
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "Data de nascimento em formato inválido."
+            )
+
+        } catch (NumberFormatException e) {
+            responderErro(
+                    response,
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "Idade em formato inválido."
+            )
+
         } catch (Exception e) {
-            response.status = HttpServletResponse.SC_BAD_REQUEST
-            response.writer.write(
-                    JsonOutput.toJson([erro: "JSON inválido ou campos em formato incorreto, verifique se o Estado e País estão disponíveis."])
+            responderErro(
+                    response,
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Erro interno ao cadastrar candidato."
             )
         }
     }
-
 
     @Override
     protected void doGet(
@@ -204,4 +216,35 @@ class CandidatoServlet extends HttpServlet {
         }
     }
 
+    private CadastrarCandidatoDTO criarCadastrarCandidatoDTO(
+            HttpServletRequest request
+    ) {
+        Map dados = new JsonSlurper().parse(request.inputStream) as Map
+
+        return new CadastrarCandidatoDTO(
+                dados.nome as String,
+                dados.sobrenome as String,
+                dados.email as String,
+                dados.senha as String,
+                dados.cpf as String,
+                LocalDate.parse(dados.dataNascimento as String),
+                dados.pais as String,
+                dados.idade as int,
+                dados.estado as String,
+                dados.cep as String,
+                dados.descricao as String,
+                dados.competencias as List<String>
+        )
+    }
+
+    private void responderErro(
+            HttpServletResponse response,
+            int status,
+            String mensagem
+    ) {
+        response.status = status
+        response.writer.write(
+                JsonOutput.toJson([erro: mensagem])
+        )
+    }
 }

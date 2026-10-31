@@ -7,7 +7,7 @@ import com.jpcode.dto.empresa.AtualizarEmpresaDTO
 import com.jpcode.dto.empresa.CadastrarEmpresaDTO
 import com.jpcode.dto.empresa.EmpresaComReferenciasDTO
 import com.jpcode.dto.empresa.EmpresaViewListDTO
-import com.jpcode.exception.empresa.EmpresaLoginException
+import com.jpcode.exception.LoginException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Empresa
@@ -157,7 +157,7 @@ class EmpresaServiceTest extends Specification {
         service.logar("empresa@email.com", "123")
 
         then:
-        thrown(EmpresaLoginException)
+        thrown(LoginException)
     }
 
     def "deve buscar candidatos que curtiram uma vaga"() {
