@@ -7,7 +7,7 @@ import java.sql.SQLException
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
-/** T01/T02: RN-01/RN-02/RN-06 e persistência de CA-01/CA-02/CA-05/CA-18, sem fluxo HTTP. */
+/** T01–T03: schema e integridade, incluindo a parcela intratabela de CA-19 a CA-22; sem fluxo HTTP. */
 class SchemaRecrutadorTest extends Specification {
 
     Connection conexao
@@ -247,6 +247,151 @@ class SchemaRecrutadorTest extends Specification {
                 assert resultado.next()
                 assert resultado.getString('definicao') == 'UNIQUE (id, id_empresa)'
                 !resultado.next()
+            }
+        }
+    }
+
+    def 'rejeita duplicata ativa de #coluna em #tabela na #operacao'() {
+        given:
+        inserirConta(tabela, 'original')
+        long outra = inserirConta(tabela, 'outra', operacao != 'reativacao')
+        if (operacao == 'reativacao') {
+            executar("UPDATE ${tabela} SET ${coluna} = ? WHERE id = ?".toString(), ['original', outra])
+        }
+
+        when:
+        if (operacao == 'insercao') {
+            inserirConta(tabela, 'terceira', true, [(coluna): 'original'])
+        } else if (operacao == 'atualizacao') {
+            executar("UPDATE ${tabela} SET ${coluna} = ? WHERE id = ?".toString(), ['original', outra])
+        } else {
+            executar("UPDATE ${tabela} SET ativo = TRUE WHERE id = ?".toString(), [outra])
+        }
+
+        then:
+        SQLException erro = thrown()
+        erro.SQLState == '23505'
+
+        where:
+        [tabela, coluna, operacao] << [
+                [['candidatos', 'cpf'], ['candidatos', 'email'],
+                 ['empresas', 'cnpj'], ['empresas', 'email_corporativo'],
+                 ['recrutadores', 'cpf'], ['recrutadores', 'email']],
+                ['insercao', 'atualizacao', 'reativacao']
+        ].combinations().collect { par, acao -> [par[0], par[1], acao] }
+    }
+
+    def 'permite reutilizar identificadores inativos em #tabela com novos ids'() {
+        given:
+        long antiga = inserirConta(tabela, 'reutilizado')
+        executar("UPDATE ${tabela} SET ativo = FALSE WHERE id = ?".toString(), [antiga])
+
+        when:
+        long nova = inserirConta(tabela, 'reutilizado')
+        long outraInativa = inserirConta(tabela, 'reutilizado', false)
+
+        then:
+        [antiga, nova, outraInativa].toSet().size() == 3
+        consultar("SELECT id, ativo FROM ${tabela} WHERE ${coluna} = ? ORDER BY id".toString(), ['reutilizado']) == [
+                [id: antiga, ativo: false], [id: nova, ativo: true], [id: outraInativa, ativo: false]]
+
+        where:
+        tabela         | coluna
+        'candidatos'   | 'cpf'
+        'empresas'     | 'cnpj'
+        'recrutadores' | 'cpf'
+    }
+
+    def 'cpf coincidente entre candidato e recrutador ativos e permitido'() {
+        when:
+        long candidato = inserirConta('candidatos', 'compartilhado', true, [email: 'pessoal@example.invalid'])
+        long recrutador = inserirConta('recrutadores', 'compartilhado', true, [email: 'corporativo@example.invalid'])
+
+        then:
+        consultar('SELECT cpf, ativo FROM candidatos WHERE id = ?', [candidato]) == [[cpf: 'compartilhado', ativo: true]]
+        consultar('SELECT cpf, ativo FROM recrutadores WHERE id = ?', [recrutador]) == [[cpf: 'compartilhado', ativo: true]]
+    }
+
+    def 'reutilizar identificadores nao transfere vagas recrutadores ou matches historicos'() {
+        given:
+        long antigaEmpresa = inserirConta('empresas', 'historica-empresa')
+        long antigoCandidato = inserirConta('candidatos', 'historico-candidato')
+        long antigoAutor = inserirConta('recrutadores', 'historico-autor', true, [id_empresa: antigaEmpresa])
+        long vaga = inserirVaga(antigaEmpresa, antigoAutor)
+        inserir('INSERT INTO vagas_curtidas_candidato (id_candidato, id_vaga) VALUES (?, ?) RETURNING id', [antigoCandidato, vaga])
+        inserir('INSERT INTO candidatos_curtidos_empresa (id_empresa, id_candidato) VALUES (?, ?) RETURNING id', [antigaEmpresa, antigoCandidato])
+        long match = inserir('INSERT INTO match (id_candidato, id_empresa, id_vaga) VALUES (?, ?, ?) RETURNING id',
+                [antigoCandidato, antigaEmpresa, vaga])
+        executar('UPDATE empresas SET ativo = FALSE WHERE id = ?', [antigaEmpresa])
+        executar('UPDATE candidatos SET ativo = FALSE WHERE id = ?', [antigoCandidato])
+        executar('UPDATE recrutadores SET ativo = FALSE WHERE id = ?', [antigoAutor])
+
+        when:
+        long novaEmpresa = inserirConta('empresas', 'historica-empresa')
+        long novoCandidato = inserirConta('candidatos', 'historico-candidato')
+        long novoAutor = inserirConta('recrutadores', 'historico-autor', true, [id_empresa: novaEmpresa])
+
+        then:
+        novaEmpresa != antigaEmpresa
+        novoCandidato != antigoCandidato
+        novoAutor != antigoAutor
+        consultar('SELECT id_empresa, id_recrutador FROM vagas WHERE id = ?', [vaga]) ==
+                [[id_empresa: antigaEmpresa, id_recrutador: antigoAutor]]
+        consultar('SELECT id_empresa FROM recrutadores WHERE id = ?', [antigoAutor]) == [[id_empresa: antigaEmpresa]]
+        consultar('SELECT id_candidato, id_empresa, id_vaga FROM match WHERE id = ?', [match]) ==
+                [[id_candidato: antigoCandidato, id_empresa: antigaEmpresa, id_vaga: vaga]]
+        consultar('SELECT id_vaga FROM vagas_curtidas_candidato WHERE id_candidato = ?', [antigoCandidato]) == [[id_vaga: vaga]]
+        consultar('SELECT id_candidato FROM candidatos_curtidos_empresa WHERE id_empresa = ?', [antigaEmpresa]) ==
+                [[id_candidato: antigoCandidato]]
+        consultar('SELECT id FROM vagas WHERE id_empresa = ? OR id_recrutador = ?', [novaEmpresa, novoAutor]).empty
+        consultar('SELECT id FROM recrutadores WHERE id_empresa = ?', [novaEmpresa]) == [[id: novoAutor]]
+        consultar('SELECT id FROM match WHERE id_empresa = ? OR id_candidato = ?', [novaEmpresa, novoCandidato]).empty
+        consultar('SELECT id FROM vagas_curtidas_candidato WHERE id_candidato = ?', [novoCandidato]).empty
+        consultar('SELECT id FROM candidatos_curtidos_empresa WHERE id_empresa = ? OR id_candidato = ?', [novaEmpresa, novoCandidato]).empty
+    }
+
+    // Tabelas/colunas dinâmicas vêm exclusivamente dos casos constantes desta spec.
+    private long inserirConta(String tabela, String identificador, boolean ativo = true, Map alteracoes = [:]) {
+        Map campos
+        if (tabela == 'candidatos') {
+            campos = [nome: 'Candidato', sobrenome: 'Teste', email: identificador, cpf: identificador,
+                      senha: 'fixture-sem-login', data_nascimento: java.sql.Date.valueOf('1990-01-01'),
+                      id_pais: consultar('SELECT id FROM pais', [])[0].id, cep: '00000000']
+        } else if (tabela == 'empresas') {
+            campos = [nome: 'Empresa', cnpj: identificador, email_corporativo: identificador,
+                      id_pais: consultar('SELECT id FROM pais', [])[0].id, cep: '00000000']
+        } else {
+            assert tabela == 'recrutadores'
+            campos = [nome: 'Recrutador', cpf: identificador, email: identificador, id_empresa: empresa,
+                      id_area_recrutamento: area, senha: 'fixture-sem-login', data_nascimento: java.sql.Date.valueOf('1990-01-01')]
+        }
+        campos.ativo = ativo
+        campos.putAll(alteracoes)
+        inserir("INSERT INTO ${tabela} (${campos.keySet().join(', ')}) VALUES (${campos.collect { '?' }.join(', ')}) RETURNING id".toString(),
+                campos.values().toList())
+    }
+
+    private void executar(String sql, List parametros) {
+        conexao.prepareStatement(sql).withCloseable { comando ->
+            parametros.eachWithIndex { valor, indice -> comando.setObject(indice + 1, valor) }
+            int quantidade = comando.executeUpdate()
+            assert quantidade == 1
+        }
+    }
+
+    private List<Map> consultar(String sql, List parametros) {
+        conexao.prepareStatement(sql).withCloseable { comando ->
+            parametros.eachWithIndex { valor, indice -> comando.setObject(indice + 1, valor) }
+            comando.executeQuery().withCloseable { resultado ->
+                List<Map> linhas = []
+                while (resultado.next()) {
+                    Map linha = [:]
+                    (1..resultado.metaData.columnCount).each { indice ->
+                        linha[resultado.metaData.getColumnLabel(indice)] = resultado.getObject(indice)
+                    }
+                    linhas << linha
+                }
+                linhas
             }
         }
     }

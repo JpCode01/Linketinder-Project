@@ -336,10 +336,10 @@ CREATE TABLE candidatos (
                             id SERIAL PRIMARY KEY,
                             nome VARCHAR NOT NULL,
                             sobrenome VARCHAR NOT NULL,
-                            email VARCHAR NOT NULL UNIQUE,
+                            email VARCHAR NOT NULL,
                             senha VARCHAR NOT NULL,
                             data_nascimento DATE NOT NULL,
-                            cpf VARCHAR NOT NULL UNIQUE,
+                            cpf VARCHAR NOT NULL,
                             id_pais INTEGER NOT NULL REFERENCES pais(id),
                             cep VARCHAR NOT NULL,
                             descricao TEXT,
@@ -351,8 +351,8 @@ CREATE TABLE candidatos (
 CREATE TABLE empresas (
                           id SERIAL PRIMARY KEY,
                           nome VARCHAR NOT NULL,
-                          cnpj VARCHAR NOT NULL UNIQUE,
-                          email_corporativo VARCHAR NOT NULL UNIQUE,
+                          cnpj VARCHAR NOT NULL,
+                          email_corporativo VARCHAR NOT NULL,
                           descricao TEXT,
                           id_pais INTEGER NOT NULL REFERENCES pais(id),
                           cep VARCHAR NOT NULL,
@@ -379,6 +379,15 @@ CREATE TABLE recrutadores (
                               ativo BOOLEAN NOT NULL DEFAULT TRUE,
                               CONSTRAINT uk_recrutador_empresa UNIQUE (id, id_empresa)
 );
+
+-- Unicidade por perfil somente entre contas ativas; reutilização não altera IDs/FKs.
+-- A garantia de e-mail entre os três perfis depende do protocolo transacional de T06.
+CREATE UNIQUE INDEX uk_candidato_cpf_ativo ON candidatos (cpf) WHERE ativo = true;
+CREATE UNIQUE INDEX uk_candidato_email_ativo ON candidatos (email) WHERE ativo = true;
+CREATE UNIQUE INDEX uk_empresa_cnpj_ativo ON empresas (cnpj) WHERE ativo = true;
+CREATE UNIQUE INDEX uk_empresa_email_ativo ON empresas (email_corporativo) WHERE ativo = true;
+CREATE UNIQUE INDEX uk_recrutador_cpf_ativo ON recrutadores (cpf) WHERE ativo = true;
+CREATE UNIQUE INDEX uk_recrutador_email_ativo ON recrutadores (email) WHERE ativo = true;
 
 CREATE TABLE candidatos_competencias (
                                          id SERIAL PRIMARY KEY,

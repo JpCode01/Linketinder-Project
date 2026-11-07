@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01 e T02 concluídas e validadas; demais tarefas pendentes. Implementações de T01 e T02 autorizadas explicitamente pelo responsável em 07/11/2026, sem execução de commits pelos agentes.
+Status: T01, T02 e T03 concluídas e validadas; demais tarefas pendentes. Implementações de T01, T02 e T03 autorizadas explicitamente pelo responsável em 07/11/2026, sem execução de commits pelos agentes.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -182,6 +182,18 @@ Convenções: `B = src/main/groovy/com/jpcode`, `T = src/test/groovy/com/jpcode`
 - **Passos:** substituir constraints permanentes por índices parciais dos três perfis; manter PKs/FKs por ID. Não declarar resolvida a unicidade global de e-mail nesta tarefa: ela depende de T06.
 - **Validação:** testes JDBC para duplicatas ativas, reutilização inativa e CPF coincidente entre candidato/recrutador. Conferir que novos IDs não herdam vagas, recrutadores ou matches antigos.
 - **Conclusão:** unicidade intratabela correta; pendência entre tabelas explicitamente vinculada a T06.
+
+**Estado da T03 em 07/11/2026: concluída.** Removidas somente no DDL atual as quatro unicidades permanentes de CPF/e-mail de candidatos e CNPJ/e-mail de empresas. Criados seis índices únicos parciais `WHERE ativo = true`: CPF/e-mail de candidatos, CNPJ/e-mail corporativo de empresas e CPF/e-mail de recrutadores. PKs, FKs por ID e chaves compostas de T02 foram preservadas. Não foi introduzida normalização de identificadores nem alterada sua comparação. A unicidade global e concorrente de e-mail entre tabelas **permanece pendente de T06**; CA-20 não está integralmente concluído por T03.
+
+**Validação executada:** reutilizado o suporte de T01/T02 e o banco dedicado já configurado, carregando apenas as três variáveis `LINKETINDER_TEST_*` do `.env` para o processo, sem modificar o arquivo ou exibir credenciais. Todos os casos JDBC executaram somente o DDL atual e fixtures próprias em schema temporário, desfeitos por rollback; nenhum dado/schema de desenvolvimento ou exemplo legado foi aplicado.
+
+- `.\gradlew.bat test --tests 'com.jpcode.integracao.*' --rerun-tasks` — tentativa inicial bloqueada no sandbox ao criar o lock do cache `C:\.gradle`. A primeira execução autorizada fora dele executou 52 casos, com 12 falhas: o `assert` do helper novo encapsulava a SQLException esperada em `ConditionFailedWithExceptionError`. Corrigido o helper para executar o comando antes da asserção de contagem; a repetição passou com **52 testes, zero falhas, erros ou ignorados** (45 JDBC e 7 do suporte), incluindo compilação Groovy e dos testes.
+- Os **23 casos novos** cobrem os seis identificadores em INSERT, UPDATE e tentativa SQL de reativação conflitante (`23505`, sem criar funcionalidade de reativação); reutilização dos identificadores após inatividade nos três perfis, inclusive múltiplas contas inativas; mesmo CPF entre candidato e recrutador ativos com e-mails distintos; IDs novos sem herança de vagas, recrutadores, interesses, retribuições ou matches antigos. As fixtures de interação usam exclusivamente o schema existente, sem implementar T04.
+- `.\build\executar-t01.ps1` — reutilizado o script temporário existente, que executa `.\gradlew.bat build --init-script .\build\classpath-t01.gradle exportarClasspathT01` com banco de teste configurado. **Build bem-sucedido, 96 testes, zero falhas, erros ou ignorados**, incluindo os 44 testes de serviços e regressão de T01/T02. O init script apenas exporta o classpath de runtime; nenhum arquivo de build versionado foi alterado. Relatórios em `build/reports/tests/test/` e `build/reports/jacoco/test/`.
+- `.\build\iniciar-t03.ps1` — script temporário não versionado, baseado na verificação de T01, iniciou `java -cp <classpath de runtime> com.jpcode.api.RestServer` sob `build/tomcat-t03`; `GET http://127.0.0.1:8080/__t03_startup_probe__` retornou **404**, esperado para rota inexistente. A tentativa no sandbox foi bloqueada pela execução de scripts; a repetição autorizada fora dele passou. Encerrado somente o processo criado. Essa verificação comprova inicialização, sem consulta de negócio/banco de desenvolvimento; o comportamento de T03 foi verificado por JDBC real.
+- Revisão integral do diff e `git diff --check` — alterações restritas ao DDL atual, teste de schema, changelog e este plano, sem erros de whitespace. DTOs anônimos preservados com somente `id`, `descricao` e `competencias`; produtores/consumidores HTTP, consultas de descoberta e frontend não foram modificados. A verificação de anonimato é estática, sem alegar validação completa da matriz HTTP futura.
+
+**Reexecução e limites:** carregar `LINKETINDER_TEST_JDBC_URL`, `LINKETINDER_TEST_DB_USER` e `LINKETINDER_TEST_DB_PASSWORD` do `.env` para o ambiente do processo e executar `.\gradlew.bat test --tests 'com.jpcode.integracao.*' --rerun-tasks` e `.\gradlew.bat build`. Não há validação pendente de T03. O DDL permanece destinado à preparação manual de instalação nova; nenhuma migração foi executada. T04 e tarefas seguintes permanecem pendentes; a especificação aprovada foi preservada. Nenhum `git add`, `git commit` ou `git push` executado. A autorização explícita de T03 prevalece sobre o checkpoint de commit da skill. Consumo de tokens não disponível como medição confiável.
 
 ### T04 — Garantir contexto e reciprocidade no schema das interações
 
@@ -482,7 +494,7 @@ Registrar evidência por CA em `validacao.md`: comando/ação, ambiente, resulta
 - [ ] Commit da especificação explicitamente autorizado e concluído antes de implementar, conforme `skills/feature-com-spec/SKILL.md`, passo 7.
 - [x] T01 — Referências e recrutadores (evidências e limites registrados na tarefa).
 - [x] T02 — Autoria e integridade empresarial (evidências e limites registrados na tarefa).
-- [ ] T03 — Unicidades parciais.
+- [x] T03 — Unicidades parciais (evidências e limites registrados na tarefa).
 - [ ] T04 — Schema de retribuição e match.
 - [ ] T05 — Proteção de senhas.
 - [ ] T06 — Cadastro e unicidade concorrente entre perfis.

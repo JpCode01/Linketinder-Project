@@ -8,6 +8,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Índices únicos parciais de CPF/CNPJ e e-mail por perfil para contas ativas no DDL atual; a unicidade de e-mail entre perfis permanece para T06 (T03).
+- Testes JDBC de conflitos de identificadores ativos, reutilização após inatividade, CPF coincidente entre candidato e recrutador e preservação dos relacionamentos históricos por ID (T03).
 - Autoria opcional de vagas no DDL atual, com FK composta que exige a mesma empresa do recrutador, e chaves únicas de suporte em recrutadores e vagas (T02).
 - Testes JDBC de vagas diretas e autorais, rejeição de vínculos incompatíveis e preservação da autoria após inatividade do recrutador (T02).
 - DDL de áreas de recrutamento e recrutadores, com vínculos obrigatórios de empresa e área, na seção atual do SQL (T01).
@@ -27,6 +29,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Substituídas as unicidades permanentes de CPF/e-mail de candidatos e CNPJ/e-mail de empresas por unicidades condicionadas à atividade, permitindo reutilização sem transferência de histórico (T03).
 - Definido `ativo NOT NULL DEFAULT TRUE` para candidatos no DDL atual, alinhado ao estado inicial de empresas e recrutadores (T01).
 - Substituído o armazenamento em memória do backend por persistência em PostgreSQL.
 - Reorganizado o backend em controllers, serviços e contratos de persistência, com composição explícita por construtores.
