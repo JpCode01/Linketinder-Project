@@ -44,3 +44,5 @@ bin/
 
 node_modules/
 dist/
+
+.env
