@@ -8,6 +8,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- DDL de áreas de recrutamento e recrutadores, com vínculos obrigatórios de empresa e área, na seção atual do SQL (T01).
+- Testes JDBC do schema de recrutadores e suporte a PostgreSQL dedicado, com schema temporário, rollback e bloqueio ao banco de desenvolvimento (T01).
 - Interface de terminal para gerenciamento de candidatos, empresas e vagas.
 - Frontend em TypeScript com cadastro, login, perfis, vagas e curtidas, inicialmente utilizando LocalStorage de forma independente do backend.
 - Gráfico de competências dos candidatos no frontend.
@@ -23,6 +25,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Definido `ativo NOT NULL DEFAULT TRUE` para candidatos no DDL atual, alinhado ao estado inicial de empresas e recrutadores (T01).
 - Substituído o armazenamento em memória do backend por persistência em PostgreSQL.
 - Reorganizado o backend em controllers, serviços e contratos de persistência, com composição explícita por construtores.
 - Centralizado o armazenamento local do frontend em repositórios e separado o login por perfil com Strategy.

@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: documento para revisão final; implementação não autorizada por este plano.
+Status: T01 concluída e validada; demais tarefas pendentes. Implementação da T01 autorizada explicitamente pelo responsável em 07/11/2026, sem commits.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -129,6 +129,23 @@ Convenções: `B = src/main/groovy/com/jpcode`, `T = src/test/groovy/com/jpcode`
 - **Passos:** criar tabelas/FKs da seção 3.1; estabelecer defaults de atividade nos três perfis; definir preparação manual de áreas e demais referências, sem alterar dados legados. Criar suporte que opere apenas com configuração explícita de banco de testes e falhe se apontar para o banco de desenvolvimento.
 - **Validação:** inspeção do DDL; integração PostgreSQL com criação de área/recrutador e rejeição de empresa/área ausente; conferir estado inicial ativo e FK simples de área. Executar o teste específico segundo seção 6.
 - **Conclusão:** esquema novo comporta uma empresa e uma área por recrutador e rejeita referências inexistentes; nenhuma FK/cascade anterior foi alterada incidentalmente.
+
+**Estado da T01 em 07/11/2026: concluída.** Criados o DDL de áreas/recrutadores e os dois arquivos de teste previstos. Candidatos passam a ter `ativo NOT NULL DEFAULT TRUE`; empresas conservam esse default e recrutadores também o recebem. A preparação manual das referências foi documentada no SQL, separada dos exemplos legados, sem alterar suas inserções. As FKs/cascades anteriores foram preservadas. Unicidades condicionais, autoria de vagas e implementação backend/frontend continuam nas tarefas seguintes.
+
+**Ambiente e isolamento:** JDK 25.0.3 e PostgreSQL 18. Após autorização adicional do responsável, foi criado o banco dedicado `linketinder_test_t01_c8946707`. Sua configuração foi acrescentada somente ao `.env` local, ignorado pelo Git, sem divulgar credenciais ou alterar dados do banco atual. O suporte exige `LINKETINDER_TEST_JDBC_URL`, `LINKETINDER_TEST_DB_USER` e `LINKETINDER_TEST_DB_PASSWORD` no ambiente do processo, não carrega `.env` automaticamente e não utiliza `PostgresConnectionFactory`. Aceita somente banco `linketinder_test` ou `linketinder_test_<sufixo>`, valida o banco conectado e usa schema aleatório sem `public` no caminho de busca. Cada teste executa somente o DDL atual e desfaz schema/fixtures por rollback.
+
+**Evidências executadas:**
+
+- `.\gradlew.bat compileGroovy compileTestGroovy` — compilação bem-sucedida. A primeira tentativa no sandbox falhou ao acessar o cache; a repetição autorizada fora dele passou.
+- `.\gradlew.bat test --tests 'com.jpcode.integracao.*'` — inicialmente 7 testes de configuração passaram e 10 JDBC foram ignorados por ausência de configuração; esse resultado não foi tratado como aceite.
+- `.\gradlew.bat test --tests 'com.jpcode.integracao.*' --rerun-tasks`, com configuração do banco dedicado carregada do `.env` no processo — 17 testes passaram, incluindo os 10 JDBC, sem falhas ou testes ignorados. Cobertos persistência com área/empresa compartilhadas, defaults dos três perfis, rejeição de FKs ausentes/nulas, atividade nula e FKs simples sem cascades novos.
+- `.\gradlew.bat build` — build inicial bem-sucedido; repetido com banco configurado via `.\gradlew.bat build --init-script .\build\classpath-t01.gradle exportarClasspathT01`: 61 testes passaram, sem falhas ou testes ignorados. O init script temporário, fora dos arquivos versionados, apenas exportou o classpath de runtime para a verificação de inicialização.
+- `java -cp <classpath de runtime> com.jpcode.api.RestServer` — aplicação iniciada em diretório temporário sob `build/`; `GET http://127.0.0.1:8080/__t01_startup_probe__` retornou `404`, como esperado para rota inexistente. Somente o processo iniciado na verificação foi encerrado. Essa evidência comprova inicialização, não um fluxo HTTP de recrutador, que não integra T01.
+- Inspeção integral do diff e `git diff --check` — sem erros de whitespace; alterações restritas à T01 e sua documentação. DTOs, consultas HTTP e frontend não foram alterados; não há nova exposição de identidade. A matriz HTTP completa permanece nas tarefas posteriores.
+
+**Reexecução:** carregar as três variáveis de teste a partir do `.env` para o ambiente do processo, preservando as credenciais exclusivamente nesse arquivo, e executar `.\gradlew.bat test --tests 'com.jpcode.integracao.*' --rerun-tasks` e `.\gradlew.bat build`. O usuário de teste precisa poder criar schemas no banco dedicado; o suporte não cria bancos automaticamente. Ausência total de configuração indica testes JDBC não executados; configuração parcial ou banco não permitido falha antes da conexão. Relatórios: `build/reports/tests/test/` e `build/reports/jacoco/test/`.
+
+**Limites:** nenhuma migração, referência manual ou exemplo legado foi aplicado ao banco atual. Não foram implementadas T02–T18. Changelog atualizado somente com entregas da T01. Nenhum commit ou alteração de staging executado; o pedido explícito desta implementação prevaleceu sobre o checkpoint de commit da skill. Consumo de tokens não disponível como medição confiável.
 
 ### T02 — Registrar autoria de vaga com integridade empresarial
 
@@ -451,7 +468,7 @@ Registrar evidência por CA em `validacao.md`: comando/ação, ambiente, resulta
 - [ ] Documento completo revisado e aprovado pelo responsável.
 - [ ] Validação com Tutor confirmada, conforme pendência registrada na especificação; não presumir confirmação.
 - [ ] Commit da especificação explicitamente autorizado e concluído antes de implementar, conforme `skills/feature-com-spec/SKILL.md`, passo 7.
-- [ ] T01 — Referências e recrutadores.
+- [x] T01 — Referências e recrutadores (evidências e limites registrados na tarefa).
 - [ ] T02 — Autoria e integridade empresarial.
 - [ ] T03 — Unicidades parciais.
 - [ ] T04 — Schema de retribuição e match.

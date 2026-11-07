@@ -311,6 +311,12 @@ ALTER TABLE "match"
 
 -- Versão Atualizada para Criação do projeto
 
+-- Instalação nova: executar somente o DDL desta seção, até -- Inserções.
+-- Não executar o arquivo inteiro nem os exemplos legados automaticamente.
+-- Após o DDL, cadastrar manualmente pais, estados, competencias e
+-- areas_recrutamento (id gerado, nome informado), antes das contas e vínculos.
+-- Áreas são referências próprias; não substituem competências.
+
 CREATE TABLE pais (
                       id SERIAL PRIMARY KEY,
                       nome VARCHAR NOT NULL
@@ -319,11 +325,6 @@ CREATE TABLE pais (
 CREATE TABLE estados (
                          id SERIAL PRIMARY KEY,
                          sigla VARCHAR(2) NOT NULL
-);
-
-CREATE TABLE instituicao_formacao (
-                                      id SERIAL PRIMARY KEY,
-                                      nome_instituicao VARCHAR NOT NULL
 );
 
 CREATE TABLE competencias (
@@ -342,7 +343,7 @@ CREATE TABLE candidatos (
                             id_pais INTEGER NOT NULL REFERENCES pais(id),
                             cep VARCHAR NOT NULL,
                             descricao TEXT,
-                            ativo BOOLEAN,
+                            ativo BOOLEAN NOT NULL DEFAULT TRUE,
                             idade INTEGER,
                             id_estado INTEGER REFERENCES estados(id)
 );
@@ -360,20 +361,22 @@ CREATE TABLE empresas (
                           ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-CREATE TABLE formacao (
-                          id SERIAL PRIMARY KEY,
-                          curso VARCHAR NOT NULL,
-                          id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
-                          id_instituicao INTEGER NOT NULL REFERENCES instituicao_formacao(id),
-                          inicio DATE NOT NULL,
-                          termino_ou_possivel DATE NOT NULL
+CREATE TABLE areas_recrutamento (
+                                      id SERIAL PRIMARY KEY,
+                                      nome VARCHAR NOT NULL
 );
 
-CREATE TABLE candidato_formacoes (
-                                     id SERIAL PRIMARY KEY,
-                                     id_formacao INTEGER NOT NULL REFERENCES formacao(id),
-                                     id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
-                                     CONSTRAINT uk_candidato_formacao UNIQUE (id_candidato, id_formacao)
+CREATE TABLE recrutadores (
+                              id SERIAL PRIMARY KEY,
+                              nome VARCHAR NOT NULL,
+                              id_area_recrutamento INTEGER NOT NULL REFERENCES areas_recrutamento(id),
+                              descricao TEXT,
+                              email VARCHAR NOT NULL,
+                              cpf VARCHAR NOT NULL,
+                              data_nascimento DATE NOT NULL,
+                              senha VARCHAR NOT NULL,
+                              id_empresa INTEGER NOT NULL REFERENCES empresas(id),
+                              ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE candidatos_competencias (
@@ -405,12 +408,6 @@ CREATE TABLE candidatos_curtidos_empresa (
                                              CONSTRAINT uk_empresa_candidato UNIQUE (id_empresa, id_candidato)
 );
 
-CREATE TABLE candidatos_que_curtiram_vaga (
-                                              id SERIAL PRIMARY KEY,
-                                              id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
-                                              id_vaga INTEGER NOT NULL REFERENCES vagas(id)
-);
-
 CREATE TABLE vagas_curtidas_candidato (
                                           id SERIAL PRIMARY KEY,
                                           id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
@@ -427,6 +424,9 @@ CREATE TABLE match (
 );
 
 -- Inserções
+
+-- Exemplos legados abaixo: não integram a preparação de referências ou o DDL.
+-- Não executar automaticamente nem usar como fixtures dos testes de integração.
 
 INSERT INTO candidatos (
     nome, sobrenome, email, senha, data_nascimento,
