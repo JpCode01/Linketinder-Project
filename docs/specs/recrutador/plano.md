@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02 e T03 concluídas e validadas; demais tarefas pendentes. Implementações de T01, T02 e T03 autorizadas explicitamente pelo responsável em 07/11/2026, sem execução de commits pelos agentes.
+Status: T01, T02, T03 e T04 concluídas e validadas; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026, sem execução de commits pelos agentes.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -206,6 +206,21 @@ Convenções: `B = src/main/groovy/com/jpcode`, `T = src/test/groovy/com/jpcode`
 - **Passos:** acrescentar vaga/ator na retribuição, unicidades e FKs descritas em 3.3; não gerar matches ou converter curtidas globais antigas. Conservar interesse inicial e suas constraints. Verificar dependências de exclusão sem modificar cascades existentes.
 - **Validação:** inserir match sem interesse/retribuição deve falhar; rejeitar empresa divergente; repetir candidato/vaga não duplica; vaga B exige interesse e retribuição próprios. Verificar que as novas referências têm suporte de chave única válido.
 - **Conclusão:** o banco impede match órfão ou de proprietária incompatível; execução atômica/idempotente fica para T09.
+
+**Estado da T04 em 07/11/2026: concluída.** Alterado somente o DDL da seção atual: retribuição com `id_vaga` obrigatório e `id_recrutador_ator` opcional, unicidade por candidato/vaga e chave única de suporte candidato/empresa/vaga. Acrescentadas FKs compostas para interesse, vaga/proprietária e recrutador ator/empresa. O match é único por candidato/vaga e referencia a vaga/proprietária e a retribuição correspondente. A ordem de criação coloca o interesse antes da retribuição; o interesse e suas constraints permanecem intactos. Nenhum autor foi duplicado no match; não foram criados triggers, geração automática de match ou conversão de curtidas legadas.
+
+**Segurança do banco verificada antes da execução:** reutilizado o suporte de T01 e a configuração dedicada existente, carregando apenas `LINKETINDER_TEST_JDBC_URL`, `LINKETINDER_TEST_DB_USER` e `LINKETINDER_TEST_DB_PASSWORD` do `.env` local para o processo. O script não modifica esse arquivo nem divulga seus valores. O suporte rejeita configuração parcial e qualquer banco fora de `linketinder_test`/`linketinder_test_<sufixo>`, sem fallback para `PostgresConnectionFactory`; confere `current_database()` antes das escritas, cria schema aleatório sem `public` no `search_path` e desfaz DDL/fixtures por rollback. Não foram executados exemplos legados, migrações ou escritas no banco de desenvolvimento.
+
+**Evidências executadas:**
+
+- `.\build\executar-t01.ps1` — reutilizado o script temporário existente, que carrega a configuração dedicada e executa `.\gradlew.bat build --init-script .\build\classpath-t01.gradle exportarClasspathT01`. A tentativa inicial foi bloqueada pela política de execução de scripts no sandbox; a repetição autorizada fora dele passou: **BUILD SUCCESSFUL, 116 testes, zero falhas, erros ou ignorados**, confirmados nos XMLs de `build/test-results/test/`. Compilação de testes, build e relatório JaCoCo concluídos; compilação principal sem mudanças, `UP-TO-DATE`. São 65 casos JDBC, 7 de segurança do suporte e 44 de serviços, incluindo regressão de T01–T03. Nenhum arquivo de build versionado foi alterado.
+- Os **20 casos novos** verificam: interesse inicial único sem retribuição/match; match rejeitado sem interesse, sem retribuição, com retribuição em outra vaga ou empresa divergente (`23503`); retribuição rejeitada sem interesse, com empresa divergente, ator de outra empresa/inexistente (`23503`) ou vaga nula (`23502`); retribuição empresarial em vaga direta/autoral e por recrutador sem alterar autoria; isolamento entre duas vagas; repetição sequencial com `ON CONFLICT (id_candidato, id_vaga) DO NOTHING` e rejeição de duplicata sem essa cláusula (`23505`). A fixture histórica de T03 foi adaptada somente para informar a vaga obrigatória.
+- Rejeitadas também remoção de interesse/retribuição referenciados, troca da proprietária e exclusão direta da vaga com retribuição (`23503`). Inspeção de `pg_constraint` confirmou as cinco FKs novas com `NO ACTION` e os três `ON DELETE CASCADE` anteriores preservados. A criação real de todo o DDL e os INSERTs válidos confirmam o suporte de chaves únicas das referências compostas.
+- Revisão integral do diff e `git diff --check` — sem erros de whitespace; alterações restritas ao SQL atual, teste de schema, changelog e plano. DTOs anônimos permanecem com somente `id`, `descricao` e `competencias`; consultas, servlets, contratos de acesso e frontend não foram modificados. Esta verificação de anonimato/acesso é estática e não representa aceite da matriz HTTP futura. Verificação funcional feita por JDBC real; nenhum teste HTTP/frontend foi executado nesta tarefa de banco.
+
+**Impactos e limites previstos, sem bloqueio de T04:** `VagaDAO.deletar` ainda executa apenas `DELETE FROM vagas`; as novas referências impedem excluir diretamente vaga com retribuição. T09 deverá ordenar a remoção de match/retribuição antes da vaga na mesma transação. `EmpresaCurtirDAO` ainda usa INSERT global sem vaga e alvo de conflito empresa/candidato; `MatchDAO` ainda usa alvo candidato/empresa/vaga. Esses caminhos não são compatíveis com o DDL novo e sua adaptação pertence explicitamente a T09, sem alegar funcionamento deles neste schema. Atividade/autoria do ator, atomicidade, concorrência e idempotência da aplicação também permanecem em T09; os testes desta tarefa comprovam as garantias de schema, não o aceite integral de CA-08 a CA-13.
+
+**Conclusão dos critérios de T04:** match órfão ou de proprietária incompatível é impedido; repetição candidato/vaga não duplica; vaga B requer seus próprios vínculos; chaves de suporte válidas e dependências de exclusão verificadas. Não há validação pendente de T04. Relatórios em `build/reports/tests/test/` e `build/reports/jacoco/test/`. Especificação preservada; T05 e seguintes não implementadas. Nenhum `git add`, `git commit` ou `git push` executado; a autorização explícita deste pedido prevalece sobre o checkpoint de commit da skill. Consumo de tokens não disponível como medição confiável.
 
 ### Backend com testes
 
@@ -495,7 +510,7 @@ Registrar evidência por CA em `validacao.md`: comando/ação, ambiente, resulta
 - [x] T01 — Referências e recrutadores (evidências e limites registrados na tarefa).
 - [x] T02 — Autoria e integridade empresarial (evidências e limites registrados na tarefa).
 - [x] T03 — Unicidades parciais (evidências e limites registrados na tarefa).
-- [ ] T04 — Schema de retribuição e match.
+- [x] T04 — Schema de retribuição e match (evidências e limites registrados na tarefa).
 - [ ] T05 — Proteção de senhas.
 - [ ] T06 — Cadastro e unicidade concorrente entre perfis.
 - [ ] T07 — Login e contexto HTTP.

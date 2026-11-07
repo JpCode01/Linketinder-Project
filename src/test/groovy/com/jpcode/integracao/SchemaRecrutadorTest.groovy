@@ -7,7 +7,7 @@ import java.sql.SQLException
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
-/** T01–T03: schema e integridade, incluindo a parcela intratabela de CA-19 a CA-22; sem fluxo HTTP. */
+/** T01–T04: schema e integridade; sem fluxo HTTP ou atomicidade da aplicação (T09). */
 class SchemaRecrutadorTest extends Specification {
 
     Connection conexao
@@ -319,7 +319,8 @@ class SchemaRecrutadorTest extends Specification {
         long antigoAutor = inserirConta('recrutadores', 'historico-autor', true, [id_empresa: antigaEmpresa])
         long vaga = inserirVaga(antigaEmpresa, antigoAutor)
         inserir('INSERT INTO vagas_curtidas_candidato (id_candidato, id_vaga) VALUES (?, ?) RETURNING id', [antigoCandidato, vaga])
-        inserir('INSERT INTO candidatos_curtidos_empresa (id_empresa, id_candidato) VALUES (?, ?) RETURNING id', [antigaEmpresa, antigoCandidato])
+        inserir('INSERT INTO candidatos_curtidos_empresa (id_empresa, id_candidato, id_vaga) VALUES (?, ?, ?) RETURNING id',
+                [antigaEmpresa, antigoCandidato, vaga])
         long match = inserir('INSERT INTO match (id_candidato, id_empresa, id_vaga) VALUES (?, ?, ?) RETURNING id',
                 [antigoCandidato, antigaEmpresa, vaga])
         executar('UPDATE empresas SET ativo = FALSE WHERE id = ?', [antigaEmpresa])
@@ -348,6 +349,201 @@ class SchemaRecrutadorTest extends Specification {
         consultar('SELECT id FROM match WHERE id_empresa = ? OR id_candidato = ?', [novaEmpresa, novoCandidato]).empty
         consultar('SELECT id FROM vagas_curtidas_candidato WHERE id_candidato = ?', [novoCandidato]).empty
         consultar('SELECT id FROM candidatos_curtidos_empresa WHERE id_empresa = ? OR id_candidato = ?', [novaEmpresa, novoCandidato]).empty
+    }
+
+    def 'interesse inicial e unico e nao gera retribuicao ou match'() {
+        given:
+        long candidato = inserirConta('candidatos', 'interessado')
+        long vaga = inserirVaga(empresa, null)
+
+        when:
+        inserirInteresse(candidato, vaga)
+        conexao.prepareStatement('''INSERT INTO vagas_curtidas_candidato (id_candidato, id_vaga)
+                                   VALUES (?, ?) ON CONFLICT (id_candidato, id_vaga) DO NOTHING''').withCloseable { comando ->
+            comando.setLong(1, candidato)
+            comando.setLong(2, vaga)
+            assert comando.executeUpdate() == 0
+        }
+
+        then:
+        consultar('SELECT id_candidato, id_vaga FROM vagas_curtidas_candidato', []) == [[id_candidato: candidato, id_vaga: vaga]]
+        consultar('SELECT id FROM candidatos_curtidos_empresa', []).empty
+        consultar('SELECT id FROM match', []).empty
+    }
+
+    def 'match exige reciprocidade no contexto exato: #cenario'() {
+        given:
+        long candidato = inserirConta('candidatos', 'interessado')
+        long vaga = inserirVaga(empresa, null)
+        long outraVaga = inserirVaga(empresa, null)
+        long outraEmpresa = inserirConta('empresas', 'outra')
+        if (cenario != 'sem interesse') {
+            inserirInteresse(candidato, vaga)
+        }
+        if (cenario in ['retribuicao em outra vaga', 'empresa divergente']) {
+            inserirInteresse(candidato, outraVaga)
+            inserirRetribuicao(candidato, empresa, cenario == 'empresa divergente' ? vaga : outraVaga, null)
+        }
+
+        when:
+        inserirMatch(candidato, cenario == 'empresa divergente' ? outraEmpresa : empresa, vaga)
+
+        then:
+        SQLException erro = thrown()
+        erro.SQLState == '23503'
+
+        where:
+        cenario << ['sem interesse', 'sem retribuicao', 'retribuicao em outra vaga', 'empresa divergente']
+    }
+
+    def 'retribuicao rejeita #cenario'() {
+        given:
+        long candidato = inserirConta('candidatos', 'interessado')
+        long vaga = inserirVaga(empresa, null)
+        long outraEmpresa = inserirConta('empresas', 'outra')
+        long outroAtor = inserirRecrutador(outraEmpresa, area)
+        if (cenario != 'interesse ausente') {
+            inserirInteresse(candidato, vaga)
+        }
+
+        when:
+        inserirRetribuicao(candidato, cenario == 'empresa divergente' ? outraEmpresa : empresa,
+                cenario == 'vaga ausente' ? null : vaga,
+                cenario == 'ator de outra empresa' ? outroAtor : cenario == 'ator inexistente' ? -1L : null)
+
+        then:
+        SQLException erro = thrown()
+        erro.SQLState == estado
+
+        where:
+        cenario                 | estado
+        'interesse ausente'      | '23503'
+        'empresa divergente'     | '23503'
+        'ator de outra empresa'  | '23503'
+        'ator inexistente'       | '23503'
+        'vaga ausente'           | '23502'
+    }
+
+    def 'retribuicao por #ator preserva autor e forma um match somente na vaga retribuida'() {
+        given:
+        long candidato = inserirConta('candidatos', 'interessado')
+        Long autor = ator == 'empresa em vaga direta' ? null : inserirRecrutador(empresa, area)
+        long vagaA = inserirVaga(empresa, autor)
+        long vagaB = inserirVaga(empresa, null)
+        inserirInteresse(candidato, vagaA)
+        inserirInteresse(candidato, vagaB)
+
+        when:
+        inserirRetribuicao(candidato, empresa, vagaA, ator == 'recrutador' ? autor : null)
+        inserirMatch(candidato, empresa, vagaA)
+        // Repetição sequencial com o novo alvo; concorrência/atomicidade ficam para T09.
+        ['candidatos_curtidos_empresa', 'match'].each { tabela ->
+            conexao.prepareStatement("""INSERT INTO ${tabela} (id_candidato, id_empresa, id_vaga)
+                                        VALUES (?, ?, ?) ON CONFLICT (id_candidato, id_vaga) DO NOTHING""".toString()).withCloseable { comando ->
+                comando.setLong(1, candidato)
+                comando.setLong(2, empresa)
+                comando.setLong(3, vagaA)
+                assert comando.executeUpdate() == 0
+            }
+        }
+
+        then:
+        consultar('SELECT id_candidato, id_empresa, id_vaga FROM match', []) ==
+                [[id_candidato: candidato, id_empresa: empresa, id_vaga: vagaA]]
+        consultar('SELECT id_recrutador_ator FROM candidatos_curtidos_empresa', []) ==
+                [[id_recrutador_ator: ator == 'recrutador' ? autor : null]]
+        consultar('SELECT id_recrutador FROM vagas WHERE id = ?', [vagaA]) == [[id_recrutador: autor]]
+        consultar('SELECT id FROM match WHERE id_vaga = ?', [vagaB]).empty
+
+        when:
+        inserirRetribuicao(candidato, empresa, vagaB, null)
+        inserirMatch(candidato, empresa, vagaB)
+
+        then:
+        consultar('SELECT id_vaga FROM match ORDER BY id_vaga', []) == [[id_vaga: vagaA], [id_vaga: vagaB]]
+
+        where:
+        ator << ['empresa em vaga direta', 'empresa em vaga autoral', 'recrutador']
+    }
+
+    def 'unicidade rejeita duplicata de candidato vaga em #tabela'() {
+        given:
+        long candidato = inserirConta('candidatos', 'interessado')
+        long vaga = inserirVaga(empresa, null)
+        inserirInteresse(candidato, vaga)
+        inserirRetribuicao(candidato, empresa, vaga, null)
+        inserirMatch(candidato, empresa, vaga)
+
+        when:
+        inserir("INSERT INTO ${tabela} (id_candidato, id_empresa, id_vaga) VALUES (?, ?, ?) RETURNING id".toString(),
+                [candidato, empresa, vaga])
+
+        then:
+        SQLException erro = thrown()
+        erro.SQLState == '23505'
+
+        where:
+        tabela << ['candidatos_curtidos_empresa', 'match']
+    }
+
+    def 'referencias impedem romper reciprocidade ou propriedade por #alteracao'() {
+        given:
+        long candidato = inserirConta('candidatos', 'interessado')
+        long vaga = inserirVaga(empresa, null)
+        long outraEmpresa = inserirConta('empresas', 'outra')
+        inserirInteresse(candidato, vaga)
+        inserirRetribuicao(candidato, empresa, vaga, null)
+        inserirMatch(candidato, empresa, vaga)
+
+        when:
+        conexao.prepareStatement(sql).withCloseable { comando ->
+            if (alteracao == 'troca de proprietaria') {
+                comando.setLong(1, outraEmpresa)
+            }
+            comando.executeUpdate()
+        }
+
+        then:
+        SQLException erro = thrown()
+        erro.SQLState == '23503'
+
+        where:
+        alteracao                  | sql
+        'remocao de interesse'      | 'DELETE FROM vagas_curtidas_candidato'
+        'remocao de retribuicao'    | 'DELETE FROM candidatos_curtidos_empresa'
+        'troca de proprietaria'    | 'UPDATE vagas SET id_empresa = ?'
+        'exclusao direta da vaga'  | 'DELETE FROM vagas'
+    }
+
+    def 'fks novas preservam no action e cascades existentes continuam declarados'() {
+        expect:
+        consultar('''SELECT conname, confdeltype::text AS exclusao, confupdtype::text AS atualizacao
+                     FROM pg_constraint WHERE connamespace = current_schema()::regnamespace
+                     AND conname IN ('fk_retribuicao_interesse', 'fk_retribuicao_vaga_empresa',
+                                     'fk_retribuicao_recrutador_empresa', 'fk_match_vaga_empresa', 'fk_match_retribuicao')
+                     ORDER BY conname''', []) == [
+                'fk_match_retribuicao', 'fk_match_vaga_empresa', 'fk_retribuicao_interesse',
+                'fk_retribuicao_recrutador_empresa', 'fk_retribuicao_vaga_empresa'
+        ].collect { [conname: it, exclusao: 'a', atualizacao: 'a'] }
+        consultar('''SELECT conname, confdeltype::text AS exclusao FROM pg_constraint
+                     WHERE connamespace = current_schema()::regnamespace
+                     AND conname IN ('vagas_competencias_id_vaga_fkey', 'vagas_curtidas_candidato_id_vaga_fkey', 'match_id_vaga_fkey')
+                     ORDER BY conname''', []) == [
+                'match_id_vaga_fkey', 'vagas_competencias_id_vaga_fkey', 'vagas_curtidas_candidato_id_vaga_fkey'
+        ].collect { [conname: it, exclusao: 'c'] }
+    }
+
+    private long inserirInteresse(long candidato, long vaga) {
+        inserir('INSERT INTO vagas_curtidas_candidato (id_candidato, id_vaga) VALUES (?, ?) RETURNING id', [candidato, vaga])
+    }
+
+    private long inserirRetribuicao(long candidato, long proprietaria, Long vaga, Long ator) {
+        inserir('''INSERT INTO candidatos_curtidos_empresa (id_candidato, id_empresa, id_vaga, id_recrutador_ator)
+                   VALUES (?, ?, ?, ?) RETURNING id''', [candidato, proprietaria, vaga, ator])
+    }
+
+    private long inserirMatch(long candidato, long proprietaria, long vaga) {
+        inserir('INSERT INTO match (id_candidato, id_empresa, id_vaga) VALUES (?, ?, ?) RETURNING id', [candidato, proprietaria, vaga])
     }
 
     // Tabelas/colunas dinâmicas vêm exclusivamente dos casos constantes desta spec.

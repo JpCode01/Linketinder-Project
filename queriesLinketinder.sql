@@ -415,13 +415,6 @@ CREATE TABLE vagas_competencias (
                                     CONSTRAINT uk_vaga_competencia UNIQUE (id_vaga, id_competencia)
 );
 
-CREATE TABLE candidatos_curtidos_empresa (
-                                             id SERIAL PRIMARY KEY,
-                                             id_empresa INTEGER NOT NULL REFERENCES empresas(id),
-                                             id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
-                                             CONSTRAINT uk_empresa_candidato UNIQUE (id_empresa, id_candidato)
-);
-
 CREATE TABLE vagas_curtidas_candidato (
                                           id SERIAL PRIMARY KEY,
                                           id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
@@ -429,12 +422,34 @@ CREATE TABLE vagas_curtidas_candidato (
                                           CONSTRAINT uk_candidato_vaga UNIQUE (id_candidato, id_vaga)
 );
 
+-- Retribuição contextualizada; ator não se confunde com o autor da vaga.
+-- Atividade e autoria do ator serão validadas na transação de T09.
+CREATE TABLE candidatos_curtidos_empresa (
+                                             id SERIAL PRIMARY KEY,
+                                             id_empresa INTEGER NOT NULL REFERENCES empresas(id),
+                                             id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
+                                             id_vaga INTEGER NOT NULL,
+                                             id_recrutador_ator INTEGER,
+                                             CONSTRAINT uk_retribuicao_candidato_vaga UNIQUE (id_candidato, id_vaga),
+                                             CONSTRAINT uk_retribuicao_contexto UNIQUE (id_candidato, id_empresa, id_vaga),
+                                             CONSTRAINT fk_retribuicao_interesse FOREIGN KEY (id_candidato, id_vaga)
+                                                 REFERENCES vagas_curtidas_candidato(id_candidato, id_vaga),
+                                             CONSTRAINT fk_retribuicao_vaga_empresa FOREIGN KEY (id_vaga, id_empresa)
+                                                 REFERENCES vagas(id, id_empresa),
+                                             CONSTRAINT fk_retribuicao_recrutador_empresa FOREIGN KEY (id_recrutador_ator, id_empresa)
+                                                 REFERENCES recrutadores(id, id_empresa)
+);
+
 CREATE TABLE match (
                        id SERIAL PRIMARY KEY,
                        id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
                        id_empresa INTEGER NOT NULL REFERENCES empresas(id),
                        id_vaga INTEGER NOT NULL REFERENCES vagas(id) ON DELETE CASCADE,
-                       CONSTRAINT uk_match UNIQUE (id_candidato, id_empresa, id_vaga)
+                       CONSTRAINT uk_match UNIQUE (id_candidato, id_vaga),
+                       CONSTRAINT fk_match_vaga_empresa FOREIGN KEY (id_vaga, id_empresa)
+                           REFERENCES vagas(id, id_empresa),
+                       CONSTRAINT fk_match_retribuicao FOREIGN KEY (id_candidato, id_empresa, id_vaga)
+                           REFERENCES candidatos_curtidos_empresa(id_candidato, id_empresa, id_vaga)
 );
 
 -- Inserções
