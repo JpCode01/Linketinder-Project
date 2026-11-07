@@ -7,7 +7,7 @@ import java.sql.SQLException
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
-/** T01: RN-01/RN-06 e parcela de persistência de CA-01/CA-02, sem fluxo HTTP. */
+/** T01/T02: RN-01/RN-02/RN-06 e persistência de CA-01/CA-02/CA-05/CA-18, sem fluxo HTTP. */
 class SchemaRecrutadorTest extends Specification {
 
     Connection conexao
@@ -133,6 +133,127 @@ class SchemaRecrutadorTest extends Specification {
                 !resultado.next()
             }
         }
+    }
+
+    def 'persiste vaga de origem #origem com propriedade empresarial'() {
+        given:
+        Long autor = origem == 'recrutador' ? inserirRecrutador(empresa, area) : null
+
+        when:
+        long vaga = origem == 'empresa sem coluna de autor' ?
+                inserir('''INSERT INTO vagas (nome, descricao, local, id_empresa)
+                           VALUES (?, ?, ?, ?) RETURNING id''', ['Vaga direta', 'Descrição', 'Local', empresa]) :
+                inserirVaga(empresa, autor)
+
+        then:
+        conexao.prepareStatement('SELECT id_empresa, id_recrutador FROM vagas WHERE id = ?').withCloseable { comando ->
+            comando.setLong(1, vaga)
+            comando.executeQuery().withCloseable { resultado ->
+                assert resultado.next()
+                assert resultado.getLong('id_empresa') == empresa
+                assert resultado.getObject('id_recrutador') == autor
+                !resultado.next()
+            }
+        }
+
+        where:
+        origem << ['empresa sem coluna de autor', 'empresa com autor nulo', 'recrutador']
+    }
+
+    def 'rejeita autoria com #cenario na #operacao de vaga'() {
+        given:
+        long autor = inserirRecrutador(empresa, area)
+        long outraEmpresa = inserir('''INSERT INTO empresas (nome, cnpj, email_corporativo, id_pais, cep)
+                                      VALUES (?, ?, ?, (SELECT id FROM pais LIMIT 1), ?) RETURNING id''',
+                ['Outra empresa', 'outro-cnpj', 'outra@example.invalid', '00000000'])
+        Long proprietaria = cenario == 'empresa divergente' ? outraEmpresa :
+                cenario == 'empresa ausente' ? null : cenario == 'empresa inexistente' ? -1L : empresa
+        Long idAutor = cenario == 'autor inexistente' ? -1L : autor
+        long vaga = inserirVaga(empresa, null)
+
+        when:
+        if (operacao == 'insercao') {
+            inserirVaga(proprietaria, idAutor)
+        } else {
+            conexao.prepareStatement('UPDATE vagas SET id_empresa = ?, id_recrutador = ? WHERE id = ?').withCloseable { comando ->
+                comando.setObject(1, proprietaria)
+                comando.setLong(2, idAutor)
+                comando.setLong(3, vaga)
+                comando.executeUpdate()
+            }
+        }
+
+        then:
+        SQLException erro = thrown()
+        erro.SQLState == estado
+
+        where:
+        cenario               | operacao      | estado
+        'empresa divergente'  | 'insercao'    | '23503'
+        'autor inexistente'   | 'insercao'    | '23503'
+        'empresa ausente'     | 'insercao'    | '23502'
+        'empresa inexistente' | 'insercao'    | '23503'
+        'empresa divergente'  | 'atualizacao' | '23503'
+        'autor inexistente'   | 'atualizacao' | '23503'
+    }
+
+    def 'inativar recrutador preserva autoria e empresa da vaga'() {
+        given:
+        long autor = inserirRecrutador(empresa, area)
+        long vaga = inserirVaga(empresa, autor)
+
+        when:
+        conexao.prepareStatement('UPDATE recrutadores SET ativo = FALSE WHERE id = ?').withCloseable { comando ->
+            comando.setLong(1, autor)
+            assert comando.executeUpdate() == 1
+        }
+
+        then:
+        conexao.prepareStatement('''SELECT v.id_empresa, v.id_recrutador, r.ativo FROM vagas v
+                                   JOIN recrutadores r ON r.id = v.id_recrutador WHERE v.id = ?''').withCloseable { comando ->
+            comando.setLong(1, vaga)
+            comando.executeQuery().withCloseable { resultado ->
+                assert resultado.next()
+                assert resultado.getLong('id_empresa') == empresa
+                assert resultado.getLong('id_recrutador') == autor
+                assert !resultado.getBoolean('ativo')
+                !resultado.next()
+            }
+        }
+    }
+
+    def 'fk de autoria e composta e preserva referencias sem cascades'() {
+        expect:
+        conexao.createStatement().withCloseable { comando ->
+            comando.executeQuery('''SELECT pg_get_constraintdef(oid) AS definicao, confdeltype, confupdtype
+                                    FROM pg_constraint WHERE conrelid = 'vagas'::regclass
+                                    AND conname = 'fk_vaga_recrutador_empresa' ''').withCloseable { resultado ->
+                assert resultado.next()
+                assert resultado.getString('definicao') ==
+                        'FOREIGN KEY (id_recrutador, id_empresa) REFERENCES recrutadores(id, id_empresa)'
+                assert resultado.getString('confdeltype') == 'a'
+                assert resultado.getString('confupdtype') == 'a'
+                !resultado.next()
+            }
+        }
+    }
+
+    def 'chave unica da vaga suporta referencia composta de empresa'() {
+        expect:
+        conexao.createStatement().withCloseable { comando ->
+            comando.executeQuery('''SELECT pg_get_constraintdef(oid) AS definicao FROM pg_constraint
+                                    WHERE conrelid = 'vagas'::regclass AND contype = 'u'
+                                    AND conname = 'uk_vaga_empresa' ''').withCloseable { resultado ->
+                assert resultado.next()
+                assert resultado.getString('definicao') == 'UNIQUE (id, id_empresa)'
+                !resultado.next()
+            }
+        }
+    }
+
+    private long inserirVaga(Long idEmpresa, Long idRecrutador) {
+        inserir('''INSERT INTO vagas (nome, descricao, local, id_empresa, id_recrutador)
+                   VALUES (?, ?, ?, ?, ?) RETURNING id''', ['Vaga de teste', 'Descrição', 'Local', idEmpresa, idRecrutador])
     }
 
     private long inserirRecrutador(Long idEmpresa, Long idArea, String identificador = 'unico') {

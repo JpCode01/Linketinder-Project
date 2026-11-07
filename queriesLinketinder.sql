@@ -376,7 +376,8 @@ CREATE TABLE recrutadores (
                               data_nascimento DATE NOT NULL,
                               senha VARCHAR NOT NULL,
                               id_empresa INTEGER NOT NULL REFERENCES empresas(id),
-                              ativo BOOLEAN NOT NULL DEFAULT TRUE
+                              ativo BOOLEAN NOT NULL DEFAULT TRUE,
+                              CONSTRAINT uk_recrutador_empresa UNIQUE (id, id_empresa)
 );
 
 CREATE TABLE candidatos_competencias (
@@ -391,7 +392,11 @@ CREATE TABLE vagas (
                        nome VARCHAR NOT NULL,
                        descricao VARCHAR NOT NULL,
                        local VARCHAR NOT NULL,
-                       id_empresa INTEGER NOT NULL REFERENCES empresas(id)
+                       id_empresa INTEGER NOT NULL REFERENCES empresas(id),
+                       id_recrutador INTEGER,
+                       CONSTRAINT uk_vaga_empresa UNIQUE (id, id_empresa),
+                       CONSTRAINT fk_vaga_recrutador_empresa FOREIGN KEY (id_recrutador, id_empresa)
+                           REFERENCES recrutadores(id, id_empresa)
 );
 
 CREATE TABLE vagas_competencias (

@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01 concluída e validada; demais tarefas pendentes. Implementação da T01 autorizada explicitamente pelo responsável em 07/11/2026, sem commits.
+Status: T01 e T02 concluídas e validadas; demais tarefas pendentes. Implementações de T01 e T02 autorizadas explicitamente pelo responsável em 07/11/2026, sem execução de commits pelos agentes.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -158,6 +158,18 @@ Convenções: `B = src/main/groovy/com/jpcode`, `T = src/test/groovy/com/jpcode`
 - **Passos:** adicionar coluna anulável e chave composta de suporte no recrutador; estabelecer FK autor/empresa; preparar chave `(id, id_empresa)` de vagas para T04. Não apagar autoria ao inativar.
 - **Validação:** integração com vagas direta e de autor; rejeitar empresa divergente e autor inexistente; inativar fixture e confirmar referência preservada.
 - **Conclusão:** banco aceita ambas as origens e impede combinação entre empresas diferentes.
+
+**Estado da T02 em 07/11/2026: concluída.** Adicionados somente ao DDL atual `vagas.id_recrutador` anulável, `uk_recrutador_empresa (id, id_empresa)`, `fk_vaga_recrutador_empresa (id_recrutador, id_empresa)` e `uk_vaga_empresa (id, id_empresa)`. A FK empresarial obrigatória permanece; as ações referenciais anteriores não foram modificadas e a FK nova não possui cascades. A chave de vagas prepara a referência prevista em T04, sem implementar suas interações.
+
+**Validação executada:** reutilizado o banco dedicado configurado em T01, carregando somente `LINKETINDER_TEST_JDBC_URL`, `LINKETINDER_TEST_DB_USER` e `LINKETINDER_TEST_DB_PASSWORD` do `.env` local para o processo, sem modificar esse arquivo. Cada caso JDBC usou o DDL atual em schema temporário e rollback pelo suporte existente; nenhum schema/dado de desenvolvimento ou exemplo legado foi alterado.
+
+- `.\gradlew.bat test --tests 'com.jpcode.integracao.*' --rerun-tasks` — 29 testes passaram: 22 JDBC e 7 do suporte, sem falhas, erros ou testes ignorados. A tentativa inicial no sandbox falhou ao criar o lock do cache Gradle em `C:\.gradle`; a repetição autorizada fora dele passou. Compilação Groovy e dos testes executada com sucesso nessa execução.
+- Os 12 casos novos cobrem vaga direta omitindo autor (compatível com o INSERT atual do DAO), autor explicitamente nulo, autoria válida, rejeição de empresa divergente/autor inexistente em INSERT e UPDATE, empresa nula/inexistente, autoria preservada após inatividade, FK composta sem cascades e chave única de suporte da vaga. SQLStates observados: `23503` para FK e `23502` para propriedade nula. Esses testes demonstram a parcela de persistência de CA-05/CA-18; não representam o aceite full-stack desses critérios.
+- `.\gradlew.bat build --init-script .\build\classpath-t01.gradle exportarClasspathT01` — build completo bem-sucedido, 73 testes passaram, sem falhas, erros ou testes ignorados. Reutilizado o init script temporário não versionado de T01 exclusivamente para exportar o classpath de runtime. Relatórios em `build/reports/tests/test/` e `build/reports/jacoco/test/`.
+- `java -cp <classpath de runtime> com.jpcode.api.RestServer` — iniciado em diretório temporário sob `build/`, com `GET http://127.0.0.1:8080/__t02_startup_probe__` retornando `404`, esperado para rota inexistente. Encerrado somente o processo iniciado nessa verificação. Não houve requisição de negócio nem uso do banco de desenvolvimento; a verificação funcional de T02 foi realizada pelo JDBC real.
+- Revisão integral do diff e `git diff --check` — sem erros de whitespace; somente SQL atual, teste de schema, changelog e este plano alterados. DTOs anônimos continuam com `id`, `descricao` e `competencias`; nenhum produtor/consumidor HTTP ou frontend foi alterado. A verificação de anonimato nesta tarefa é estática, sem alegar validação da matriz HTTP futura.
+
+**Reexecução e limites:** carregar as três variáveis de teste do `.env` para o processo e executar `.\gradlew.bat test --tests 'com.jpcode.integracao.*' --rerun-tasks` e `.\gradlew.bat build`. Não há pendência de validação de T02. A aplicação do DDL a uma instalação nova continua manual; nenhuma migração foi executada. T03 e tarefas seguintes não foram implementadas. Especificação aprovada preservada. Nenhum `git add`, `git commit` ou `git push` executado. Consumo de tokens não disponível como medição confiável.
 
 ### T03 — Preparar unicidades condicionadas à atividade
 
@@ -469,7 +481,7 @@ Registrar evidência por CA em `validacao.md`: comando/ação, ambiente, resulta
 - [ ] Validação com Tutor confirmada, conforme pendência registrada na especificação; não presumir confirmação.
 - [ ] Commit da especificação explicitamente autorizado e concluído antes de implementar, conforme `skills/feature-com-spec/SKILL.md`, passo 7.
 - [x] T01 — Referências e recrutadores (evidências e limites registrados na tarefa).
-- [ ] T02 — Autoria e integridade empresarial.
+- [x] T02 — Autoria e integridade empresarial (evidências e limites registrados na tarefa).
 - [ ] T03 — Unicidades parciais.
 - [ ] T04 — Schema de retribuição e match.
 - [ ] T05 — Proteção de senhas.
