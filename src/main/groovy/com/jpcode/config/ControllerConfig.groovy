@@ -8,7 +8,6 @@ import com.jpcode.controller.empresa.EmpresaController
 import com.jpcode.controller.match.MatchController
 import com.jpcode.controller.referencia.ReferenciaController
 import com.jpcode.controller.vaga.VagaController
-import com.jpcode.facade.MatchFacade
 import com.jpcode.api.SessaoHttp
 
 class ControllerConfig {
@@ -42,14 +41,9 @@ class ControllerConfig {
                 serviceConfig.competenciaService
         )
 
-        MatchFacade matchFacade = new MatchFacade(
-                serviceConfig.empresaService,
-                serviceConfig.matchService
-        )
-
         matchController = new MatchController(
                 serviceConfig.matchService,
-                matchFacade
+                serviceConfig.matchFacade
         )
 
         referenciaController = new ReferenciaController(

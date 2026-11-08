@@ -7,6 +7,8 @@ import com.jpcode.database.ConnectionFactory
 import com.jpcode.dto.Match.MatchEncontradoDTO
 import com.jpcode.model.referencia.Competencia
 
+import java.sql.Connection
+
 class MatchDAO implements MatchRepository {
     
     private final ConnectionFactory connectionFactory
@@ -19,23 +21,32 @@ class MatchDAO implements MatchRepository {
         this.competenciasVagaRepository = competenciasVagaRepository
     }
 
-    void salvar(Long idCandidato, Long idEmpresa, Long idVaga) {
+    void salvar(Connection conexao, Long idCandidato, Long idEmpresa, Long idVaga) {
+        if (conexao.autoCommit) throw new IllegalStateException('Match exige transação explícita.')
         String sql = """
             INSERT INTO "match"
                 (id_candidato, id_empresa, id_vaga)
             VALUES (?, ?, ?)
-            ON CONFLICT (id_candidato, id_empresa, id_vaga) DO NOTHING
+            ON CONFLICT (id_candidato, id_vaga) DO NOTHING
         """
 
         try (
-                def connection = connectionFactory.getConnection()
-                def statement = connection.prepareStatement(sql)
+                def statement = conexao.prepareStatement(sql)
         ) {
             statement.setLong(1, idCandidato)
             statement.setLong(2, idEmpresa)
             statement.setLong(3, idVaga)
 
             statement.executeUpdate()
+        }
+        try (def comando = conexao.prepareStatement('SELECT id_empresa FROM match WHERE id_candidato = ? AND id_vaga = ?')) {
+            comando.setLong(1, idCandidato)
+            comando.setLong(2, idVaga)
+            try (def resultado = comando.executeQuery()) {
+                if (!resultado.next() || resultado.getLong(1) != idEmpresa) {
+                    throw new IllegalStateException('Contexto de match incompatível.')
+                }
+            }
         }
     }
 

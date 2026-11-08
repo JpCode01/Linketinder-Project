@@ -7,7 +7,7 @@ import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.model.referencia.Competencia
 
-import java.sql.Statement
+import java.sql.Connection
 
 class CandidatoCurtirDAO implements
         CurtidaRepository<VagaAnonimaDTO>,
@@ -27,14 +27,37 @@ class CandidatoCurtirDAO implements
             ON CONFLICT (id_candidato, id_vaga) DO NOTHING
         """
 
-        try (
-                def connection = connectionFactory.getConnection()
-                def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-        ) {
-            statement.setLong(1, idCandidato)
-            statement.setLong(2, idVaga)
+        if (idCandidato == null || idCandidato <= 0 || idVaga == null || idVaga <= 0) throw new IllegalArgumentException('Candidato e vaga obrigatórios e positivos.')
+        try (def conexao = connectionFactory.getConnection()) {
+            conexao.transactionIsolation = Connection.TRANSACTION_READ_COMMITTED
+            conexao.autoCommit = false
+            try {
+                // Mesma ordem da retribuição: empresa, candidato, vaga; sem match nesta operação.
+                Long empresa = consultarId(conexao, 'SELECT id_empresa FROM vagas WHERE id = ?', [idVaga])
+                if (empresa == null || consultarId(conexao, 'SELECT id FROM empresas WHERE id = ? AND ativo = true FOR SHARE', [empresa]) == null ||
+                        consultarId(conexao, 'SELECT id FROM candidatos WHERE id = ? AND ativo = true FOR SHARE', [idCandidato]) == null ||
+                        consultarId(conexao, 'SELECT id FROM vagas WHERE id = ? AND id_empresa = ? FOR SHARE', [idVaga, empresa]) == null) {
+                    throw new IllegalArgumentException('Candidato ou vaga indisponível.')
+                }
+                try (def comando = conexao.prepareStatement(sql)) {
+                    comando.setLong(1, idCandidato)
+                    comando.setLong(2, idVaga)
+                    comando.executeUpdate()
+                }
+                conexao.commit()
+            } catch (Exception erro) {
+                conexao.rollback()
+                throw erro
+            }
+        }
+    }
 
-            statement.executeUpdate()
+    private static Long consultarId(Connection conexao, String sql, List<Long> ids) {
+        try (def comando = conexao.prepareStatement(sql)) {
+            ids.eachWithIndex { Long id, int indice -> comando.setLong(indice + 1, id) }
+            try (def resultado = comando.executeQuery()) {
+                return resultado.next() ? resultado.getLong(1) : null
+            }
         }
     }
 
@@ -107,7 +130,7 @@ class CandidatoCurtirDAO implements
         }
     }
 
-    List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Long idVaga) {
+    List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Connection conexao, Long idVaga) {
         String sql = """
         SELECT
             c.id,
@@ -127,8 +150,7 @@ class CandidatoCurtirDAO implements
         """
 
         try (
-                def connection = connectionFactory.getConnection()
-                def statement = connection.prepareStatement(sql)
+                def statement = conexao.prepareStatement(sql)
         ) {
             statement.setLong(1, idVaga)
 

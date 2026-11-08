@@ -14,12 +14,13 @@ class MatchServiceTest extends Specification {
         service = new MatchService(matchRepository)
     }
 
-    def "deve salvar match"() {
+    def "deve bloquear gravacao direta de match"() {
         when:
         service.salvar(1L, 2L, 3L)
 
         then:
-        1 * matchRepository.salvar(1L, 2L, 3L)
+        thrown(UnsupportedOperationException)
+        0 * matchRepository._
     }
 
     def "deve buscar matches por empresa"() {

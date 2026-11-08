@@ -2,7 +2,7 @@ package com.jpcode.service
 
 import com.jpcode.dao.contratos.CandidatoCurtidasConsultaRepository
 import com.jpcode.dao.contratos.CompetenciaRepository
-import com.jpcode.dao.contratos.CurtidaRepository
+import com.jpcode.dao.contratos.RetribuicaoRepository
 import com.jpcode.dao.contratos.UsuarioRepository
 import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
@@ -23,10 +23,10 @@ class EmpresaService {
     final ReferenciaRepository<Estado> estadoRepository
     final UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository
     final CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository
-    final CurtidaRepository<CandidatoAnonimoDTO> empresaCurtirRepository
+    final RetribuicaoRepository empresaCurtirRepository
     final CompetenciaRepository competenciasVagaRepository
 
-    EmpresaService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository, CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository, CurtidaRepository<CandidatoAnonimoDTO> empresaCurtirRepository, CompetenciaRepository competenciasVagaRepository, SenhaService senhaService = new SenhaService()) {
+    EmpresaService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository, CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository, RetribuicaoRepository empresaCurtirRepository, CompetenciaRepository competenciasVagaRepository, SenhaService senhaService = new SenhaService()) {
         this.senhaService = senhaService
         this.paisRepository = paisRepository
         this.estadoRepository = estadoRepository
@@ -93,11 +93,11 @@ class EmpresaService {
     }
     
     List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Long idVaga) {
-        return candidatoCurtidasConsultaRepository.buscarCandidatosQueCurtiram(idVaga)
+        throw new UnsupportedOperationException('Consulta exige ator empresarial ou recrutador e escopo de vaga.')
     }
 
     void curtirCandidato(Long idEmpresa,Long idCandidato) {
-        empresaCurtirRepository.salvar(idEmpresa, idCandidato)
+        throw new UnsupportedOperationException('Retribuição exige vaga e transação pela MatchFacade.')
     }
 
     List<CandidatoAnonimoDTO> buscarCandidatosCurtidos(Long idEmpresa) {

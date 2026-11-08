@@ -10,7 +10,10 @@ import com.jpcode.service.ReferenciaService
 import com.jpcode.service.VagaService
 import com.jpcode.service.SenhaService
 
+import com.jpcode.facade.MatchFacade
+
 class ServiceConfig {
+    final MatchFacade matchFacade
     final RecrutadorService recrutadorService
     final SenhaService senhaService
     final EmpresaService empresaService
@@ -62,6 +65,9 @@ class ServiceConfig {
         matchService = new MatchService(
                 daoConfig.matchDAO
         )
+
+        matchFacade = new MatchFacade(daoConfig.connectionFactory, daoConfig.empresaCurtirDAO,
+                daoConfig.candidatoCurtirDAO, matchService)
 
         competenciaService = new CompetenciaService(
                 daoConfig.competenciaDAO,

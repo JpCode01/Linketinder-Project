@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02, T03, T04, T05, T06, T07 e T08 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06 e T08 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa.
+Status: T01, T02, T03, T04, T05, T06, T07, T08 e T09 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08 e T09 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -11,6 +11,8 @@ Implementar incrementalmente a [especificação aprovada](spec.md), mantendo sua
 Abranger os fluxos obrigatórios das seções 2 a 10 da especificação, inclusive a integração HTTP ausente neste checkout. Não incluir os endpoints opcionais de edição de perfil e troca de senha do recrutador: CA-26 será registrado como condicional não aplicável. As atualizações já existentes de candidato/empresa continuam sujeitas às regras de hash, unicidade e inatividade.
 
 Não adaptar menus de terminal, migrar credenciais ou dados de teste, criar administração de vagas/reatribuição, identidade central, frameworks ou novas dependências. Manter as assinaturas utilizadas pelo terminal quando possível, sem preservar operações que burlem a consistência exigida. Alterações internas compartilhadas precisam continuar compilando com os consumidores existentes.
+
+Após o aceite de T18, executar T19 como última tarefa: analisar e remover somente código comprovadamente obsoleto da transição para os fluxos aprovados. A inclusão desta tarefa foi autorizada pelo responsável em 08/11/2026; não autoriza sua execução antecipada, retirada do terminal ou alteração da especificação. A limpeza deve preservar as entregas anteriores e repetir as validações afetadas após as remoções.
 
 ## 2. Arquitetura atual e impacto técnico
 
@@ -401,6 +403,45 @@ As consultas internas validam titular e atividade: empresa por proprietária, re
 - **Validação:** unitários com asserção de ausência de escrita nas rejeições; JDBC com duas vagas, retribuições dos dois perfis, mesma interação concorrente, falha forçada entre INSERTs e rollback integral. Repetir não aumenta contagens. Testar a exclusão de fixture de vaga respeitando as FKs.
 - **Conclusão:** nenhum caminho cria match sem reciprocidade ou em vaga alheia; interesse é único para ambos os destinatários e a falha não deixa retribuição parcial.
 
+**Estado da T09 em 08/11/2026: concluída e validada.** Branch `feature/recruiter`, inicialmente limpa. Revisadas as entregas T01–T08 e aplicadas as instruções de `AGENTS.md` e `skills/feature-com-spec/SKILL.md`. A autorização explícita para implementar somente T09 prevalece sobre o checkpoint de commit da skill; nenhum comando de staging, commit ou push foi executado.
+
+**Implementação:** `MatchFacade` possui a conexão e coordena a transação `READ COMMITTED`. As operações `retribuirInteresseEmpresa` e `retribuirInteresseRecrutador` distinguem explicitamente o ator, validam atividade, propriedade/autoria e interesse naquela vaga e gravam retribuição/match na mesma conexão. Ordem de locks documentada e comum aos dois caminhos: empresa, recrutador operante quando houver, candidato, vaga e interesse. `FOR SHARE` protege atividade/vínculos; `FOR UPDATE` da vaga serializa retribuições e exclusão. A leitura preliminar da proprietária é revalidada após o lock da vaga. Erros revertem a transação e fecham a conexão possuída pela fachada.
+
+`RetribuicaoRepository` substitui o uso indevido do contrato genérico de duas pontas na retribuição. Os DAOs participantes recebem a conexão, exigem transação explícita nas escritas e não a confirmam nem fecham. Os dois INSERTs usam conflito por candidato/vaga e verificam a empresa do registro persistido após repetição. O primeiro ator confirmado é conservado; autoria permanece exclusivamente na vaga. O interesse inicial mantém sua unicidade, revalida candidato/empresa ativos e vaga na própria transação e nunca grava match. As consultas `buscarInteressadosEmpresa` e `buscarInteressadosRecrutador` validam o mesmo escopo antes de retornar somente `CandidatoAnonimoDTO`. Recrutador inativo não opera; a empresa continua operando sem exigir atividade do autor histórico.
+
+As assinaturas antigas necessárias à compilação permanecem: `curtirCandidato` da fachada/controller delega à operação empresarial contextualizada. A curtida global de `EmpresaService`, sua consulta de interessados sem ator e a gravação direta via `MatchController.salvar`/`MatchService.salvar` falham sem escrita. O terminal não foi adaptado; seu caminho antigo de consulta sem ator passa a ser rejeitado, conforme a restrição de não conservar caminhos inseguros. A consulta legada de retribuições empresariais continua anônima e elimina repetições decorrentes de múltiplas vagas. `VagaDAO.deletar` bloqueia a vaga e remove match, retribuição e vaga, nessa ordem, na mesma transação; cascades existentes cuidam de interesses/competências e não foram alterados.
+
+**Arquivos criados:** `B/dao/contratos/RetribuicaoRepository.groovy`, `T/facade/MatchFacadeTest.groovy` e `T/integracao/RetribuicaoMatchTest.groovy`.
+
+**Arquivos modificados:** `B/config/{ServiceConfig,ControllerConfig}.groovy`, `B/controller/match/MatchController.groovy`, `B/dao/contratos/{MatchRepository,CandidatoCurtidasConsultaRepository}.groovy`, `B/dao/relacionamento/{CandidatoCurtirDAO,EmpresaCurtirDAO}.groovy`, `B/dao/match/MatchDAO.groovy`, `B/dao/vaga/VagaDAO.groovy`, `B/facade/MatchFacade.groovy`, `B/service/{EmpresaService,MatchService}.groovy`, `T/service/{EmpresaServiceTest,MatchServiceTest}.groovy`, este plano e `CHANGELOG.md`. `VagaService.curtir` já delega ao DAO de interesse e não precisou de mudança; seu teste existente foi executado na regressão. `DaoConfig` e `CurtidaRepository` também não precisaram de alteração.
+
+**Segurança do banco antes das escritas:** inspecionados `SuportePostgres`, `SuporteContasPostgres`, setup/cleanup dos testes e os scripts locais de execução. Toda conexão de teste exige `LINKETINDER_TEST_JDBC_URL`, `LINKETINDER_TEST_DB_USER` e `LINKETINDER_TEST_DB_PASSWORD`, restringe a URL sem parâmetros ao banco `linketinder_test`/`linketinder_test_<sufixo>` e verifica `current_database()` antes das escritas. Não há fallback para `PostgresConnectionFactory`. Somente o DDL atual é aplicado em schema aleatório sem `public` no `search_path`. Cleanup usa rollback ou DROP exclusivamente do schema gerado, validado por padrão restrito; executores terminam antes da limpeza, com timeouts limitados. As mutações e a tabela que força falha na exclusão pertencem somente às fixtures. Scripts carregam variáveis de teste do `.env` apenas no processo, sem editar o arquivo ou imprimir valores. Nenhuma migração, reset ou escrita no banco de desenvolvimento foi executada.
+
+**Comandos e resultados executados:**
+
+- `.\gradlew.bat compileGroovy compileTestGroovy` — sandbox bloqueou o cache Gradle; repetição autorizada fora dele: **BUILD SUCCESSFUL**, compilação principal e de testes concluídas.
+- `.\build\executar-t01.ps1` — sandbox bloqueou a política de scripts; execução autorizada com banco dedicado executou **291 testes, com 10 falhas** nos testes novos. Nove vieram de stubs que não substituíam a preparação inicial; uma, do encapsulamento de exceção JDBC pelo proxy do mock. Corrigida a preparação dos stubs e usada implementação JDBC real para injetar a falha. Essa execução não é contada como aprovação.
+- `.\build\executar-t09-tests.ps1` — script temporário não versionado, derivado do carregador auditado, executou `.\gradlew.bat test --tests 'com.jpcode.facade.MatchFacadeTest' --tests 'com.jpcode.integracao.RetribuicaoMatchTest' --tests 'com.jpcode.service.EmpresaServiceTest' --tests 'com.jpcode.service.MatchServiceTest' --rerun-tasks`: **BUILD SUCCESSFUL, 62 testes, zero falhas, erros ou ignorados**, conferidos nos XMLs. Inclui 15 casos de fachada, 28 JDBC e 19 dos serviços abrangidos.
+- `java -cp <conteúdo de build/runtime-t01.txt> groovy.ui.GroovyMain build/verificar-composicao-t06.groovy` — composição manual e igualdade exata das chaves dos dois DTOs anônimos **passaram**, sem abrir banco ou iniciar servidor.
+- `.\build\executar-t07.ps1` — regressão final autorizada, com ambiente dedicado, executou `.\gradlew.bat build --init-script .\build\classpath-t01.gradle exportarClasspathT01 --rerun-tasks`: **BUILD SUCCESSFUL, 300 testes, zero falhas, erros ou ignorados**, conferidos nos 17 XMLs. São 91 testes de serviços, 31 de servlet/contexto, 15 de fachada, 156 JDBC reais e sete de segurança do suporte. Inclui os dois casos finais de contexto divergente e interesse em outra vaga, totalizando **30 casos novos JDBC de T09**, além de compilação, JAR e JaCoCo.
+- Revisão integral do diff, incluindo arquivos novos, e `git diff --check` — sem erros de whitespace. `git diff --exit-code -- docs/specs/recrutador/spec.md queriesLinketinder.sql frontend` — especificação, schema e frontend preservados. `git diff --cached --stat` — índice sem alterações. Relatórios em `build/reports/tests/test/` e `build/reports/jacoco/test/`.
+
+**Verificação dos critérios de T09:**
+
+| Critério/parcela dos requisitos | Evidência executada |
+| --- | --- |
+| CA-07/CA-08: interesse único para destinatários, sem match inicial | Repetição sequencial/concorrente mantém uma linha; empresa e autor consultam o mesmo candidato, vaga direta não é liberada ao recrutador; zero retribuições/matches antes da reciprocidade |
+| CA-09/CA-10: retribuições válidas e isolamento por vaga | Empresa retribui em vaga direta/autoral; autor retribui na própria; candidato com interesse em duas vagas recebe match somente na retribuída; interesse apenas na primeira não autoriza retribuição na segunda |
+| CA-11 e autorização: rejeições sem escrita | Unitários e JDBC rejeitam empresa alheia/inativa, colega da mesma empresa, recrutador de outra empresa/inativo, candidato inativo e ausência de interesse; consulta alheia é rejeitada inclusive após match |
+| CA-12: repetição e concorrência | Duas threads coordenadas, conexões/transações distintas e timeout limitado confirmam uma retribuição e um match; repetição pelos dois atores conserva o primeiro ator; empresa divergente é rejeitada nos dois DAOs mesmo após conflito |
+| Atomicidade e posse de recursos | Falha FK real no segundo INSERT reverte a retribuição, mantém interesse e permite repetir com sucesso; DAOs não fecham nem confirmam conexão emprestada e rejeitam autocommit; unitários verificam mesma conexão e ausência de commit nas rejeições |
+| Locks e revalidação | Transação pausada após INSERT impede, em outra conexão, inativar empresa/recrutador/candidato, alterar autoria ou excluir interesse (`55P03`); dados parciais não aparecem externamente e a liberação permite confirmar o match |
+| CA-18: continuidade empresarial e autoria histórica | Empresa recebe interessados e forma match com autor inativo, cuja identificação interna permanece; consultas/retribuições do autor inativo falham |
+| Exclusão e integridade referencial | Exclusão JDBC remove somente dependências da vaga escolhida; FK adicional de fixture força falha e restaura vaga, competências, interesse, retribuição e match por rollback; INSERT direto sem reciprocidade é rejeitado por FK |
+| Anonimato/regressão | JSON de interessados e vagas curtidas exige exatamente `id`, `descricao`, `competencias`; match de outra vaga não amplia essas chaves; regressão de T01–T08 e composição manual passaram |
+
+**Conclusão e limites:** critérios específicos de T09 verificados, sem pendência ou bloqueio da tarefa. Contexto do ator é recebido explicitamente pelo backend; a ligação às sessões/rotas de curtidas permanece em T11. Não foram criadas rotas, executados testes HTTP reais novos, navegador ou frontend, nem implementados os contratos/consultas pós-match de T10. O aceite full-stack dos CA compartilhados continua nas tarefas posteriores. Somente o changelog e esta tarefa/status/checklist foram atualizados na documentação; demais tarefas e especificação preservadas. Nenhum `git add`, `git commit` ou `git push`. Consumo de tokens não disponível como medição confiável.
+
 ### T10 — Consultar matches e fechar caminhos de exposição indevida
 
 - **Objetivo:** cumprir integralmente a matriz de visibilidade no backend.
@@ -513,6 +554,20 @@ As consultas internas validam titular e atividade: empresa por proprietária, re
 - **Validação:** estratégia da seção 6; repetir concorrência em conexões independentes, rollback, autoria histórica, reutilização de identificadores, escopo e ausência de campos indevidos no JSON. Rodar regressão de serviços existentes e compilação de todos os consumidores, incluindo terminal, sem adaptar seus menus.
 - **Conclusão:** CA-01 a CA-25 têm evidência reproduzível, nenhum obrigatório fica sem validação e nenhuma declaração de sucesso depende apenas de mock/compilação. Divergências impedem aceite até correção; CA-26 permanece explicitamente não aplicável.
 
+### Limpeza final
+
+### T19 — Analisar e remover código obsoleto após o aceite
+
+- **Objetivo:** encerrar a transição para a nova versão removendo componentes substituídos e sem função vigente, sem regressão funcional, de segurança ou de integridade.
+- **Referência:** seção 9 da especificação, “Impact on Existing Functionality”; limites das seções 1 e 7 deste plano; autorização adicional do responsável para esta tarefa final. Não acrescenta regras de negócio nem altera os critérios de aceite aprovados.
+- **Camada:** Backend, frontend e composição, exclusivamente nos componentes comprovadamente obsoletos da feature.
+- **Existentes:** revisar inicialmente `B/service/{EmpresaService,MatchService}.groovy`, `B/controller/{empresa/EmpresaController,match/MatchController}.groovy`, `B/facade/MatchFacade.groovy`, contratos/DAOs envolvidos nas operações substituídas, `B/config/{DaoConfig,ServiceConfig,ControllerConfig}.groovy`, `B/view/` e suas fábricas/configurações somente para rastrear consumidores; `F/ts/config/{RepositoryConfig,ServiceConfig}.ts`, repositórios locais e seus consumidores efetivamente presentes após T12–T17; testes correspondentes, `CHANGELOG.md` e `docs/specs/recrutador/validacao.md`. Esses caminhos são candidatos à análise, não uma lista de exclusão; confirmar o checkout e ampliar o inventário apenas para dependências diretamente relacionadas encontradas.
+- **Novos:** nenhum arquivo obrigatório; registrar inventário e evidências em `docs/specs/recrutador/validacao.md`, criado em T18.
+- **Dependências:** T01 a T18 concluídas e validadas. Executar por último, sem antecipar remoções durante as tarefas funcionais e sem reabrir ou renumerar tarefas concluídas.
+- **Passos:** inventariar métodos, classes, contratos, imports, campos, construtores, injeções e testes substituídos. Para cada candidato, registrar localização, comportamento antigo, substituto validado, consumidores diretos/indiretos e decisão justificada. Rastrear também chamadas dinâmicas Groovy, composição manual, registros de rotas, seleção de páginas e consumidores de terminal; ausência de resultado em busca textual ou compilação isolada não prova ausência de uso. Remover incrementalmente componentes sem consumidores válidos e dependências que se tornaram desnecessárias; revisar especialmente métodos que apenas lançam exceção por legado e aliases sem necessidade vigente. Atualizar testes para exercer os fluxos públicos vigentes, preservando asserções de autorização, anonimato, atomicidade e idempotência; retirar testes cujo único objeto seja uma assinatura obsoleta removida. Não eliminar componentes apenas pela idade, pelo nome ou por usarem armazenamento local: sessão de navegação e qualquer uso ainda válido devem permanecer. Não remover ou adaptar menus/entrada do terminal, contratos ativos, funcionalidades válidas, schema ou dados. Se uma remoção depender de retirar/adaptar consumidor ainda utilizado, registrar o impedimento e solicitar decisão específica antes de alterar esse conjunto; manter a proteção contra operações inseguras, sem reativar comportamento antigo para satisfazer compatibilidade. Atualizar changelog somente com remoções efetivamente realizadas, sem apagar histórico das entregas anteriores.
+- **Validação:** comparar comportamento e contratos com as evidências de T18; revisar o diff completo e procurar referências quebradas, dependências e injeções sem uso. Executar `.\gradlew.bat build --rerun-tasks` com ambiente JDBC dedicado e previamente auditado, além de `npx tsc --noEmit` e `npx gulp build` em `frontend`. Reexecutar testes JDBC/HTTP reais e as jornadas de candidato, empresa e recrutador da matriz de T18, incluindo rejeições de acesso, conta inativa, anonimato, repetição/concorrência e rollback. Confirmar compilação e composição dos consumidores mantidos, inclusive terminal, sem ampliar seus menus. Antes de qualquer escrita de teste, verificar todas as conexões, ausência de fallback e cleanup restrito ao banco/schema isolado. Documentar comandos, resultados e validações não executadas; falha ou ausência de evidência impede declarar a limpeza validada.
+- **Conclusão:** inventário revisado, código comprovadamente obsoleto removido com suas dependências sem uso, nenhum consumidor válido quebrado e nenhum requisito ou invariante enfraquecido. Os fluxos aprovados continuam funcionando após a limpeza, com evidências reais atualizadas em `validacao.md`; especificação, status das tarefas anteriores e histórico do changelog preservados. Não marcar T19 concluída enquanto houver candidato identificado como obsoleto sem decisão, dependência não resolvida ou validação obrigatória pendente; registrar explicitamente os componentes mantidos por necessidade vigente, sem tratá-los como removidos.
+
 ## 5. Rastreabilidade de requisitos
 
 ### Regras e seções
@@ -542,6 +597,7 @@ As consultas internas validam titular e atividade: empresa por proprietária, re
 | Seção 11, D-12 e D-13 | T01–T18 (limites) | Ausência dos opcionais/UI administrativa e de migração/adaptação de terminal |
 | Seção 11, D-14 e D-15 | T05, T14, T17, T18 | Seletor aberto ao catálogo e parâmetros/medição PBKDF2 |
 | Seções 12 e 13, exclusões e decisões técnicas adiadas | Seções 1, 3 e 9 deste plano; T18 | Revisão de limites; não presumir validação com Tutor ou autorização de commit |
+| Seção 9, preservação dos fluxos após a remoção do legado; autorização adicional de limpeza final | T19, após T18 | Inventário de obsolescência e consumidores; remoção focada e repetição da matriz validada, sem novos requisitos de negócio |
 
 ### Critérios de aceite
 
@@ -601,6 +657,8 @@ Validar JSON bruto com lista exata dos campos permitidos, inclusive em falhas, p
 
 Registrar evidência por CA em `validacao.md`: comando/ação, ambiente, resultado observado, resultado esperado e eventual falha. Não registrar senha/hash/salt ou credenciais JDBC. Relatórios existentes: testes em `build/reports/tests/test/`; JaCoCo em `build/reports/jacoco/test/`. Cobertura numérica não substitui qualidade das asserções ou integração.
 
+Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decisões de remoção/preservação e a revalidação após a limpeza. As evidências de T18 são a referência anterior à remoção, não substituem a repetição dos testes e jornadas no código final. Nenhuma remoção fica autorizada apenas por passar na compilação.
+
 **Estado nesta elaboração:** somente leitura/inspeção e revisão documental. Nenhum comando de compilação, teste, benchmark, banco ou execução do sistema foi realizado para declarar funcionalidade aprovada. Tokens consumidos não estão disponíveis como medição confiável nesta sessão.
 
 ## 7. Riscos e compatibilidade
@@ -614,6 +672,7 @@ Registrar evidência por CA em `validacao.md`: comando/ação, ambiente, resulta
 - **Assincronismo:** a alteração dos serviços alcança páginas, gráfico e estratégias. Manter compilação em T12 e completar jornadas em T13–T17; evitar chamadas com Promise ignorada e sucesso antes do backend.
 - **Modelos divergentes:** `tipo`/`formacao` frontend não autorizam nova persistência. Campos faltantes do cadastro backend devem ser capturados explicitamente e referências enviadas no formato real.
 - **Terminal compartilhado:** compilar o projeto completo e preservar consumidores quando possível; não expandir menus nem manter caminho inseguro para satisfazer compatibilidade. Alteração adicional de escopo deve ser trazida à revisão antes de implementada.
+- **Remoção de legado em T19:** chamadas dinâmicas e composição explícita podem ocultar dependências. Inventariar e rastrear produtores/consumidores antes de excluir, trabalhar em incrementos revisáveis e revalidar os fluxos após a limpeza. Componente com uso válido não é obsoleto; dependência de terminal não autoriza sua retirada ou adaptação incidental. Pendências de decisão/validação devem ficar explícitas e impedem concluir T19.
 - **Histórico documental:** entradas do changelog não substituem arquivos da branch. Acrescentar evidências das entregas futuras sem afirmar que integrações ausentes já existem.
 
 ## 8. Checklist de implementação
@@ -632,7 +691,7 @@ Registrar evidência por CA em `validacao.md`: comando/ação, ambiente, resulta
 - [x] T06 — Cadastro e unicidade concorrente entre perfis (evidências e limites registrados na tarefa).
 - [x] T07 — Login e contexto HTTP (evidências e limites registrados na tarefa).
 - [x] T08 — Criação e consulta de vagas (evidências e limites registrados na tarefa).
-- [ ] T09 — Interesse, retribuição e match atômicos.
+- [x] T09 — Interesse, retribuição e match atômicos (evidências e limites registrados na tarefa).
 - [ ] T10 — Matches e matriz de visibilidade.
 - [ ] T11 — Rotas, contratos e acesso pelo navegador.
 - [ ] T12 — Clientes/DTOs e serviços assíncronos.
@@ -642,6 +701,7 @@ Registrar evidência por CA em `validacao.md`: comando/ação, ambiente, resulta
 - [ ] T16 — Jornada empresarial e gráfico.
 - [ ] T17 — Jornada do recrutador.
 - [ ] T18 — Aceite, regressão e evidências.
+- [ ] T19 — Análise e remoção final de código obsoleto, após T18, com inventário e regressão completa.
 - [ ] Changelog atualizado apenas com tarefas entregues; resultados de validação registrados.
 - [ ] Nenhuma implementação ou commit iniciado com base apenas na aprovação da sequência.
 

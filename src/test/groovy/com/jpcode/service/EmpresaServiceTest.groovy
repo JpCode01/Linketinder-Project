@@ -25,7 +25,7 @@ class EmpresaServiceTest extends Specification {
     UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository = Mock()
 
     CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository = Mock()
-    CurtidaRepository<CandidatoAnonimoDTO> empresaCurtirRepository = Mock()
+    RetribuicaoRepository empresaCurtirRepository = Mock()
     CompetenciaRepository competenciasVagaRepository = Mock()
 
     EmpresaService service
@@ -164,22 +164,20 @@ class EmpresaServiceTest extends Specification {
         thrown(EmpresaLoginException)
     }
 
-    def "deve buscar candidatos que curtiram uma vaga"() {
-        given:
-        List<CandidatoAnonimoDTO> candidatos = []
-
-        candidatoCurtidasConsultaRepository.buscarCandidatosQueCurtiram(1L) >> candidatos
-
-        expect:
-        service.buscarCandidatosQueCurtiram(1L) == candidatos
+    def "consulta sem ator nao acessa interessados"() {
+        when:
+        service.buscarCandidatosQueCurtiram(1L)
+        then:
+        thrown(UnsupportedOperationException)
+        0 * candidatoCurtidasConsultaRepository._
     }
 
-    def "deve curtir candidato pelo id"() {
+    def "curtida global nao grava retribuicao"() {
         when:
         service.curtirCandidato(1L, 2L)
-
         then:
-        1 * empresaCurtirRepository.salvar(1L, 2L)
+        thrown(UnsupportedOperationException)
+        0 * empresaCurtirRepository._
     }
 
     def "deve buscar candidatos curtidos pela empresa"() {

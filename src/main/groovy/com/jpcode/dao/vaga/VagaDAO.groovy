@@ -293,17 +293,27 @@ class VagaDAO implements VagaRepository {
 
 
     void deletar(Long id) {
-        String sql = """
-        DELETE FROM vagas
-        WHERE id = ?
-    """
-
-        try (
-                def connection = connectionFactory.getConnection()
-                def statement = connection.prepareStatement(sql)
-        ) {
-            statement.setLong(1, id)
-            statement.executeUpdate()
+        try (Connection conexao = connectionFactory.getConnection()) {
+            conexao.autoCommit = false
+            try {
+                // Serializa com a fachada antes de remover as dependências novas.
+                try (def comando = conexao.prepareStatement('SELECT id FROM vagas WHERE id = ? FOR UPDATE')) {
+                    comando.setLong(1, id)
+                    comando.executeQuery().close()
+                }
+                for (String sql : ['DELETE FROM match WHERE id_vaga = ?',
+                                   'DELETE FROM candidatos_curtidos_empresa WHERE id_vaga = ?',
+                                   'DELETE FROM vagas WHERE id = ?']) {
+                    try (def comando = conexao.prepareStatement(sql)) {
+                        comando.setLong(1, id)
+                        comando.executeUpdate()
+                    }
+                }
+                conexao.commit()
+            } catch (Exception erro) {
+                conexao.rollback()
+                throw erro
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.jpcode.controller.match
 
 import com.jpcode.dto.Match.MatchEncontradoDTO
+import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.facade.MatchFacade
 import com.jpcode.service.MatchService
 
@@ -12,6 +13,22 @@ class MatchController {
     MatchController(MatchService matchService, MatchFacade matchFacade) {
         this.matchService = matchService
         this.matchFacade = matchFacade
+    }
+
+    void retribuirInteresseEmpresa(Long idEmpresaOperante, Long idCandidato, Long idVaga) {
+        matchFacade.retribuirInteresseEmpresa(idEmpresaOperante, idCandidato, idVaga)
+    }
+
+    void retribuirInteresseRecrutador(Long idRecrutadorOperante, Long idCandidato, Long idVaga) {
+        matchFacade.retribuirInteresseRecrutador(idRecrutadorOperante, idCandidato, idVaga)
+    }
+
+    List<CandidatoAnonimoDTO> buscarInteressadosEmpresa(Long idEmpresaOperante, Long idVaga) {
+        return matchFacade.buscarInteressadosEmpresa(idEmpresaOperante, idVaga)
+    }
+
+    List<CandidatoAnonimoDTO> buscarInteressadosRecrutador(Long idRecrutadorOperante, Long idVaga) {
+        return matchFacade.buscarInteressadosRecrutador(idRecrutadorOperante, idVaga)
     }
 
     void salvar(
