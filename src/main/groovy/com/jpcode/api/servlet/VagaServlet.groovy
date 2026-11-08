@@ -3,6 +3,7 @@ package com.jpcode.api.servlet
 import com.jpcode.controller.vaga.VagaController
 import com.jpcode.dto.vaga.AtualizarVagaDTO
 import com.jpcode.dto.vaga.CadastrarVagaDTO
+import com.jpcode.dto.vaga.VagaAnonimaDTO
 import com.jpcode.exception.vaga.VagaNaoEncontradaException
 import com.jpcode.model.core.Vaga
 import groovy.json.JsonException
@@ -169,7 +170,8 @@ class VagaServlet extends HttpServlet {
             Vaga vaga = vagaController.buscarVaga(idVaga)
 
             response.status = HttpServletResponse.SC_OK
-            response.writer.write(JsonOutput.toJson(vaga))
+            response.writer.write(JsonOutput.toJson(new VagaAnonimaDTO(
+                    vaga.id, vaga.descricao, vagaController.buscarCompetenciasDeVaga(vaga.id))))
 
         } catch (VagaNaoEncontradaException e) {
             response.status = HttpServletResponse.SC_NOT_FOUND

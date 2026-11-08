@@ -6,6 +6,7 @@ class Vaga {
     String descricao
     String local
     Long idEmpresa
+    Long idRecrutador
 
     Vaga(String nome, String descricao, String local, Long idEmpresa) {
         this.nome = nome

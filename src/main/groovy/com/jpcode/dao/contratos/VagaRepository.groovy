@@ -6,10 +6,12 @@ import com.jpcode.model.core.Vaga
 
 interface VagaRepository {
     Vaga salvar(Vaga vaga)
+    Vaga salvarComCompetencias(Vaga vaga, List<Long> idsCompetencias)
 
     Optional<Vaga> buscarPorId(Long id)
 
     List<VagaEmpresaDTO> buscarVagasEmpresa(Long idEmpresa)
+    List<VagaEmpresaDTO> buscarVagasRecrutador(Long idRecrutador)
 
     List<VagaAnonimaDTO> buscarTodasAsVagas()
 

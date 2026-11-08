@@ -8,6 +8,8 @@ import com.jpcode.dto.vaga.VagaEmpresaDTO
 import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 import com.jpcode.exception.vaga.VagaNaoEncontradaException
 import com.jpcode.model.core.Vaga
+import com.jpcode.model.core.Empresa
+import com.jpcode.model.core.Recrutador
 import com.jpcode.model.referencia.Competencia
 import spock.lang.Specification
 
@@ -18,6 +20,8 @@ class VagaServiceTest extends Specification {
     CompetenciaRepository competenciaRepository = Mock()
     VagaRepository vagaRepository = Mock()
     CurtidaRepository<VagaAnonimaDTO> curtidaRepository = Mock()
+    UsuarioRepository empresaRepository = Mock()
+    RecrutadorRepository recrutadorRepository = Mock()
 
     VagaService service
 
@@ -27,11 +31,15 @@ class VagaServiceTest extends Specification {
                 referenciaRepository,
                 referenciaCompetencia,
                 competenciaRepository,
-                curtidaRepository
+                curtidaRepository,
+                empresaRepository,
+                recrutadorRepository
         )
+        empresaRepository.buscarPorId(10L) >> Optional.of(empresa(10L))
+        empresaRepository.buscarPorId(1L) >> Optional.of(empresa(1L))
     }
 
-    def "deve criar vaga"() {
+    def "deve criar vaga pela empresa"() {
         given:
         CadastrarVagaDTO cadastrarVagaDTO = new CadastrarVagaDTO(
                 "Desenvolvedor Java",
@@ -50,10 +58,10 @@ class VagaServiceTest extends Specification {
         )
 
         when:
-        service.criarVaga(cadastrarVagaDTO)
+        service.criarVagaEmpresa(10L, cadastrarVagaDTO)
 
         then:
-        1 * vagaRepository.salvar(_) >> vagaSalva
+        1 * vagaRepository.salvarComCompetencias({ it.idEmpresa == 10L && it.idRecrutador == null }, []) >> vagaSalva
         0 * competenciaRepository.salvar(_, _)
     }
 
@@ -82,9 +90,8 @@ class VagaServiceTest extends Specification {
         service.criarVaga(cadastrarVagaDTO)
 
         then:
-        1 * vagaRepository.salvar(_) >> vagaSalva
-        1 * competenciaRepository.salvar(1L, 1L)
-        1 * competenciaRepository.salvar(1L, 2L)
+        1 * vagaRepository.salvarComCompetencias(_, [1L, 2L]) >> vagaSalva
+        0 * competenciaRepository.salvar(_, _)
     }
 
     def "deve lançar exceção quando competencia não existir"() {
@@ -111,7 +118,7 @@ class VagaServiceTest extends Specification {
         service.criarVaga(cadastrarVagaDTO)
 
         then:
-        1 * vagaRepository.salvar(_) >> vagaSalva
+        0 * vagaRepository.salvarComCompetencias(_, _)
         thrown(CompetenciaNaoEncontradaException)
         0 * competenciaRepository.salvar(_, _)
     }
@@ -211,6 +218,7 @@ class VagaServiceTest extends Specification {
                 "São Paulo",
                 10L
         )
+        vagaRepository.buscarPorId(1L) >> Optional.of(new Vaga(1L, 'Antes', 'Descrição', 'SP', 10L))
 
         when:
         service.atualizarVaga(atualizarVagaDTO)
@@ -248,5 +256,74 @@ class VagaServiceTest extends Specification {
                 1L,
                 [java, spring]
         )
+    }
+
+    def 'criação do recrutador deriva empresa e autoria e elimina competências repetidas'() {
+        given:
+        recrutadorRepository.buscarPorId(4L) >> Optional.of(new Recrutador(id: 4L, idEmpresa: 10L, ativo: true))
+        referenciaRepository.buscarIdPorNome('RH') >> Optional.of(7L)
+
+        when:
+        service.criarVagaRecrutador(4L, new CadastrarVagaDTO('Vaga', 'Descrição', 'SP', null, ['RH', 'RH']))
+
+        then:
+        1 * vagaRepository.salvarComCompetencias({ it.idEmpresa == 10L && it.idRecrutador == 4L }, [7L])
+    }
+
+    def 'não aceita empresa injetada na criação do recrutador'() {
+        given:
+        recrutadorRepository.buscarPorId(4L) >> Optional.of(new Recrutador(id: 4L, idEmpresa: 10L, ativo: true))
+
+        when:
+        service.criarVagaRecrutador(4L, new CadastrarVagaDTO('Vaga', 'Descrição', 'SP', 99L, []))
+
+        then:
+        thrown(IllegalArgumentException)
+        0 * vagaRepository.salvarComCompetencias(_, _)
+    }
+
+    def 'consulta rejeita outro titular antes de acessar vagas'() {
+        when:
+        if (perfil == 'empresa') service.listarVagasEmpresa(1L, 2L)
+        else service.listarVagasRecrutador(1L, 2L)
+
+        then:
+        thrown(IllegalArgumentException)
+        0 * vagaRepository._
+
+        where:
+        perfil << ['empresa', 'recrutador']
+    }
+
+    def 'recrutador inativo não cria nem consulta'() {
+        given:
+        recrutadorRepository.buscarPorId(4L) >> Optional.of(new Recrutador(id: 4L, idEmpresa: 10L, ativo: false))
+
+        when:
+        if (criar) service.criarVagaRecrutador(4L, new CadastrarVagaDTO('Vaga', 'Descrição', 'SP', null, []))
+        else service.listarVagasRecrutador(4L, 4L)
+
+        then:
+        thrown(IllegalStateException)
+        0 * vagaRepository._
+
+        where:
+        criar << [true, false]
+    }
+
+    def 'atualização não permite usar empresa alheia'() {
+        given:
+        vagaRepository.buscarPorId(3L) >> Optional.of(new Vaga(3L, 'Vaga', 'Descrição', 'SP', 99L))
+
+        when:
+        service.atualizarVaga(new AtualizarVagaDTO(3L, 'Outro', 'Descrição', 'SP', 10L))
+
+        then:
+        thrown(IllegalArgumentException)
+        0 * vagaRepository.atualizarDados(_)
+    }
+
+    private static Empresa empresa(Long id) {
+        return new Empresa(id, 'Empresa', 'empresa@teste', 'hash', 'cnpj', 1L, 1L, 'cep', 'Descrição', true)
     }
 }

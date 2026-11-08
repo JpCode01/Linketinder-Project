@@ -53,7 +53,7 @@ class DaoConfig {
             new CompetenciasCandidatoDAO(connectionFactory)
 
     final VagaDAO vagaDAO =
-            new VagaDAO(connectionFactory)
+            new VagaDAO(connectionFactory, competenciasVagaDAO)
 
     final MatchDAO matchDAO = new MatchDAO(
             connectionFactory,

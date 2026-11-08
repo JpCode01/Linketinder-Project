@@ -20,6 +20,22 @@ class VagaController {
         vagaService.criarVaga(cadastrarVagaDTO)
     }
 
+    void criarVagaEmpresa(Long idEmpresaOperante, CadastrarVagaDTO dados) {
+        vagaService.criarVagaEmpresa(idEmpresaOperante, dados)
+    }
+
+    void criarVagaRecrutador(Long idRecrutadorOperante, CadastrarVagaDTO dados) {
+        vagaService.criarVagaRecrutador(idRecrutadorOperante, dados)
+    }
+
+    List<VagaEmpresaDTO> listarVagasEmpresa(Long idEmpresaOperante, Long idEmpresa) {
+        return vagaService.listarVagasEmpresa(idEmpresaOperante, idEmpresa)
+    }
+
+    List<VagaEmpresaDTO> listarVagasRecrutador(Long idRecrutadorOperante, Long idRecrutador) {
+        return vagaService.listarVagasRecrutador(idRecrutadorOperante, idRecrutador)
+    }
+
     void curtir(Long idCandidato, Long idVaga) {
         vagaService.curtir(idCandidato, idVaga)
     }

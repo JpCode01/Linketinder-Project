@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02, T03, T04, T05 e T06 concluídas e validadas; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05 e T06 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes.
+Status: T01, T02, T03, T04, T05, T06, T07 e T08 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06 e T08 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -357,6 +357,38 @@ Os **44 casos novos JDBC** estão em `UnicidadeContaTest`; os **9 unitários nov
 - **Validação:** unitários e JDBC com empresa, dois recrutadores da mesma empresa e um de empresa diferente; confirmar rollback por competência inexistente; vaga direta sem autor; inatividade mantém autoria.
 - **Conclusão:** empresa vê todas as próprias vagas; cada recrutador ativo vê somente as próprias; não há criação com vínculos incoerentes.
 
+**Estado da T08 em 08/11/2026: concluída e validada.** Autorização explícita do responsável para implementar e validar somente T08, sem commits. Branch `feature/recruiter`, inicialmente sem alterações. Aplicada a skill `skills/feature-com-spec/SKILL.md`; a autorização deste pedido prevalece sobre seu checkpoint de commit. Especificação aprovada preservada.
+
+**Implementação:** `Vaga.idRecrutador` é opcional; o DTO interno acrescenta `idRecrutador`, `nomeRecrutador` e `areaRecrutamento`, sem dados privados do profissional. O cadastro direto força ausência de autor; o cadastro pelo recrutador recebe seu contexto separadamente, consulta o vínculo persistido e rejeita empresa informada divergente. Ambos validam atividade e resolvem todos os nomes de competências antes de persistir, removendo repetições. `VagaDAO.salvarComCompetencias` possui uma única conexão/transação, revalida empresa e autor com locks `FOR SHARE` na ordem empresa–recrutador e compartilha a conexão com `CompetenciasVagaDAO`, que não a fecha. Falha reverte vaga e associações; o ID da entidade só é atribuído após commit.
+
+As consultas internas validam titular e atividade: empresa por proprietária, recrutador por autor, sem compartilhar vagas entre colegas. O JOIN empresarial conserva nome/área do autor inativo. Atualização existente valida empresa ativa/proprietária no serviço e no SQL e não escreve IDs de propriedade/autoria. A composição continua manual. DTOs de cadastro/atualização não precisaram de campos novos. O ajuste mínimo de `VagaServlet` troca a serialização da entidade ampliada por `VagaAnonimaDTO` no GET por ID; evita exposição da autoria nesta tarefa, sem registrar novas rotas ou implementar a matriz de sessão/CORS de T11.
+
+**Arquivos:** modificados `B/model/core/Vaga.groovy`, `B/dto/vaga/VagaEmpresaDTO.groovy`, `B/dao/contratos/VagaRepository.groovy`, `B/dao/vaga/{VagaDAO,CompetenciasVagaDAO}.groovy`, `B/service/VagaService.groovy`, `B/controller/vaga/VagaController.groovy`, `B/config/{DaoConfig,ServiceConfig}.groovy`, `B/api/servlet/VagaServlet.groovy` e `T/service/VagaServiceTest.groovy`. Criados `T/integracao/VagaAutoriaTest.groovy` e `T/api/servlet/VagaServletTest.groovy`. Documentação limitada a este plano e `CHANGELOG.md`. SQL, frontend, especificação e demais tarefas preservados.
+
+**Segurança do banco antes das escritas:** inspecionados `SuportePostgres`, `SuporteContasPostgres`, setup/cleanup dos testes JDBC existentes/novo e scripts locais de execução. Cada conexão exige as três variáveis `LINKETINDER_TEST_JDBC_URL`, `LINKETINDER_TEST_DB_USER`, `LINKETINDER_TEST_DB_PASSWORD`, restringe o nome a `linketinder_test`/`linketinder_test_<sufixo>` sem parâmetros e confere `current_database()` antes de escrever. Não há fallback para `PostgresConnectionFactory`. DDL exclusivamente atual, schemas aleatórios próprios sem `public` no `search_path`, limpeza por rollback ou DROP apenas do schema gerado e validado. Fixtures novas incluem duas empresas, dois recrutadores de uma e outro da segunda, duas áreas e competências de RH/administração. Os scripts carregam somente variáveis de teste do `.env`, sem imprimir valores ou editar o arquivo. Nenhuma escrita no banco de desenvolvimento, migração ou reset.
+
+**Evidências executadas:**
+
+- `.\gradlew.bat test --tests 'com.jpcode.service.VagaServiceTest'` — **21 testes, zero falhas/erros/ignorados**. A tentativa no sandbox foi bloqueada pelo cache Gradle; repetição autorizada fora dele passou.
+- `.\build\executar-t08-tests.ps1` — script temporário não versionado que carrega o ambiente dedicado e executa `.\gradlew.bat test --tests 'com.jpcode.service.VagaServiceTest' --tests 'com.jpcode.integracao.VagaAutoriaTest' --tests 'com.jpcode.api.servlet.VagaServletTest' --rerun-tasks`: **BUILD SUCCESSFUL, 33 testes, zero falhas/erros/ignorados**, conferidos nos XMLs. São 21 unitários de serviço, 11 JDBC reais e um teste de servlet com mocks. Compilação principal/testes e JaCoCo executados.
+- Duas tentativas anteriores de `.\build\executar-t07.ps1` executaram 255 testes e falharam, respectivamente, em quatro fixtures de competência e três consultas de autoria. Corrigidas as fixtures para a representação em maiúsculas exigida pelo DAO existente e a leitura JDBC de autor anulável (`getLong`/`wasNull`, pois `getObject(..., Long)` não aceita `int4` neste driver). Não se contam essas tentativas como aprovação. Inspeção local do driver por `javap` confirmou a restrição; repetição autorizada após bloqueio do cache concluiu o diagnóstico.
+- `java -cp <conteúdo de build/runtime-t01.txt> groovy.ui.GroovyMain build/verificar-composicao-t06.groovy` — composição manual e igualdade exata das chaves dos DTOs anônimos aprovadas, sem conexão ao banco.
+- Regressão final por `.\build\executar-t07.ps1`, script local auditado que executa `.\gradlew.bat build --init-script .\build\classpath-t01.gradle exportarClasspathT01 --rerun-tasks` com ambiente dedicado: **BUILD SUCCESSFUL, 255 testes, zero falhas, erros ou ignorados**, conferidos nos 15 XMLs. São 91 testes de serviços, 31 de servlet/contexto, 126 JDBC reais e sete de segurança do suporte. Compilação principal/testes, JAR, verificações e JaCoCo executados; regressão de T01–T07 preservada. Relatórios em `build/reports/tests/test/` e `build/reports/jacoco/test/`.
+- Diff integral revisado, incluindo os dois arquivos novos, e `git diff --check` sem erros de whitespace. `git diff --exit-code -- docs/specs/recrutador/spec.md queriesLinketinder.sql frontend` confirmou esses arquivos preservados; índice Git permaneceu vazio.
+
+**Critérios de T08 e rastreabilidade:**
+
+| Parcela do critério | Evidência observada |
+| --- | --- |
+| CA-05: vaga direta sem autor, autor e empresa corretos | Unitários verificam derivação e rejeição de empresa injetada; JDBC confirma IDs persistidos, NULL na vaga direta e rejeita vínculo entre empresas diferentes/contas inexistentes |
+| CA-06: empresa vê todas as próprias; recrutador somente as próprias | JDBC com duas empresas e três recrutadores confirma conjuntos exatos; unitários rejeitam titular alheio antes da consulta |
+| CA-18: autoria histórica e bloqueio de operação inativa | JDBC mantém nome/área/ID do autor inativo na consulta empresarial e permite atualização empresarial sem remover autoria; serviço rejeita criação/consulta do recrutador inativo e DAO revalida atividade |
+| CA-25: competências N:N na criação de vagas | JDBC confirma duas associações por vaga, incluindo RH/administração, sem duplicar a seleção repetida; competência inexistente não cria vaga |
+| Atomicidade e atualização restrita | Falha FK na segunda associação deixa zero vagas/associações e ID nulo; nova transação válida confirma duas associações. UPDATE de outra empresa falha e não altera a vaga; atualização válida mantém proprietário/autor |
+| Anonimato e compatibilidade | Serialização JDBC da descoberta e teste de servlet por ID exigem exatamente `id`, `descricao`, `competencias`; composição manual e compilação dos consumidores existentes aprovadas |
+
+**Conclusão e limites:** todos os critérios específicos de T08 verificados, sem bloqueios pendentes da tarefa. Interessado/retribuição/match de CA-06/CA-18, formulários/seletor de CA-25 e autenticação das operações por sessão HTTP dependem das tarefas posteriores e não são declarados aceitos integralmente. Os novos métodos recebem o contexto explícito do titular; sua ligação às rotas protegidas permanece em T11. Teste de servlet usa mocks, sem equivaler a integração HTTP real. Não foram executados navegador ou frontend. Nenhuma implementação de T09 ou seguintes, `git add`, `git commit` ou `git push`. Consumo de tokens não disponível como medição confiável.
+
 ### T09 — Tornar interesse, retribuição e match consistentes
 
 - **Objetivo:** substituir curtida empresarial global pelo contexto candidato–vaga com atomicidade.
@@ -599,7 +631,7 @@ Registrar evidência por CA em `validacao.md`: comando/ação, ambiente, resulta
 - [x] T05 — Proteção de senhas (evidências e limites registrados na tarefa).
 - [x] T06 — Cadastro e unicidade concorrente entre perfis (evidências e limites registrados na tarefa).
 - [x] T07 — Login e contexto HTTP (evidências e limites registrados na tarefa).
-- [ ] T08 — Criação e consulta de vagas.
+- [x] T08 — Criação e consulta de vagas (evidências e limites registrados na tarefa).
 - [ ] T09 — Interesse, retribuição e match atômicos.
 - [ ] T10 — Matches e matriz de visibilidade.
 - [ ] T11 — Rotas, contratos e acesso pelo navegador.

@@ -44,7 +44,9 @@ class ServiceConfig {
                 daoConfig.competenciaDAO,
                 daoConfig.competenciaDAO,
                 daoConfig.competenciasVagaDAO,
-                daoConfig.candidatoCurtirDAO
+                daoConfig.candidatoCurtirDAO,
+                daoConfig.empresaDAO,
+                daoConfig.recrutadorDAO
         )
 
         candidatoService = new CandidatoService(

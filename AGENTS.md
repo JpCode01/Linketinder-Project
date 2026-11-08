@@ -128,6 +128,7 @@ Não há suíte de testes frontend configurada: `npm test` é um placeholder que
 
 ## 11. Convenções de código
 
+- **Naming convention:** When operations depend on different authenticated actors or authorization contexts, method names must explicitly communicate the responsible actor. Avoid ambiguous overloads that conceal security-relevant differences. Prefer descriptive names over signatures that require inspecting parameters to understand authorization context.
 - Preserve nomes de domínio em português, classes em PascalCase e métodos/variáveis em camelCase, seguindo o arquivo existente.
 - Respeite os pacotes e sufixos estabelecidos: `DAO`, `Repository`, `Service`, `Controller`, `Servlet`, `DTO`, `ApiClient`, `Page` e `Strategy`.
 - Mantenha SQL e mapeamento JDBC nos DAOs, regras/orquestração nos serviços e fachadas, tratamento HTTP nas servlets e apresentação nas páginas/menus.
