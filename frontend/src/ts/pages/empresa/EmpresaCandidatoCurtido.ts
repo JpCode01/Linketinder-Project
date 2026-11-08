@@ -1,18 +1,18 @@
-import { Candidato } from "../../models/Candidato"
-import { Vaga } from "../../models/Vaga"
+import { CandidatoViewDTO } from "../../api/dto/candidato/CandidatoViewDTO"
 import { VagaService } from "../../services/VagaService"
 import { CandidatoService } from "../../services/CandidatoService"
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
 import { CurtidaCandidatoService } from "../../services/CurtidaCandidatoService"
 import { obterIniciais } from "./EmpresaPerfil"
+import { VagaEmpresaResponseDTO } from "../../api/dto/vaga/VagaEmpresaResponseDTO";
 
-export function exibirCandidatosCurtidos(
+export async function exibirCandidatosCurtidos(
     idEmpresa: number,
     vagaService: VagaService,
     candidatoService: CandidatoService,
     curtidaVagaService: CurtidaVagaService,
     curtidaCandidatoService: CurtidaCandidatoService
-): void {
+): Promise<void> {
     const lista =
         document.getElementById("liked-candidate-grid")
 
@@ -23,60 +23,47 @@ export function exibirCandidatosCurtidos(
         return
     }
 
-    const curtidasCandidatos =
-        curtidaCandidatoService.buscarPorEmpresa(idEmpresa)
-
     const vagas =
-        vagaService.buscarPorEmpresa(idEmpresa)
+        await vagaService.buscarPorEmpresa(idEmpresa)
 
     lista.innerHTML = ""
 
     let quantidade = 0
 
-    curtidasCandidatos.forEach((curtidaCandidato) => {
-        const candidato =
-            candidatoService.buscarPorId(
-                curtidaCandidato.idCandidato
+    for (const vaga of vagas) {
+        const candidatos =
+            await curtidaVagaService.buscarCandidatosQueCurtiram(vaga.id)
+
+        for (const candidatoAnonimo of candidatos) {
+            const empresaCurtiuCandidato =
+                await curtidaCandidatoService.jaCurtiuCandidato(
+                    idEmpresa,
+                    candidatoAnonimo.id
+                )
+
+            if (!empresaCurtiuCandidato) {
+                continue
+            }
+
+            const candidato =
+                await candidatoService.buscarPorId(candidatoAnonimo.id)
+
+            lista.appendChild(
+                criarCardCandidatoCurtido(candidato, vaga)
             )
 
-        vagas.forEach((vaga) => {
-            const curtidas =
-                curtidaVagaService.buscarPorVaga(vaga.id)
-
-            const candidatoCurtiuVaga =
-                curtidas.some(
-                    (curtida) =>
-                        curtida.idCandidato === candidato.id
-                )
-
-            const empresaCurtiuCandidatoParaVaga =
-                curtidaCandidato.idVaga === vaga.id
-
-            if (
-                candidatoCurtiuVaga &&
-                empresaCurtiuCandidatoParaVaga
-            ) {
-                lista.appendChild(
-                    criarCardCandidatoCurtido(
-                        candidato,
-                        vaga
-                    )
-                )
-
-                quantidade++
-            }
-        })
-    })
+            quantidade++
+        }
+    }
 
     if (contador != null) {
-        contador.textContent =
-            quantidade.toString()
+        contador.textContent = quantidade.toString()
     }
 }
 
 function criarCardCandidatoCurtido(
-    candidato: Candidato,
-    vaga: Vaga
+    candidato: CandidatoViewDTO,
+    vaga: VagaEmpresaResponseDTO
 ): HTMLElement {
     const article = document.createElement("article")
     article.className = "candidate-card"
@@ -101,7 +88,7 @@ function criarCardCandidatoCurtido(
 }
 
 function criarTopoCandidatoCurtido(
-    candidato: Candidato
+    candidato: CandidatoViewDTO
 ): HTMLElement {
     const topo = document.createElement("div")
     topo.className = "candidate-top"
@@ -120,7 +107,7 @@ function criarTopoCandidatoCurtido(
 }
 
 function criarSecaoFormacao(
-    candidato: Candidato
+    candidato: CandidatoViewDTO
 ): HTMLElement {
     const secao = document.createElement("div")
     secao.className = "candidate-section"
@@ -129,7 +116,6 @@ function criarSecaoFormacao(
     titulo.textContent = "Formação"
 
     const formacao = document.createElement("p")
-    formacao.textContent = candidato.formacao
 
     secao.appendChild(titulo)
     secao.appendChild(formacao)
@@ -138,7 +124,7 @@ function criarSecaoFormacao(
 }
 
 function criarSecaoCompetencias(
-    candidato: Candidato
+    candidato: CandidatoViewDTO
 ): HTMLElement {
     const secao = document.createElement("div")
     secao.className = "candidate-section"
@@ -151,8 +137,7 @@ function criarSecaoCompetencias(
 
     candidato.competencias.forEach((competencia) => {
         const tag = document.createElement("span")
-        tag.textContent = competencia
-
+        tag.textContent = competencia.nome
         tags.appendChild(tag)
     })
 
@@ -163,7 +148,7 @@ function criarSecaoCompetencias(
 }
 
 function criarSecaoVaga(
-    vaga: Vaga
+    vaga: VagaEmpresaResponseDTO
 ): HTMLElement {
     const secao = document.createElement("div")
     secao.className = "candidate-section"

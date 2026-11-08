@@ -1,3 +1,3 @@
 export interface LoginStrategy {
-    login(email: string): void
+    login(email: string, senha: string): Promise<void>
 }

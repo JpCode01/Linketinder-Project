@@ -8,6 +8,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Diagnóstico e matriz de incompatibilidades entre o frontend integrado de master e os contratos backend de T11, com origem do snapshot e validações da importação.
 - Rotas HTTP de cadastro/perfil de recrutador, áreas e referências, vagas por titular, curtidas e matches, conectadas aos controllers existentes com sessão e escopo por ator (T11).
 - Filtro CORS para `http://127.0.0.1:5500`, credenciais, preflight e validação de origem/JSON nas mutações; suporte comum a respostas e erros JSON sem detalhes internos (T11).
 - Testes de contratos em Tomcat real e jornada HTTP com PostgreSQL dedicado para persistência, isolamento, anonimato, reciprocidade e autoria histórica (T11).
@@ -47,6 +48,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Importada somente a pasta frontend de origin/master (commit da27379) para feature/recruiter, substituindo a tentativa anterior de T12 e preservando integralmente o backend; master não foi modificada.
+- Replanejadas T12–T18 sobre a integração frontend existente, com T12 novamente pendente e compatibilização direcionada aos contratos já entregues em T11, sem recriação do backend.
 - Descoberta, criação e atualização HTTP de vagas exigem sessão ativa e perfil/escopo apropriados; criação empresarial usa o ator autenticado e rejeita injeção de autoria ou empresa divergente (T11).
 - Entradas HTTP de cadastro/atualização validam formato e campos permitidos; conflitos de identificadores retornam `409`, entradas inválidas `400` e falhas inesperadas erros genéricos `500`, preservando contratos de sucesso compatíveis (T11).
 - Consultas HTTP de candidato e empresa por ID restritas ao próprio perfil com sessão ativa; listagens identificáveis bloqueadas. A mesma restrição de titular protege a atualização existente desses perfis (T10).

@@ -1,56 +1,59 @@
-import { CandidatoService } from "../../services/CandidatoService"
-import { RepositoryConfig } from "../../config/RepositoryConfig"
-import { ServiceConfig } from "../../config/ServiceConfig"
+import { LoginException } from "../../exceptions/LoginException";
 import { LoginCandidatoStrategy } from "../../strategy/login/LoginCandidatoStrategy"
 import { LoginStrategy } from "../../strategy/login/LoginStrategy";
 
-const repositoryConfig: RepositoryConfig = new RepositoryConfig()
-const serviceConfig: ServiceConfig = new ServiceConfig(repositoryConfig)
-
-const candidatoService: CandidatoService =
-    serviceConfig.criarCandidatoService()
-
 const loginStrategy: LoginStrategy =
-    new LoginCandidatoStrategy(candidatoService)
+    new LoginCandidatoStrategy()
 
 export function loginCandidato(): void {
 
-    document.getElementById("login-candidato")!.onclick = (): void => {
+    document.getElementById("login-candidato")!.onclick = async(): Promise<void> => {
 
         const inputEmail =
             document.getElementById("email") as HTMLInputElement
 
-        limparErroEmail(inputEmail)
+        const inputSenha = 
+            document.getElementById("senha") as HTMLInputElement
+
+        limparErroLogin()
 
         try {
 
-            loginStrategy.login(inputEmail.value)
-
-        } catch {
-
-            mostrarErroEmail(
-                inputEmail,
-                "Candidato não encontrado."
+            await loginStrategy.login(
+                inputEmail.value,
+                inputSenha.value
             )
+
+        } catch(erro) {
+
+            if (erro instanceof TypeError) {
+                mostrarErroLogin(
+                    "Não foi possível conectar ao servidor. Tente novamente."
+                )
+                return
+            }
+
+            if (erro instanceof LoginException) {
+                mostrarErroLogin(erro.message)
+                return
+            }
         }
     }
 }
 
-function limparErroEmail(inputEmail: HTMLInputElement): void {
-    inputEmail.classList.remove("input-error")
-    document.getElementById("erro-email")?.remove()
+function limparErroLogin(): void {
+    document.getElementById("erro-login")?.remove()
 }
 
-function mostrarErroEmail(
-    inputEmail: HTMLInputElement,
-    mensagem: string
-): void {
-    inputEmail.classList.add("input-error")
+function mostrarErroLogin(mensagem: string): void {
+    limparErroLogin()
 
-    const mensagemErro = document.createElement("span")
-    mensagemErro.id = "erro-email"
+    const mensagemErro = document.createElement("p")
+    mensagemErro.id = "erro-login"
     mensagemErro.classList.add("error-message")
     mensagemErro.textContent = mensagem
 
-    inputEmail.parentElement!.appendChild(mensagemErro)
+    const formulario = document.querySelector("form")
+
+    formulario!.appendChild(mensagemErro)
 }

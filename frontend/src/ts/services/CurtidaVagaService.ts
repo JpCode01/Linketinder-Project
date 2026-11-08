@@ -1,63 +1,44 @@
-import { CurtidaVaga } from "../models/CurtidaVaga"
-import { CadastroRepository } from "../repository/CadastroRepository"
-import { CurtidaVagaConsultaRepository } from "../repository/candidato/contrato/CurtidaVagaConsultaRepository"
-import { CandidatoConsultaRepository } from "../repository/candidato/contrato/CandidatoConsultaRepository"
-import { VagaConsultaRepository } from "../repository/vaga/contrato/VagaConsultaRepository"
-import { CandidatoNaoEncontradoException } from "../exceptions/candidato/CandidatoNaoEncontradoException"
-import { VagaNaoEncontradaException } from "../exceptions/vaga/VagaNaoEncontradaException"
-import { VagaJaCurtidaException } from "../exceptions/vaga/VagaJaCurtidaException"
+import { CurtidaVagaApiClient } from "../api/clientes/CurtidaVagaApiClient";
+import { CandidatoAnonimoResponseDTO } from "../api/dto/candidato/CandidatoAnonimoResponseDTO";
+import { VagaAnonimaResponseDTO } from "../api/dto/vaga/VagaAnonimaResponseDTO";
 
 export class CurtidaVagaService {
 
-    constructor(
-        private curtidaVagaCadastroRepository: CadastroRepository<CurtidaVaga>,
-        private curtidaVagaConsultaRepository: CurtidaVagaConsultaRepository,
-        private candidatoConsultaRepository: CandidatoConsultaRepository,
-        private vagaConsultaRepository: VagaConsultaRepository
+   constructor(
+    private curtidaVagaApiClient: CurtidaVagaApiClient
     ) {}
 
-    curtir(idCandidato: number, idVaga: number): void {
-        const candidato = this.candidatoConsultaRepository.buscarPorId(idCandidato)
-
-        if (candidato == undefined) {
-            throw new CandidatoNaoEncontradoException(idCandidato)
-        }
-
-        const vaga = this.vagaConsultaRepository.buscarPorId(idVaga)
-
-        if (vaga == undefined) {
-            throw new VagaNaoEncontradaException(idVaga)
-        }
-
-        const curtidaExistente =
-            this.curtidaVagaConsultaRepository.buscar(idCandidato, idVaga)
-
-        if (curtidaExistente != undefined) {
-            throw new VagaJaCurtidaException(idVaga)
-        }
-
-        const curtida = new CurtidaVaga(idCandidato, idVaga)
-
-        this.curtidaVagaCadastroRepository.salvar(curtida)
+    async buscarCandidatosQueCurtiram(
+        idVaga: number
+    ): Promise<CandidatoAnonimoResponseDTO[]> {
+        return await this.curtidaVagaApiClient.buscarCandidatosQueCurtiram(idVaga)
     }
 
-    buscarPorCandidato(idCandidato: number): CurtidaVaga[] {
-        const candidatoProcurado = this.candidatoConsultaRepository.buscarPorId(idCandidato)
-
-        if (candidatoProcurado == undefined) {
-            throw new CandidatoNaoEncontradoException(idCandidato)
-        }
-
-        return this.curtidaVagaConsultaRepository.buscarPorCandidato(idCandidato)
+    async buscarVagasCurtidas(
+        idCandidato: number
+    ): Promise<VagaAnonimaResponseDTO[]> {
+        return await this.curtidaVagaApiClient.buscarVagasCurtidas(
+            idCandidato
+        )
     }
 
-    buscarPorVaga(idVaga: number): CurtidaVaga[] {
-        const vagaPrcurada = this.vagaConsultaRepository.buscarPorId(idVaga)
-
-        if (vagaPrcurada == undefined) {
-            throw new VagaNaoEncontradaException(idVaga)
-        }
-
-        return this.curtidaVagaConsultaRepository.buscarPorVaga(idVaga)
+    async curtirViaApi(
+        idCandidato: number,
+        idVaga: number
+    ): Promise<void> {
+        await this.curtidaVagaApiClient.curtirVaga(
+            idCandidato,
+            idVaga
+        )
+    }
+    
+    async jaCurtiuVaga(
+        idCandidato: number,
+        idVaga: number
+    ): Promise<boolean> {
+        return await this.curtidaVagaApiClient.jaCurtiuVaga(
+            idCandidato,
+            idVaga
+        )
     }
 }

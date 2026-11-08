@@ -1,63 +1,76 @@
-import { CandidatoService } from "../services/CandidatoService"
-import { EmpresaService } from "../services/EmpresaService"
-import { VagaService } from "../services/VagaService"
-import { CurtidaVagaService } from "../services/CurtidaVagaService"
-import { CurtidaCandidatoService } from "../services/CurtidaCandidatoService"
-import { RelatorioCompetenciasService } from "../services/RelatorioCompetenciasService"
+import { CandidatoService } from "../services/CandidatoService";
+import { CurtidaCandidatoService } from "../services/CurtidaCandidatoService";
+import { CurtidaVagaService } from "../services/CurtidaVagaService";
+import { EmpresaService } from "../services/EmpresaService";
+import { RelatorioCompetenciasService } from "../services/RelatorioCompetenciasService";
+import { VagaService } from "../services/VagaService";
 
-import { RepositoryConfig } from "./RepositoryConfig"
+import { CandidatoApiClient } from "../api/clientes/CandidatoApiClient";
+import { CompetenciaApiClient } from "../api/clientes/CompetenciaApiClient";
+import { CurtidaCandidatoApiClient } from "../api/clientes/CurtidaCandidatoApiClient";
+import { CurtidaVagaApiClient } from "../api/clientes/CurtidaVagaApiClient";
+import { EmpresaApiClient } from "../api/clientes/EmpresaApiClient";
+import { MatchApiClient } from "../api/clientes/MatchApiClient";
+import { ReferenciaApiClient } from "../api/clientes/ReferenciaApiClient";
+import { VagaApiClient } from "../api/clientes/VagaApiClient";
+import { CompetenciaService } from "../services/CompetenciaService";
+import { MatchService } from "../services/MatchService";
+import { ReferenciaService } from "../services/ReferenciaService";
 
 export class ServiceConfig {
 
-    constructor(private repositoryConfig: RepositoryConfig) {}
-
     criarCandidatoService(): CandidatoService {
         return new CandidatoService(
-            this.repositoryConfig.candidatoRepository,
-            this.repositoryConfig.candidatoRepository,
-            this.repositoryConfig.empresaRepository
+            new CandidatoApiClient()
         )
     }
 
     criarRelatorioCompetenciasService(): RelatorioCompetenciasService {
         return new RelatorioCompetenciasService(
             this.criarVagaService(),
-            this.criarCurtidaVagaService(),
-            this.criarCandidatoService()
+            this.criarCurtidaVagaService()
         )
     }
 
     criarEmpresaService(): EmpresaService {
-        return new EmpresaService(
-            this.repositoryConfig.empresaRepository,
-            this.repositoryConfig.empresaRepository,
-            this.repositoryConfig.candidatoRepository
-        )
-    }
+    return new EmpresaService(
+        new EmpresaApiClient()
+    )
+}
 
     criarVagaService(): VagaService {
         return new VagaService(
-            this.repositoryConfig.vagaRepository,
-            this.repositoryConfig.vagaRepository,
-            this.repositoryConfig.empresaRepository
+            new VagaApiClient()
         )
     }
 
     criarCurtidaVagaService(): CurtidaVagaService {
         return new CurtidaVagaService(
-            this.repositoryConfig.curtidaVagaRepository,
-            this.repositoryConfig.curtidaVagaRepository,
-            this.repositoryConfig.candidatoRepository,
-            this.repositoryConfig.vagaRepository
+            new CurtidaVagaApiClient()
         )
     }
 
     criarCurtidaCandidatoService(): CurtidaCandidatoService {
         return new CurtidaCandidatoService(
-            this.repositoryConfig.curtidaCandidatoRepository,
-            this.repositoryConfig.curtidaCandidatoRepository,
-            this.repositoryConfig.empresaRepository,
-            this.repositoryConfig.candidatoRepository
+            new CurtidaCandidatoApiClient()
+        )
+    }
+
+    criarMatchService(): MatchService {
+        return new MatchService(
+            new MatchApiClient()
+        )
+    }
+
+    criarCompetenciaService(): CompetenciaService {
+        return new CompetenciaService(
+            new CompetenciaApiClient()
+        )
+    }
+
+    criarReferenciaService(): ReferenciaService {
+        return new ReferenciaService(
+            new ReferenciaApiClient()
         )
     }
 }

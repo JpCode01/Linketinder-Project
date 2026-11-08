@@ -1,6 +1,3 @@
-import { Candidato } from "../../models/Candidato"
-import { Vaga } from "../../models/Vaga"
-import { VagaService } from "../../services/VagaService"
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
 
 import {
@@ -8,11 +5,10 @@ import {
     criarCardVaga
 } from "./CandidatoComponentes"
 
-export function exibirVagasCurtidas(
-    candidato: Candidato,
-    vagaService: VagaService,
+export async function exibirVagasCurtidas(
+    idCandidato: number,
     curtidaVagaService: CurtidaVagaService
-): void {
+): Promise<void> {
     const listaVagas =
         document.getElementById("liked-job-grid")
 
@@ -23,54 +19,38 @@ export function exibirVagasCurtidas(
         return
     }
 
-    const vagasCurtidas =
-        buscarVagasCurtidas(
-            candidato,
-            vagaService,
-            curtidaVagaService
-        )
-
     listaVagas.innerHTML = ""
 
-    atualizarContador({
-        contador: contador,
-        quantidade: vagasCurtidas.length,
-        singular: "vaga curtida",
-        plural: "vagas curtidas"
-    })
-
-    for (const vaga of vagasCurtidas) {
-        const card = criarCardVaga(
-            vaga,
-            true
-        )
-
-        listaVagas.appendChild(card)
-    }
-}
-
-function buscarVagasCurtidas(
-    candidato: Candidato,
-    vagaService: VagaService,
-    curtidaVagaService: CurtidaVagaService
-): Vaga[] {
-    const curtidas =
-        curtidaVagaService.buscarPorCandidato(
-            candidato.id
-        )
-
-    const vagasCurtidas: Vaga[] = []
-
-    for (const curtida of curtidas) {
-        const vaga =
-            vagaService.buscarPorId(
-                curtida.idVaga
+    try {
+        const vagasCurtidas =
+            await curtidaVagaService.buscarVagasCurtidas(
+                idCandidato
             )
 
-        if (vaga != undefined) {
-            vagasCurtidas.push(vaga)
+        atualizarContador({
+            contador,
+            quantidade: vagasCurtidas.length,
+            singular: "vaga curtida",
+            plural: "vagas curtidas"
+        })
+
+        for (const vaga of vagasCurtidas) {
+            const card = criarCardVaga(
+                vaga,
+                true
+            )
+
+            listaVagas.appendChild(card)
+        }
+    } catch (erro: unknown) {
+        console.error(
+            "Erro ao carregar vagas curtidas:",
+            erro
+        )
+
+        if (contador != null) {
+            contador.textContent =
+                "Erro ao carregar vagas curtidas"
         }
     }
-
-    return vagasCurtidas
 }

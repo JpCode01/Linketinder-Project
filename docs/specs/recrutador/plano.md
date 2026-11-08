@@ -8,7 +8,7 @@ Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
 Implementar incrementalmente a [especificação aprovada](spec.md), mantendo sua autoridade sobre requisitos e decisões de negócio. A sequência preliminar foi aprovada pelo responsável no diálogo. Este documento detalha essa sequência; sua criação não autoriza código, alterações de banco ou commits.
 
-Abranger os fluxos obrigatórios das seções 2 a 10 da especificação, inclusive a integração HTTP ausente neste checkout. Não incluir os endpoints opcionais de edição de perfil e troca de senha do recrutador: CA-26 será registrado como condicional não aplicável. As atualizações já existentes de candidato/empresa continuam sujeitas às regras de hash, unicidade e inatividade.
+Abranger os fluxos obrigatórios das seções 2 a 10 da especificação. Após a importação autorizada do frontend integrado de master, reaproveitar essa base e adaptá-la ao backend de T01–T11, sem recomeçar ou modificar as entregas backend. Não incluir os endpoints opcionais de edição de perfil e troca de senha do recrutador: CA-26 será registrado como condicional não aplicável. As atualizações já existentes de candidato/empresa continuam sujeitas às regras de hash, unicidade e inatividade.
 
 Não adaptar menus de terminal, migrar credenciais ou dados de teste, criar administração de vagas/reatribuição, identidade central, frameworks ou novas dependências. Manter as assinaturas utilizadas pelo terminal quando possível, sem preservar operações que burlem a consistência exigida. Alterações internas compartilhadas precisam continuar compilando com os consumidores existentes.
 
@@ -16,7 +16,7 @@ Após o aceite de T18, executar T19 como última tarefa: analisar e remover some
 
 ## 2. Arquitetura atual e impacto técnico
 
-### Evidências verificadas
+### Evidências da análise inicial (histórico anterior a T01–T11 e à importação)
 
 | Componente existente | Situação e impacto |
 | --- | --- |
@@ -38,6 +38,27 @@ Após o aceite de T18, executar T19 como última tarefa: analisar e remover some
 | `CHANGELOG.md` | Contém histórico de integração HTTP que não corresponde à árvore atual. Usar como histórico, sem presumir código ausente; registrar futuramente somente entregas verificadas. |
 
 Os caminhos backend abreviados na tabela acima são relativos a `src/main/groovy/com/jpcode/`. O Tomcat é iniciado por `com.jpcode.api.RestServer`, porta 8080; `TomcatConfig` não registra filtro CORS neste checkout. Não há tarefa Gradle `run`.
+
+### Base atual após a importação do frontend (08/11/2026)
+
+Por determinação do responsável, a implementação anterior de T12 foi desconsiderada. T12 volta a estar **pendente**, sem aproveitar seu status, arquivos exclusivos ou resultados de testes como evidência da nova entrega. A base frontend é agora o snapshot integral de `origin/master:frontend`, commit `da273790fb0c10235981aa78fabe29b9a28310cf`, importado somente para o diretório de trabalho da `feature/recruiter`. Não houve merge, alteração de master ou importação de backend. T01–T11 e suas evidências permanecem preservadas.
+
+A tabela anterior descreve a **análise inicial histórica**, não a árvore frontend atual. O backend HTTP de T11 passa a ser o contrato vigente para adaptar o frontend importado; não se reimplementam T01–T11 para reproduzir o backend antigo de master.
+
+| Componente atual | Situação comprovada e impacto no plano |
+| --- | --- |
+| `F/ts/config/ServiceConfig.ts`, `F/ts/api/clientes/`, `F/ts/services/` | Já existem clientes HTTP e serviços assíncronos para candidato, empresa, vagas, curtidas, matches, competências e referências. Reutilizar a composição; não construir outra integração paralela. `RepositoryConfig.ts` não existe nesse snapshot; repositórios/factories históricos remanescentes só serão avaliados em T19. |
+| `F/html/{index,cadastro-candidato,cadastro-empresa}.html` e páginas correspondentes | Já possuem senha, sobrenome/nascimento no candidato, referências e submissão HTTP. T13 adapta o comportamento existente e acrescenta login de recrutador, sem recriar os formulários. Cadastros atuais tentam login automático, divergindo do encaminhamento ao login definido neste plano. |
+| Clientes HTTP e estratégias de login | Usam `localhost`, não enviam `credentials: "include"` e repetem tratamento de respostas. T12 deve unificar host/cookie e erros, inclusive os `fetch` diretos das páginas/estratégias, conforme o servidor de T11. |
+| Curtidas e páginas consumidoras | Enviam ID do ator no corpo e chamam `/curtidas/vagas/verificar` e `/curtidas/candidatos/verificar`, ausentes em T11. T12 adapta corpos e consumidores sem criar essas rotas no backend, nem recriar curtida global. |
+| `CompetenciaApiClient`, formulários e `models/Competencia.ts` | O enum já foi substituído por classe `{id,nome}`. Porém o catálogo é tipado como objetos e os formulários acessam ID/nome, enquanto o backend vigente retorna `string[]`. T12 corrige esse contrato e os consumidores mínimos; T14 adiciona a pesquisa/seleção reutilizável, sem inventar IDs. |
+| DTOs anônimos, internos, perfis e match | Os anônimos já têm ID/descrição/competências. Ampliar somente vaga interna com autoria e match com nome/área anuláveis do recrutador; manter perfil próprio separado. Conferir a serialização real de `LocalDate` antes de tipar a resposta como string. |
+| `CandidatoMatch.ts`, `EmpresaMatch.ts` e gráfico | Componentes de matches já existem; o gráfico já usa competências de interessados anônimos por vaga. T15/T16 estendem a apresentação existente e validam contagem, sem recriar essa lógica. `EmpresaCandidatoCurtido.ts` contém busca de perfil alheio; rastrear seus consumidores, impedir seu uso no caminho integrado e usar matches autorizados, sem reabrir perfil público. |
+| Login, perfil e telas do recrutador | Ausentes no frontend importado. Acrescentar somente os contratos/serviços em T12, entrada em T13, cadastro empresarial em T16 e jornada em T17. Backend correspondente já entregue em T06–T11. |
+
+**Verificação da importação:** 92 arquivos conferidos byte a byte com o archive do commit acima; removidos do conjunto frontend 17 arquivos ausentes no snapshot, após backup. `npx.cmd tsc --noEmit` e `npx.cmd gulp build` passaram; o build emitiu apenas o aviso não impeditivo `DEP0180`. `git diff --check` aponta sete ocorrências de whitespace herdadas do snapshot de master, preservadas para manter a cópia exata; a documentação revisada não introduz erros de whitespace. Os testes exclusivos da T12 descartada não fazem parte desta base e não foram contados. Compilação não valida cookie/CORS, rotas ou integração persistida: as incompatibilidades da tabela continuam pendentes em T12. Nenhuma escrita/conexão de banco foi realizada.
+
+Backup local ignorado pelo Git: `build/frontend-antes-importacao-20261108T211819903785Z/`, contendo fontes anteriores, documentação, diff, snapshot importado e manifesto de hashes/referências. Os 140 arquivos protegidos (backend/testes, SQL, build e especificação) e os commits de `HEAD`, `master` e `origin/master` permaneceram intactos. Detalhes em [diagnostico-integracao.md](diagnostico-integracao.md).
 
 ## 3. Decisões técnicas e dependências
 
@@ -82,7 +103,7 @@ Configurar frontend em `http://127.0.0.1:5500` e API em `http://127.0.0.1:8080`,
 
 ### 3.5 Contratos HTTP propostos
 
-**Todas as rotas abaixo são propostas ou adaptações futuras, salvo as explicitamente marcadas como existentes.** Campos permanecem em português/camelCase, datas de entrada em ISO (`YYYY-MM-DD`) e competências de entrada como nomes. O ator é obtido da sessão. IDs de rota delimitam recursos e são comparados ao ator e aos vínculos persistidos.
+**A tabela abaixo foi a proposta histórica e está implementada no backend até T11. Os marcadores novo/adaptar descrevem a classificação original, não trabalho backend pendente. O frontend importado deve consumir esses contratos vigentes, sem alterar as rotas para reproduzir master.** Campos permanecem em português/camelCase, datas de entrada em ISO (`YYYY-MM-DD`) e competências de entrada como nomes. O ator é obtido da sessão. IDs de rota delimitam recursos e são comparados ao ator e aos vínculos persistidos.
 
 | Método e caminho | Entrada e resultado planejados |
 | --- | --- |
@@ -108,11 +129,15 @@ Para rotas novas: `400` para formato/campos/referências inválidas; `401` para 
 
 ### 3.6 Frontend e testes
 
-Criar clientes específicos e DTOs separados para perfil, descoberta, vaga interna e match. Serviços passam a `Promise`; todas as páginas consumidoras usam `async/await` e só exibem sucesso após resposta. Adaptar `localizacao → local`; `tipo` não tem persistência backend e não será inventado em respostas nem em schema. Remover sua exigência/apresentação persistida nos formulários integrados. Não enviar `formacao` como se fosse campo do cadastro HTTP atual.
+A base é o frontend integrado importado de `origin/master`, não a versão local da análise inicial. Reutilizar os clientes específicos, DTOs organizados por domínio, serviços com `Promise`, estratégias e componentes já existentes. Não reinstalar a estrutura descartada de T12 nem criar pares concorrentes de contratos para a mesma capacidade. Um cliente base compartilhado pode concentrar host, cookies, JSON e falhas, preservando os clientes por domínio e a composição manual.
 
-Não usar modelo completo de candidato/vaga para descoberta anônima. Representar competências selecionáveis como nomes (`string`), sem catálogo enum; converter objetos `{id, nome}` dos DTOs de consulta para apresentação quando necessário. O gráfico usa interessados anônimos de cada vaga e conserva a contagem por interesse, sem identificar perfis.
+T12 adapta o transporte **ao backend atual de T11**, sem alterar backend, schema ou rotas: host `127.0.0.1`, `credentials: "include"`, corpos de interesse/retribuição sem identidade escolhida pelo cliente, sucesso vazio em `201`/`204` e tratamento de `401`/`403`/`409`. Remover do caminho ativo as chamadas `/verificar` inexistentes e substituir a consulta candidata por uma listagem de vagas curtidas; na retribuição, preservar a repetição idempotente sem inferir reciprocidade global. Não inventar IDs de candidato/vaga no DTO de match nem deduzi-los por nomes para reconstruir estado.
 
-Acrescentar testes Spock de serviços, fachada, servlets e JDBC usando as dependências existentes. Integração requer PostgreSQL separado, configurado explicitamente; não usar a conexão fixa do banco de desenvolvimento nos testes. Não criar dependência Testcontainers, framework frontend ou Postman obrigatório. Frontend será validado por compilação e roteiros manuais reproduzíveis, pois não existe suíte automatizada configurada. Não declarar validação manual como teste unitário.
+DTOs anônimos continuam limitados a ID, descrição e competências. Perfis próprios, vagas internas e matches mantêm contratos separados. Acrescentar autoria somente no contrato interno e nome/área anuláveis somente no match. Datas de entrada usam ISO; tipar a resposta conforme o JSON efetivo do backend. Adaptar explicitamente `localizacao → local`, sem persistir `tipo` ou `formacao`. O catálogo selecionável usa nomes (`string[]`), sem fabricar IDs; competências de respostas anônimas/de perfil continuam referências `{id,nome}`. O gráfico já usa interessados anônimos por vaga e deve preservar essa contagem por interesse.
+
+T13 reaproveita os formulários com senha e referências já presentes, padroniza sessão/navegação e acrescenta login do recrutador. T14 substitui os checkboxes pelo seletor pesquisável. T15/T16 estendem os componentes de matches existentes; T17 acrescenta a jornada do recrutador. Adaptações mecânicas mínimas de consumidores cabem em T12 para manter o conjunto coerente, sem declarar concluídas as jornadas futuras.
+
+Reutilizar os testes backend já entregues quando aplicável; a importação não os reexecutou. Integração com escrita exige PostgreSQL dedicado e auditoria prévia de todas as conexões/setup/cleanup, sem fallback para desenvolvimento. Não introduzir dependência Testcontainers, framework frontend ou Postman obrigatório. Validar frontend por TypeScript estrito, Gulp/Webpack, checagens de transporte reproduzíveis e navegador; não declarar compilação ou simulação como prova de aceite full-stack.
 
 ## 4. Tarefas numeradas de implementação
 
@@ -488,7 +513,7 @@ Serviço e controller expõem `consultarMatchesEmpresa`, `consultarMatchesCandid
 
 ### T11 — Completar e verificar a superfície HTTP dos fluxos
 
-- **Objetivo:** conectar capacidades de domínio às rotas de 3.5 e ao navegador.
+- **Objetivo:** conectar capacidades de domínio às rotas de 3.5 e fornecer o contrato backend para os consumidores frontend; concluída no escopo HTTP.
 - **Referência:** seção 8, “Capacidades HTTP necessárias”; seções 3, 6 e 7; CA-01 a CA-18, CA-25.
 - **Camada:** Backend.
 - **Existentes:** `B/api/servlet/{CandidatoServlet,EmpresaServlet,VagaServlet,CompetenciaServlet}.groovy`, `B/controller/referencia/ReferenciaController.groovy`, `B/service/ReferenciaService.groovy`, `B/dao/referencia/{PaisDAO,EstadoDAO}.groovy`, `B/config/{ApiServletConfig,ControllerConfig,TomcatConfig}.groovy`.
@@ -529,81 +554,85 @@ O ator vem exclusivamente de `SessaoHttp`, com revalidação de atividade. IDs d
 | Rotas e consumidores planejados compatíveis | Catálogos mantêm nomes/siglas e formatos de 3.5; criação empresarial e autoral, perfil, interesse, retribuição e matches operam pela composição real. Curtida inicial não gera match, repetição não duplica e retribuição em outra vaga não ocorre sem interesse. |
 | Integridade/transações preservadas | Jornada HTTP confirma N:N, ausência de vaga parcial com competência inválida, nenhuma retribuição/match nas falhas e unicidade após repetição. Regressão JDBC T01–T10 repete FKs, rollback, locks e concorrência; nenhuma transação foi transferida às servlets. |
 
-**Limites e parada:** nenhum bloqueio ou validação pendente no escopo específico de T11. Os testes de transporte Java não executam um navegador; cookies/CORS no navegador e aceite full-stack dos CA compartilhados continuam em T18. Clientes/DTOs/serviços frontend permanecem para T12 e jornadas/seletor para T13–T17; CA-25 não é declarado concluído no frontend. T12 e posteriores não implementadas, endpoints opcionais continuam excluídos, especificação aprovada e status das demais tarefas preservados. Consumo de tokens não disponível como medição confiável.
+**Limites e parada:** nenhum bloqueio ou validação pendente no escopo específico de T11. Os testes de transporte Java não executam um navegador; cookies/CORS no navegador e aceite full-stack dos CA compartilhados continuam em T18. Após a importação de master, a adaptação dos clientes/DTOs/serviços frontend existentes permanece para T12 e a extensão das jornadas/seletor para T13–T17; CA-25 não é declarado concluído no frontend. T12 e posteriores não implementadas, endpoints opcionais continuam excluídos, especificação aprovada e status das demais tarefas preservados. Consumo de tokens não disponível como medição confiável.
+
+**Revisão da base frontend em 08/11/2026:** T11 continua concluída no escopo backend, com implementação e evidências acima preservadas. O frontend de master foi importado posteriormente e ainda usa contratos anteriores. Não repetir T11 nem modificar suas servlets/serviços/DAOs para acomodá-lo; a compatibilização é exclusivamente frontend em T12. O aceite em navegador continua em T18. As evidências históricas de HTTP/JDBC não comprovam o snapshot frontend importado.
 
 ### Frontend
 
-### T12 — Criar clientes HTTP e adaptar composição assíncrona
+### T12 — Compatibilizar a integração frontend existente com o backend de T11
 
-- **Objetivo:** estabelecer contratos de transporte e tirar negócio do armazenamento local.
-- **Referência:** seções 7 e 8; D-01, D-08; CA-01, CA-04, CA-15, CA-25.
-- **Camada:** Frontend.
-- **Existentes:** `F/ts/config/{RepositoryConfig,ServiceConfig}.ts`, `F/ts/services/{CandidatoService,EmpresaService,VagaService,CurtidaVagaService,CurtidaCandidatoService,RelatorioCompetenciasService}.ts`, `F/ts/models/{Candidato,Empresa,Vaga,Pessoa,Competencia}.ts` e consumidores existentes desses serviços nas páginas (adaptados nas T13 a T17).
-- **Novos:** `F/ts/api/clientes/{ApiClient,CandidatoApiClient,EmpresaApiClient,VagaApiClient,RecrutadorApiClient,ReferenciaApiClient,CompetenciaApiClient,CurtidaApiClient,MatchApiClient,LoginApiClient}.ts`, `F/ts/api/dto/{CadastroRequestDTO,PerfilResponseDTO,VagaRequestDTO,VagaInternaResponseDTO,VagaAnonimaResponseDTO,CandidatoAnonimoResponseDTO,MatchResponseDTO,RecrutadorRequestDTO,ReferenciaResponseDTO,SessaoResponseDTO}.ts`, `F/ts/services/{RecrutadorService,MatchService,CompetenciaService}.ts`.
-- **Dependências:** T11.
-- **Passos:** implementar fetch/JSON/credenciais e falhas HTTP no cliente base, inclusive respostas sem corpo; criar DTOs para os corpos reais de 3.5. Substituir injeção de repositórios locais nos fluxos integrados por clientes; adaptar `Promise` e os consumidores necessários para manter compilação. Sem remoção indiscriminada de repositórios históricos. Eliminar consultas identificáveis usadas como validação frontend; backend decide conflitos. Mapear explicitamente competências/local e evitar campos sem persistência.
-- **Validação:** `npx tsc --noEmit` e `npx gulp build`; inspeção dos imports e dos DTOs de descoberta para ausência de campos identificáveis; verificação manual de erro de rede e resposta vazia. Se necessário, concluir a adaptação mecânica de chamadas nas páginas nesta tarefa; as próximas completam o comportamento/interface.
-- **Conclusão:** serviços e páginas compilam com contratos assíncronos; o caminho integrado não confirma gravação local como sucesso HTTP.
+- **Objetivo:** adaptar o frontend importado de master aos contratos já implementados, preservando sua estrutura e o backend de T01–T11.
+- **Estado:** pendente; não iniciada nesta nova base. A implementação anterior foi desconsiderada por determinação do responsável.
+- **Referência:** seções 7 e 8; D-01, D-08; CA-01, CA-04, CA-15, CA-25; matriz de incompatibilidades da seção 2.
+- **Camada:** exclusivamente frontend.
+- **Existentes:** `F/ts/config/ServiceConfig.ts`; `F/ts/api/clientes/{CandidatoApiClient,EmpresaApiClient,VagaApiClient,CurtidaVagaApiClient,CurtidaCandidatoApiClient,MatchApiClient,ReferenciaApiClient,CompetenciaApiClient}.ts`; DTOs sob `api/dto/{candidato,empresa,vaga,match}/`; serviços HTTP correspondentes, incluindo `ReferenciaService`; estratégias/páginas consumidoras; modelos `Competencia`, `Pais` e `Estado`.
+- **Novos:** `F/ts/api/clientes/{ApiClient,LoginApiClient,RecrutadorApiClient}.ts`; `F/ts/api/dto/login/SessaoResponseDTO.ts`; `F/ts/api/dto/recrutador/{CadastrarRecrutadorRequestDTO,RecrutadorViewDTO,AreaRecrutamentoResponseDTO}.ts`; `F/ts/services/RecrutadorService.ts`. Não criar duplicatas dos clientes/DTOs/serviços de candidato, empresa, match ou competências já presentes.
+- **Dependências:** T11 concluída e snapshot de frontend importado/verificado.
+- **Passos:** centralizar host/cookie/JSON/falhas no cliente base e adaptar todos os clientes e fetch diretos ativos, mantendo os serviços assíncronos e a composição existente. Consumir login com resposta real `{id,tipo}`; padronizar o tipo de sessão e seus consumidores (backend usa minúsculas), sem confiar no armazenamento como autorização. Tipar catálogo como `string[]`, corrigir os checkboxes/serviços consumidores sem inventar IDs e preservar objetos de competência nos DTOs de consulta. Revisar DTOs de perfil/datas, vaga interna (autoria) e match (somente nome/área adicionais do recrutador). Acrescentar contratos/serviços de recrutador e áreas, métodos específicos por ator e consultas de vagas/matches de autor. Corpos de curtida: somente `{idVaga}` ou `{idCandidato,idVaga}`; aceitar respostas sem corpo. Substituir `jaCurtiuVaga` por estado obtido da listagem anônima de vagas curtidas; eliminar chamadas ativas de verificação empresarial global, permitindo repetição idempotente por vaga. Não substituir a verificação ausente por leitura de perfil ou por comparação de nomes. Rastrear e impedir uso de `EmpresaCandidatoCurtido` com perfil alheio; os fluxos identificáveis usam `EmpresaMatch`. Adaptar consumidores necessários para compilar e aguardar sucesso, sem reconstruir telas já existentes.
+- **Restrições:** não alterar backend, schema, endpoints ou configuração de segurança para aceitar o frontend antigo; não importar backend de master. Não implementar tela de recrutador/seletor nem remover indiscriminadamente código histórico. Dependência genuína do backend exige decisão do responsável, nunca fallback inseguro.
+- **Validação:** `npx.cmd tsc --noEmit` e `npx.cmd gulp build`; conferir métodos/caminhos/campos contra servlets reais; checar fetch/credenciais e corpo/status, falha de rede, JSON inválido e sucesso vazio. Executar checagem reproduzível de transporte e, quando disponível, navegador com login candidato/empresa, perfil, descoberta, curtida e consulta de interessados/matches. Verificar ausência de chamadas ativas a `/verificar`, IDs de ator em corpos e buscas identificáveis alheias. Catálogo de RH/administração funciona como nomes nos formulários existentes. Qualquer teste que escreva exige auditoria prévia do banco dedicado; registrar limites concretos sem contar ausência de banco como aprovação.
+- **Conclusão:** frontend e consumidores compilam; transporte e contratos correspondem a T11; nenhum caminho integrado depende de rotas inexistentes, confirmação local, validação empresarial global ou exposição de perfil alheio. Evidências novas pertencem a esta base; não reutilizar os resultados da T12 descartada.
 
-### T13 — Integrar cadastros existentes e login por três perfis
+### T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador
 
-- **Objetivo:** permitir entrada real na aplicação com credenciais e referências backend.
+- **Objetivo:** completar a entrada dos três perfis aproveitando formulários e autenticação HTTP já existentes.
 - **Referência:** seção 7; seção 8, “Interface”; RN-06 a RN-09; CA-03, CA-04, CA-19 a CA-22.
 - **Camada:** Frontend.
-- **Existentes:** `F/ts/strategy/login/{LoginStrategy,LoginCandidatoStrategy,LoginEmpresaStrategy}.ts`, `F/ts/pages/LoginPage.ts`, `F/ts/pages/login/{LoginCandidato,LoginEmpresa}.ts`, `F/ts/pages/{candidato/CadastroCandidatoPage,empresa/CadastroEmpresaPage}.ts`, `F/html/{index,cadastro-candidato,cadastro-empresa}.html`, `F/ts/app/App.ts`.
+- **Existentes:** `F/ts/strategy/login/{LoginStrategy,LoginCandidatoStrategy,LoginEmpresaStrategy}.ts`; `F/ts/pages/LoginPage.ts`; `F/ts/pages/login/{LoginCandidato,LoginEmpresa}.ts`; cadastros de candidato/empresa e `F/html/{index,cadastro-candidato,cadastro-empresa}.html`; `ReferenciaService`; contratos de T12.
 - **Novos:** `F/ts/strategy/login/LoginRecrutadorStrategy.ts`, `F/ts/pages/login/LoginRecrutador.ts`.
-- **Dependências:** T12; T14 completa seleção de competências do candidato.
-- **Passos:** capturar senha no login e cadastros; acrescentar campos obrigatórios faltantes de candidato; carregar países/estados; mudar Strategy para login assíncrono com e-mail/senha. Acrescentar opção recrutador sem autocadastro. Gravar `{id,tipo}` somente após login confirmado; cadastro leva ao login. Tratar conflito/conta inativa/falha de rede sem persistir credenciais em localStorage.
-- **Validação:** compilação/build; manual com cadastros novos, login válido/inválido e inativo dos três perfis, refresh e erros; inspecionar armazenamento/rede para credenciais apenas na entrada prevista, nunca em respostas ou sessão frontend.
-- **Conclusão:** navegação segue o perfil autenticado e não há login por e-mail local ou ID fabricado.
+- **Dependências:** T12; T14 completa a seleção pesquisável do candidato.
+- **Passos:** conservar campos obrigatórios, senha, cálculo de idade e carregamento de país/estado existentes, validando seus contratos reais. Corrigir cadastro para navegar ao login após confirmação, substituindo a tentativa automática atual. Acrescentar opção recrutador sem autocadastro; integrar sua estratégia ao cliente de login de T12. Persistir somente `{id,tipo}` confirmado como navegação; tratar credenciais inválidas, sessão ausente/inativa, conflitos e erro de rede sem persistir senha. Rever validações frontend herdadas que restrinjam silenciosamente valores aceitos pelo backend; não criar nova regra de idade/domínio. Não recriar formulários ou voltar ao login por e-mail local.
+- **Validação:** compilação/build; navegador com cadastros novos, referência inválida, conflito, login válido/inválido e inativo dos três perfis, refresh e falhas. Inspecionar sessão/rede e ausência de login automático após cadastro; informar quando a jornada recrutadora ainda depender de T17.
+- **Conclusão:** cadastros e entrada existentes funcionam com a sessão real; opção de recrutador preparada sem inventar perfil local, credenciais persistidas ou nova regra de cadastro.
 
-### T14 — Substituir catálogo fixo por seletor pesquisável reutilizável
+### T14 — Substituir checkboxes existentes por seletor pesquisável reutilizável
 
-- **Objetivo:** usar competências persistidas em todos os formulários previstos.
+- **Objetivo:** usar o catálogo backend já integrado em seleção pesquisável nos três formulários previstos.
 - **Referência:** RN-10; seção 8, “Competências e contratos TypeScript”; CA-23 a CA-25.
 - **Camada:** Frontend.
-- **Existentes:** `F/ts/models/{Competencia,Candidato,Vaga}.ts`, `F/ts/pages/candidato/CadastroCandidatoPage.ts`, `F/ts/pages/empresa/EmpresaVaga.ts`, `F/html/{cadastro-candidato,empresa}.html`, `F/css/style.css`; DTOs/clientes de T12.
+- **Existentes:** `F/ts/models/Competencia.ts` (classe, não enum), DTOs de consulta, `CompetenciaService` e `CompetenciaApiClient`; `F/ts/pages/candidato/CadastroCandidatoPage.ts`; `F/ts/pages/empresa/EmpresaVaga.ts`; `F/html/{cadastro-candidato,empresa}.html`; `F/css/style.css`.
 - **Novos:** `F/ts/components/SeletorCompetencias.ts`.
 - **Dependências:** T12, T13; integração no formulário recrutador em T17.
-- **Passos:** carregar `GET /competencias`; filtrar parte do nome no navegador, selecionar por item existente, manter conjunto de nomes sem duplicatas e remover seleção. Entrada não selecionada não integra payload. Usar `string[]` no domínio frontend apropriado e revisar todos os consumidores do enum; não criar competência livre ou busca backend. Preparar componente para os três formulários, sem dependência nova.
-- **Validação:** compilação/build; manual com competência de RH/administração preparada no banco, pesquisa parcial, duplicata, remoção, texto livre, lista vazia e falha de carregamento. Verificar payload e relações N:N após submissão.
-- **Conclusão:** enum não determina opções válidas e componente pode ser reutilizado pelos três formulários sem cópia de lógica.
+- **Passos:** reutilizar o catálogo `string[]` corrigido em T12; filtrar parte do nome, selecionar somente item existente, manter múltiplos nomes sem duplicatas e permitir remoção. Texto livre não selecionado não integra payload. Substituir a lógica dos checkboxes por componente compartilhado, sem fabricar objetos/IDs para o catálogo nem mudar os DTOs de referências das consultas. Não existe enum a remover na base importada.
+- **Validação:** compilação/build; navegador com RH/administração, pesquisa parcial, duplicata, remoção, texto livre, lista vazia e falha. Verificar payload e, em banco dedicado auditado, persistência N:N.
+- **Conclusão:** componente reutilizável seleciona referências por nome nos formulários, preservando o backend e sem duplicar lógica.
 
-### T15 — Integrar descoberta, interesses e matches do candidato
+### T15 — Adequar a jornada e os matches existentes do candidato
 
-- **Objetivo:** apresentar jornada candidata pelos contratos corretos de visibilidade.
+- **Objetivo:** estender a jornada candidata importada à visibilidade e aos matches com recrutador.
 - **Referência:** RN-03 a RN-05; seção 6; CA-08, CA-10, CA-14 a CA-17.
 - **Camada:** Frontend.
-- **Existentes:** `F/ts/pages/candidato/{CandidatoPage,CandidatoPerfil,CandidatoVaga,CandidatoVagaCurtida,CandidatoComponentes}.ts`, `F/html/candidato.html`, clientes/serviços de T12.
-- **Novos:** `F/ts/pages/candidato/CandidatoMatch.ts`.
+- **Existentes:** `F/ts/pages/candidato/{CandidatoPage,CandidatoPerfil,CandidatoVaga,CandidatoVagaCurtida,CandidatoComponentes,CandidatoMatch}.ts`; `F/html/candidato.html`; clientes/serviços compatibilizados em T12.
+- **Novos:** nenhum componente de match obrigatório; `CandidatoMatch.ts` já existe.
 - **Dependências:** T12, T13.
-- **Passos:** carregar perfil próprio separado de vagas anônimas; usar somente ID/descrição/competências nos cards e interesses, sem consulta de vaga completa. Confirmar curtida após backend e manter anonimato na descoberta após match. Acrescentar seção de matches persistidos e seus campos, nome/área do autor quando aplicável. Representar vazio/carregamento/erro e impedir confirmação antecipada.
-- **Validação:** compilação/build; navegador com vaga direta e duas vagas da mesma empresa; curtir não revela identidade, retribuir só A revela apenas contrato de match de A; inspecionar respostas também, não apenas DOM.
-- **Conclusão:** candidato não obtém identificação fora do match correspondente e refresh mantém o estado persistido.
+- **Passos:** conservar perfil próprio separado da descoberta e estado de curtidas pela listagem anônima. Cards continuam somente ID/descrição/competências, mesmo após match. Estender o componente existente para todos os campos autorizados do contrato de match e nome/área do autor quando presentes, sem buscar outro perfil. Revisar vazio/carregamento/erro, repetição e atualização visual após confirmação.
+- **Validação:** compilação/build; navegador com vaga direta e duas vagas da mesma empresa; curtir não revela identidade; retribuir só A revela apenas o match de A. Inspecionar JSON, refresh, contrato completo e ausência de chamadas alternativas identificáveis.
+- **Conclusão:** jornada existente funciona sob os contratos de T11 e apresenta o recrutador somente no match correspondente, sem recriar tela de matches.
 
-### T16 — Integrar operação empresarial, cadastro de recrutador e gráfico
+### T16 — Estender a operação empresarial e cadastrar recrutadores
 
-- **Objetivo:** permitir que empresa conduza todas as próprias vagas e cadastre autores.
+- **Objetivo:** acrescentar cadastro de autores e visibilidade interna de autoria à jornada empresarial existente.
 - **Referência:** RN-01 a RN-06; seções 3, 6 e 8; CA-01, CA-05 a CA-07, CA-09, CA-13, CA-14, CA-18.
 - **Camada:** Frontend.
-- **Existentes:** `F/ts/pages/empresa/{EmpresaPage,EmpresaPerfil,EmpresaVaga,EmpresaCandidato,EmpresaCandidatoCurtido}.ts`, `F/ts/services/RelatorioCompetenciasService.ts`, `F/ts/charts/CompetenciaChart.ts`, `F/html/empresa.html`, `F/css/style.css`.
+- **Existentes:** `F/ts/pages/empresa/{EmpresaPage,EmpresaPerfil,EmpresaVaga,EmpresaCandidato,EmpresaMatch,EmpresaCandidatoCurtido}.ts`; `RelatorioCompetenciasService`, `CompetenciaChart`, `F/html/empresa.html` e estilos. Rastrear se a página histórica de curtidos ainda tem consumidor; não reativar busca de perfil alheio.
 - **Novos:** `F/ts/pages/empresa/EmpresaRecrutador.ts`.
 - **Dependências:** T12 a T14.
-- **Passos:** acrescentar formulário empresarial de recrutador com área do backend; empresa de contexto não editável como terceiro arbitrário. Criar vaga direta e listar todas as próprias, distinguindo autores históricos. Carregar interessados por vaga como anônimos e retribuir com candidato/vaga; substituir reconstrução local de reciprocidade por consulta de matches. Recalcular gráfico a partir das competências anônimas por interesse, sem buscar perfis completos. Não acrescentar gestão/reatribuição/edição de recrutadores.
-- **Validação:** compilação/build; navegador com erro de área/cadastro, vaga direta e de recrutador, retribuição empresarial nas duas, refresh e autoria após inatividade. Conferir contagem do gráfico contra interesses por vaga, inclusive candidato interessado em duas vagas.
-- **Conclusão:** empresa acompanha todas as próprias vagas/matches; gráfico e cards não dependem de acesso identificável indevido.
+- **Passos:** acrescentar formulário empresarial de recrutador com área persistida, empresa derivada do contexto e confirmação HTTP. Estender listagem interna para distinguir vagas diretas e autorais e identificar autor histórico inativo. Reutilizar interessados anônimos por vaga e retribuição idempotente contextualizada de T12; usar `EmpresaMatch` para identificação e ampliar apresentação dos campos autorizados/nome/área do autor. O gráfico já conta competências anônimas por interesse: preservar e validar, alterando apenas o necessário ao contrato vigente. Não reconstruir reciprocidade global, buscar candidato por perfil alheio, criar gestão/reatribuição ou retirar componentes históricos sem análise.
+- **Validação:** compilação/build; navegador com erro de área/cadastro, vagas diretas/autorais, retribuição empresarial nas duas origens, refresh e autoria após inatividade. Conferir gráfico com candidato interessado em duas vagas e isolamento empresarial.
+- **Conclusão:** empresa acompanha todas as próprias vagas/matches e cadastra recrutadores com as referências existentes; gráfico mantém contagem por interesse, sem regressão de anonimato.
 
-### T17 — Criar experiência do recrutador com escopo próprio
+### T17 — Acrescentar jornada do recrutador com escopo próprio
 
-- **Objetivo:** entregar a jornada de criação, interessados e matches do autor ativo.
+- **Objetivo:** entregar criação de vagas, interessados e matches do autor ativo, reutilizando a integração consolidada.
 - **Referência:** seções 3 e 8; RN-02 a RN-06, RN-10; CA-05 a CA-07, CA-09, CA-14, CA-17, CA-18, CA-25.
 - **Camada:** Frontend.
-- **Existentes:** `F/ts/app/App.ts`, `F/css/style.css`; cliente/serviço recrutador de T12 e seletor de T14.
+- **Existentes:** `F/ts/app/App.ts`, estilos, cliente/serviço de recrutador de T12, login de T13, seletor de T14 e padrões/componentes de T15/T16.
 - **Novos:** `F/html/recrutador.html`, `F/ts/pages/recrutador/{RecrutadorPage,RecrutadorVaga,RecrutadorInteressados,RecrutadorMatch}.ts`.
-- **Dependências:** T13, T14, T15, T16 (reutilizar padrões/contratos já validados).
-- **Passos:** acrescentar rota de página, perfil próprio e criação de vaga com seletor; empresa deriva do vínculo backend. Listar somente próprias vagas/interessados/matches. Usar respostas de match para identificação; tratar conta inativa e recurso fora de escopo como falha. Não disponibilizar cadastro de terceiros, vaga direta empresarial ou telas opcionais.
-- **Validação:** compilação/build; dois recrutadores da mesma empresa e outro de empresa distinta; alterar IDs em requisições deve ser rejeitado no servidor. Repetição por empresa/recrutador mantém um match. Inativar fixture durante sessão bloqueia operação sem apagar autoria na empresa.
-- **Conclusão:** recrutador opera apenas suas vagas e não ganha acesso pela existência de match em outra vaga da mesma empresa.
+- **Dependências:** T13 a T16.
+- **Passos:** acrescentar seleção de página, perfil próprio e criação de vaga com seletor. Empresa deriva do vínculo backend; consultas limitam-se ao autor e às próprias vagas. Identificação vem do contrato de match; conta inativa/escopo divergente produzem falha, sem fallback empresarial ou acesso às vagas do colega. Não acrescentar autocadastro, cadastro de terceiros, vaga direta empresarial ou endpoints opcionais.
+- **Validação:** compilação/build; navegador com dois recrutadores da mesma empresa e outro de empresa distinta; IDs adulterados rejeitados no backend já existente; repetição por empresa/autor mantém match único; inatividade durante sessão bloqueia operação sem apagar autoria.
+- **Conclusão:** recrutador opera somente seu escopo sobre o backend preservado, sem duplicar a camada de transporte.
 
 ### Integração e regressão
 
@@ -615,7 +644,7 @@ O ator vem exclusivamente de `SessaoHttp`, com revalidação de atividade. IDs d
 - **Existentes:** `build.gradle` (configuração de testes somente se necessária ao runtime real), testes acrescentados nas tarefas anteriores, `CHANGELOG.md`, `README.md` (apenas instruções afetadas de execução full-stack, sem credenciais).
 - **Novos:** `T/integracao/FluxoHttpRecrutadorTest.groovy`, `docs/specs/recrutador/validacao.md` (roteiros/evidências por CA, criado somente na implementação).
 - **Dependências:** T01 a T17.
-- **Passos:** executar matriz da seção 5 com banco separado, Tomcat real e navegador. Teste HTTP pode usar `java.net.http.HttpClient`/cookie manager e Spock existentes; inicializar composição com ConnectionFactory de teste explicitamente injetada, sem usar banco fixo de desenvolvimento. Se a composição precisar de construtor adicional para esse fim, manter o construtor atual e documentar a alteração focada. Não presumir tarefa Gradle de integração já existente. Registrar comandos, status, contagens persistidas, falhas e correções sem credenciais. Atualizar changelog por entregas confirmadas e suas referências, sem reescrever histórico alheio.
+- **Passos:** executar matriz da seção 5 com banco separado, Tomcat real e navegador. Teste HTTP pode usar `java.net.http.HttpClient`/cookie manager e Spock existentes; inicializar composição com ConnectionFactory de teste explicitamente injetada, sem usar banco fixo de desenvolvimento. Reutilizar a composição e o suporte de testes de T11; esta revisão não autoriza alterar o backend para validar o frontend. Se surgir impedimento real, registrar e solicitar decisão específica. Não presumir tarefa Gradle de integração já existente. Registrar comandos, status, contagens persistidas, falhas e correções sem credenciais. Atualizar changelog por entregas confirmadas e suas referências, sem reescrever histórico alheio.
 - **Validação:** estratégia da seção 6; repetir concorrência em conexões independentes, rollback, autoria histórica, reutilização de identificadores, escopo e ausência de campos indevidos no JSON. Rodar regressão de serviços existentes e compilação de todos os consumidores, incluindo terminal, sem adaptar seus menus.
 - **Conclusão:** CA-01 a CA-25 têm evidência reproduzível, nenhum obrigatório fica sem validação e nenhuma declaração de sucesso depende apenas de mock/compilação. Divergências impedem aceite até correção; CA-26 permanece explicitamente não aplicável.
 
@@ -626,7 +655,7 @@ O ator vem exclusivamente de `SessaoHttp`, com revalidação de atividade. IDs d
 - **Objetivo:** encerrar a transição para a nova versão removendo componentes substituídos e sem função vigente, sem regressão funcional, de segurança ou de integridade.
 - **Referência:** seção 9 da especificação, “Impact on Existing Functionality”; limites das seções 1 e 7 deste plano; autorização adicional do responsável para esta tarefa final. Não acrescenta regras de negócio nem altera os critérios de aceite aprovados.
 - **Camada:** Backend, frontend e composição, exclusivamente nos componentes comprovadamente obsoletos da feature.
-- **Existentes:** revisar inicialmente `B/service/{EmpresaService,MatchService}.groovy`, `B/controller/{empresa/EmpresaController,match/MatchController}.groovy`, `B/facade/MatchFacade.groovy`, contratos/DAOs envolvidos nas operações substituídas, `B/config/{DaoConfig,ServiceConfig,ControllerConfig}.groovy`, `B/view/` e suas fábricas/configurações somente para rastrear consumidores; `F/ts/config/{RepositoryConfig,ServiceConfig}.ts`, repositórios locais e seus consumidores efetivamente presentes após T12–T17; testes correspondentes, `CHANGELOG.md` e `docs/specs/recrutador/validacao.md`. Esses caminhos são candidatos à análise, não uma lista de exclusão; confirmar o checkout e ampliar o inventário apenas para dependências diretamente relacionadas encontradas.
+- **Existentes:** revisar inicialmente `B/service/{EmpresaService,MatchService}.groovy`, `B/controller/{empresa/EmpresaController,match/MatchController}.groovy`, `B/facade/MatchFacade.groovy`, contratos/DAOs envolvidos nas operações substituídas, `B/config/{DaoConfig,ServiceConfig,ControllerConfig}.groovy`, `B/view/` e suas fábricas/configurações somente para rastrear consumidores; `F/ts/config/ServiceConfig.ts`, repositórios/factories históricos e seus consumidores efetivamente presentes após T12–T17 (RepositoryConfig não existe no snapshot importado; não recriá-lo para limpeza); testes correspondentes, `CHANGELOG.md` e `docs/specs/recrutador/validacao.md`. Esses caminhos são candidatos à análise, não uma lista de exclusão; confirmar o checkout e ampliar o inventário apenas para dependências diretamente relacionadas encontradas.
 - **Novos:** nenhum arquivo obrigatório; registrar inventário e evidências em `docs/specs/recrutador/validacao.md`, criado em T18.
 - **Dependências:** T01 a T18 concluídas e validadas. Executar por último, sem antecipar remoções durante as tarefas funcionais e sem reabrir ou renumerar tarefas concluídas.
 - **Passos:** inventariar métodos, classes, contratos, imports, campos, construtores, injeções e testes substituídos. Para cada candidato, registrar localização, comportamento antigo, substituto validado, consumidores diretos/indiretos e decisão justificada. Rastrear também chamadas dinâmicas Groovy, composição manual, registros de rotas, seleção de páginas e consumidores de terminal; ausência de resultado em busca textual ou compilação isolada não prova ausência de uso. Remover incrementalmente componentes sem consumidores válidos e dependências que se tornaram desnecessárias; revisar especialmente métodos que apenas lançam exceção por legado e aliases sem necessidade vigente. Atualizar testes para exercer os fluxos públicos vigentes, preservando asserções de autorização, anonimato, atomicidade e idempotência; retirar testes cujo único objeto seja uma assinatura obsoleta removida. Não eliminar componentes apenas pela idade, pelo nome ou por usarem armazenamento local: sessão de navegação e qualquer uso ainda válido devem permanecer. Não remover ou adaptar menus/entrada do terminal, contratos ativos, funcionalidades válidas, schema ou dados. Se uma remoção depender de retirar/adaptar consumidor ainda utilizado, registrar o impedimento e solicitar decisão específica antes de alterar esse conjunto; manter a proteção contra operações inseguras, sem reativar comportamento antigo para satisfazer compatibilidade. Atualizar changelog somente com remoções efetivamente realizadas, sem apagar histórico das entregas anteriores.
@@ -734,7 +763,7 @@ Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decis
 - **Novas FKs:** preservam reciprocidade, mas exigem revisão do caminho de exclusão física de vaga. Não mudar cascades como atalho e não introduzir retenção/gestão de vagas fora do escopo.
 - **Autenticação e navegador:** sessão frontend não autentica requisição. Testar cookie, origem, renovação e conta inativa em HTTP real. A sessão nativa proposta serve exclusivamente ao contexto dos fluxos, sem expandir o escopo para identidade compartilhada.
 - **Exposição histórica:** não filtrar autor inativo no JOIN de apresentação; distinguir autor do executor da retribuição. Não serializar entidade para resolver ausência de DTO.
-- **Assincronismo:** a alteração dos serviços alcança páginas, gráfico e estratégias. Manter compilação em T12 e completar jornadas em T13–T17; evitar chamadas com Promise ignorada e sucesso antes do backend.
+- **Compatibilidade da integração importada:** os serviços já são assíncronos. T12 deve adaptar todos os fetch/consumidores ativos ao host/cookie, corpos e rotas de T11, sem duplicar clientes ou voltar à composição local. Compilação do snapshot não detecta chamadas /verificar inexistentes, catálogo string[] interpretado como objetos, sessão com tipos divergentes ou busca indevida de perfil alheio. Esses casos impedem concluir T12 até correção e verificação; as jornadas completas permanecem em T13–T17.
 - **Modelos divergentes:** `tipo`/`formacao` frontend não autorizam nova persistência. Campos faltantes do cadastro backend devem ser capturados explicitamente e referências enviadas no formato real.
 - **Terminal compartilhado:** compilar o projeto completo e preservar consumidores quando possível; não expandir menus nem manter caminho inseguro para satisfazer compatibilidade. Alteração adicional de escopo deve ser trazida à revisão antes de implementada.
 - **Remoção de legado em T19:** chamadas dinâmicas e composição explícita podem ocultar dependências. Inventariar e rastrear produtores/consumidores antes de excluir, trabalhar em incrementos revisáveis e revalidar os fluxos após a limpeza. Componente com uso válido não é obsoleto; dependência de terminal não autoriza sua retirada ou adaptação incidental. Pendências de decisão/validação devem ficar explícitas e impedem concluir T19.
@@ -759,9 +788,9 @@ Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decis
 - [x] T09 — Interesse, retribuição e match atômicos (evidências e limites registrados na tarefa).
 - [x] T10 — Matches e matriz de visibilidade (evidências e limites registrados na tarefa).
 - [x] T11 — Rotas, contratos e acesso pelo navegador (superfície HTTP validada; navegador real permanece em T18).
-- [ ] T12 — Clientes/DTOs e serviços assíncronos.
-- [ ] T13 — Cadastros e login frontend.
-- [ ] T14 — Seletor de competências.
+- [ ] T12 — Compatibilizar clientes/DTOs/serviços e consumidores da integração importada com T11 (pendente na nova base).
+- [ ] T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador.
+- [ ] T14 — Substituir checkboxes por seletor pesquisável de competências.
 - [ ] T15 — Jornada do candidato.
 - [ ] T16 — Jornada empresarial e gráfico.
 - [ ] T17 — Jornada do recrutador.
@@ -774,8 +803,8 @@ Implementar uma tarefa por vez após os gates aplicáveis. Cada commit continua 
 
 ## 9. Questões abertas ou bloqueios
 
-Não há ambiguidade de negócio identificada que impeça este plano. A exclusão dos endpoints opcionais foi incluída na sequência aprovada; CA-26 não é lacuna do escopo obrigatório.
+Não há ambiguidade de negócio identificada. Há incompatibilidades de transporte/contratos entre o frontend importado e o backend de T11, identificadas na seção 2 e atribuídas à nova T12. A importação exata/compilada não as resolve nem autoriza retroceder o backend. A exclusão dos endpoints opcionais foi incluída na sequência aprovada; CA-26 não é lacuna do escopo obrigatório.
 
-As decisões técnicas de seção 3, incluindo locks, transação, rotas, sessão nativa e parâmetros do hash, ficam sujeitas à revisão final deste documento. Nenhum bloqueio de implementação foi demonstrado por execução, pois esta fase não executa o sistema.
+As decisões backend da seção 3 já implementadas e validadas em T01–T11 permanecem preservadas. A revisão autorizada começa na fronteira com o frontend e adapta T12–T18 ao snapshot importado; não reabre locks, transações, rotas, sessão nativa, parâmetros de hash ou schema. A compilação/build da importação foi executada; a compatibilidade funcional com esse backend ainda depende da nova T12.
 
 A confirmação de validação com o Tutor permanece não informada na especificação e não foi inferida da aprovação da sequência. Não bloqueia a redação solicitada do plano, mas deve ser registrada antes dos encaminhamentos de commit previstos na especificação. Disponibilidade de JDK compatível, PostgreSQL separado e referências preparadas é pré-requisito da validação futura, a conferir antes de executar as tarefas correspondentes.

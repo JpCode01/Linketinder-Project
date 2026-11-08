@@ -1,9 +1,12 @@
-import { Candidato } from "../../models/Candidato"
+import { CandidatoViewDTO } from "../../api/dto/candidato/CandidatoViewDTO"
 
 export function exibirDadosCandidato(
-    candidato: Candidato
+    candidato: CandidatoViewDTO
 ): void {
     const iniciais = obterIniciais(candidato.nome)
+
+    const nomeCompleto = 
+    `${candidato.nome} ${candidato.sobrenome}`
 
     document.getElementById("profile-avatar")!.textContent =
         iniciais
@@ -12,10 +15,10 @@ export function exibirDadosCandidato(
         iniciais
 
     document.getElementById("profile-name")!.textContent =
-        candidato.nome
+        nomeCompleto
 
     document.getElementById("user-name")!.textContent =
-        candidato.nome
+        nomeCompleto
 
     document.getElementById("profile-description")!.textContent =
         candidato.descricao
@@ -37,7 +40,7 @@ export function obterIniciais(nome: string): string {
 }
 
 function exibirCompetencias(
-    candidato: Candidato
+    candidato: CandidatoViewDTO
 ): void {
     const listaCompetencias =
         document.getElementById("profile-skills")
@@ -53,7 +56,7 @@ function exibirCompetencias(
             document.createElement("span")
 
         competenciaElement.classList.add("skill")
-        competenciaElement.textContent = competencia
+        competenciaElement.textContent = competencia.nome
 
         listaCompetencias.appendChild(
             competenciaElement

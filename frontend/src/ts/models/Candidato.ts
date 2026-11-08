@@ -1,23 +1,25 @@
 import { Pessoa } from "./Pessoa"
 import { Competencia } from "./Competencia"
-
+import { Estado } from "./Estado"
+import { Pais } from "./Pais"
 
 export class Candidato extends Pessoa {
-
-    public id: number
     public competencias: Competencia[]
 
-    constructor(public cpf: string,
-                public idade: number,
-                public formacao: string,
-                nome: string,
-                email: string,
-                estado: string,
-                cep: string,
-                descricao: string
+    constructor(
+        public cpf: string,
+        public idade: number,
+        public sobrenome: string,
+        public dataNascimento: string,
+        id: number,
+        nome: string,
+        email: string,
+        estado: Estado,
+        pais: Pais,
+        cep: string,
+        descricao: string
     ) {
-        super(nome, email, estado, cep, descricao)
-        this.id = 0
+        super(id, nome, email, estado, pais, cep, descricao)
         this.competencias = []
     }
 }
