@@ -360,6 +360,32 @@ class UnicidadeContaTest extends Specification {
         areas.buscar()*.nome == ['Recursos Humanos']
         areas.buscarIdPorNome('Recursos Humanos').orElseThrow() == 1L
         !areas.buscarIdPorNome('ausente').present
+        service.logar('real@example.invalid', 'segredo real').id == resultado.id
+        service.estaAtivo(resultado.id)
+        !service.estaAtivo(-1L)
+
+        when:
+        service.logar('real@example.invalid', 'senha incorreta')
+
+        then:
+        thrown(SecurityException)
+
+        when:
+        try (def conexao = banco.abrirConexao();
+             def comando = conexao.prepareStatement('UPDATE recrutadores SET ativo = false WHERE id = ?')) {
+            comando.setLong(1, resultado.id)
+            comando.executeUpdate()
+        }
+
+        then:
+        !service.estaAtivo(resultado.id)
+        !dao('recrutador').buscarAtivoPorEmail('real@example.invalid').present
+
+        when:
+        service.logar('real@example.invalid', 'segredo real')
+
+        then:
+        thrown(SecurityException)
     }
 
     def 'DAO revalida empresa e area depois dos locks e forca atividade inicial'() {

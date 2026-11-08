@@ -10,6 +10,32 @@ import spock.lang.Specification
 import java.time.LocalDate
 
 class RecrutadorServiceTest extends Specification {
+    def 'login verifica hash do recrutador ativo sem fallback'() {
+        when:
+        def conta = service.logar('rh@example.invalid', 'segredo')
+
+        then:
+        1 * recrutadores.buscarAtivoPorEmail('rh@example.invalid') >> Optional.of(new Recrutador(id: 11L, senha: 'hash-fixture'))
+        1 * senhas.verificar('segredo', 'hash-fixture') >> true
+        conta.id == 11L
+    }
+
+    def 'login rejeita senha incorreta hash legado conta ausente ou inativa'() {
+        given:
+        recrutadores.buscarAtivoPorEmail(_) >> conta
+        senhas.verificar(_, _) >> false
+
+        when:
+        service.logar('rh@example.invalid', 'segredo')
+
+        then:
+        def erro = thrown(SecurityException)
+        erro.message == 'Credenciais inválidas.'
+
+        where:
+        conta << [Optional.empty(), Optional.of(new Recrutador(ativo: false)),
+                  Optional.of(new Recrutador(senha: 'hash-fixture')), Optional.of(new Recrutador(senha: 'segredo'))]
+    }
     RecrutadorRepository recrutadores = Mock()
     AreaRecrutamentoRepository areas = Mock()
     UsuarioRepository empresas = Mock()

@@ -106,6 +106,10 @@ class CandidatoService {
         )
     }
     
+    boolean estaAtivo(Long id) {
+        return candidatoRepository.buscarPorId(id).map { it.ativo }.orElse(false)
+    }
+
     Candidato logar(String email, String senha) {
         Candidato candidato = candidatoRepository.buscarAtivoPorEmail(email)
                 .orElseThrow(() -> new CandidatoLoginException())

@@ -8,6 +8,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Login HTTP de candidato, empresa e recrutador com resposta restrita a ID/tipo, renovação de sessão nativa e erros sem credenciais; autenticação do recrutador verifica o hash no serviço (T07).
+- Contexto HTTP reutilizável com revalidação de atividade persistida, invalidação de sessões de contas inativas, cookie configurado com HttpOnly/SameSite=Lax e testes de login, sessão e rejeição de identidade enviada pelo cliente (T07).
 - Cadastro backend de recrutador pela empresa ativa, com área persistida, senha derivada, atividade inicial forçada, consulta restrita ao próprio perfil por DTO sem credenciais e leitura das áreas de recrutamento (T06).
 - Protocolo transacional JDBC de validação de identificadores, com locks ordenados nos três perfis, unicidade concorrente de e-mail entre contas ativas e conflitos de domínio sem detalhes SQL (T06).
 - Testes unitários de recrutador e integração PostgreSQL com conexões independentes para concorrência, rollback, liberação de locks e reutilização de identificadores sem transferência de vínculos históricos (T06).

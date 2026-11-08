@@ -79,6 +79,10 @@ class EmpresaService {
         )
     }
 
+    boolean estaAtivo(Long id) {
+        return empresaRepository.buscarPorId(id).map { it.ativo }.orElse(false)
+    }
+
     Empresa logar(String email, String senha) {
         Empresa empresa = empresaRepository.buscarAtivoPorEmail(email)
                 .orElseThrow(() -> new EmpresaLoginException())

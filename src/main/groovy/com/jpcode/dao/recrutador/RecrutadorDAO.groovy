@@ -52,6 +52,18 @@ class RecrutadorDAO implements RecrutadorRepository {
         }
     }
 
+    Optional<Recrutador> buscarAtivoPorEmail(String email) {
+        try (def conexao = connectionFactory.getConnection();
+             def comando = conexao.prepareStatement('SELECT id, senha, ativo FROM recrutadores WHERE email = ? AND ativo = true')) {
+            comando.setString(1, email)
+            try (def resultado = comando.executeQuery()) {
+                if (!resultado.next()) return Optional.empty()
+                return Optional.of(new Recrutador(id: resultado.getLong('id'),
+                        senha: resultado.getString('senha'), ativo: resultado.getBoolean('ativo')))
+            }
+        }
+    }
+
     Optional<Recrutador> buscarPorId(Long id) {
         try (def conexao = connectionFactory.getConnection();
              def comando = conexao.prepareStatement('SELECT * FROM recrutadores WHERE id = ?')) {

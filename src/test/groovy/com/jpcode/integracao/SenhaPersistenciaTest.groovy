@@ -61,6 +61,8 @@ class SenhaPersistenciaTest extends Specification {
         anterior != 'senha inicial'
         senhaService.verificar('senha inicial', anterior)
         service.logar(email(perfil), 'senha inicial').id == conta.id
+        service.estaAtivo(conta.id)
+        !service.estaAtivo(-1L)
 
         when:
         atualizar(perfil, conta.id)
@@ -106,6 +108,7 @@ class SenhaPersistenciaTest extends Specification {
         !dao.buscarPorId(conta.id).orElseThrow().ativo
         dao.buscarPorId(conta.id).orElseThrow().senha == anterior
         !dao.buscarAtivoPorEmail(email(perfil)).present
+        !servico(perfil).estaAtivo(conta.id)
 
         when:
         atualizar(perfil, conta.id)

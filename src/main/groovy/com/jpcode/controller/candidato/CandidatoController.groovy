@@ -28,6 +28,10 @@ class CandidatoController {
         return candidatoService.buscarCandidatos()
     }
 
+    boolean estaAtivo(Long id) {
+        return candidatoService.estaAtivo(id)
+    }
+
     Candidato logar(String email, String senha) {
         return candidatoService.logar(email, senha)
     }

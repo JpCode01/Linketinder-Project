@@ -47,6 +47,19 @@ class RecrutadorService {
         return new RecrutadorViewDTO(recrutador, areaRepository.buscarPorId(recrutador.idAreaRecrutamento).orElseThrow())
     }
 
+    Recrutador logar(String email, String senha) {
+        Recrutador recrutador = recrutadorRepository.buscarAtivoPorEmail(email)
+                .orElseThrow(() -> new SecurityException('Credenciais inválidas.'))
+        if (!recrutador.ativo || !senhaService.verificar(senha, recrutador.senha)) {
+            throw new SecurityException('Credenciais inválidas.')
+        }
+        return recrutador
+    }
+
+    boolean estaAtivo(Long id) {
+        return recrutadorRepository.buscarPorId(id).map { it.ativo }.orElse(false)
+    }
+
     List<AreaRecrutamento> buscarAreas() {
         return areaRepository.buscar()
     }

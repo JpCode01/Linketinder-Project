@@ -21,6 +21,10 @@ class EmpresaController {
         return empresaService.cadastrarEmpresa(cadastrarEmpresaDTO)
     }
 
+    boolean estaAtivo(Long id) {
+        return empresaService.estaAtivo(id)
+    }
+
     Empresa logar(String email, String senha) {
         return empresaService.logar(email, senha)
     }

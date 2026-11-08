@@ -9,8 +9,10 @@ import com.jpcode.controller.match.MatchController
 import com.jpcode.controller.referencia.ReferenciaController
 import com.jpcode.controller.vaga.VagaController
 import com.jpcode.facade.MatchFacade
+import com.jpcode.api.SessaoHttp
 
 class ControllerConfig {
+    final SessaoHttp sessaoHttp
     final RecrutadorController recrutadorController
 
     final CandidatoController candidatoController
@@ -53,6 +55,7 @@ class ControllerConfig {
         referenciaController = new ReferenciaController(
                 serviceConfig.referenciaService
         )
+        sessaoHttp = new SessaoHttp(candidatoController, empresaController, recrutadorController)
     }
 
 }
