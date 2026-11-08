@@ -18,6 +18,7 @@ import com.jpcode.model.referencia.Estado
 import com.jpcode.model.referencia.Pais
 
 class EmpresaService {
+    final SenhaService senhaService
     final ReferenciaRepository<Pais> paisRepository
     final ReferenciaRepository<Estado> estadoRepository
     final UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository
@@ -25,7 +26,8 @@ class EmpresaService {
     final CurtidaRepository<CandidatoAnonimoDTO> empresaCurtirRepository
     final CompetenciaRepository competenciasVagaRepository
 
-    EmpresaService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository, CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository, CurtidaRepository<CandidatoAnonimoDTO> empresaCurtirRepository, CompetenciaRepository competenciasVagaRepository) {
+    EmpresaService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository, CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository, CurtidaRepository<CandidatoAnonimoDTO> empresaCurtirRepository, CompetenciaRepository competenciasVagaRepository, SenhaService senhaService = new SenhaService()) {
+        this.senhaService = senhaService
         this.paisRepository = paisRepository
         this.estadoRepository = estadoRepository
         this.empresaRepository = empresaRepository
@@ -48,7 +50,7 @@ class EmpresaService {
         Empresa empresa = new Empresa(
                 cadastrarEmpresaDTO.nome,
                 cadastrarEmpresaDTO.email,
-                cadastrarEmpresaDTO.senha,
+                senhaService.derivar(cadastrarEmpresaDTO.senha),
                 cadastrarEmpresaDTO.cnpj,
                 paisId,
                 estadoId,
@@ -78,9 +80,12 @@ class EmpresaService {
     }
 
     Empresa logar(String email, String senha) {
-        return empresaRepository.buscarPorEmailESenha(email, senha)
-        .orElseThrow(() ->
-        new EmpresaLoginException(email, senha))
+        Empresa empresa = empresaRepository.buscarAtivoPorEmail(email)
+                .orElseThrow(() -> new EmpresaLoginException())
+        if (!empresa.ativo || !senhaService.verificar(senha, empresa.senha)) {
+            throw new EmpresaLoginException()
+        }
+        return empresa
     }
     
     List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Long idVaga) {
@@ -100,6 +105,11 @@ class EmpresaService {
     }
 
     void atualizarEmpresa(AtualizarEmpresaDTO atualizarEmpresaDTO) {
+        Empresa atual = empresaRepository.buscarPorId(atualizarEmpresaDTO.id)
+                .orElseThrow(() -> new EmpresaNaoEncontradaPorIdException(atualizarEmpresaDTO.id))
+        if (!atual.ativo) {
+            throw new IllegalStateException('Empresa inativa não pode ser atualizada.')
+        }
         Long paisId = paisRepository.buscarIdPorNome(atualizarEmpresaDTO.pais)
                 .orElseThrow(() ->
                         new PaisNaoEncontradoException(atualizarEmpresaDTO.pais)
@@ -114,13 +124,13 @@ class EmpresaService {
                         atualizarEmpresaDTO.id,
                         atualizarEmpresaDTO.nome,
                         atualizarEmpresaDTO.email,
-                        atualizarEmpresaDTO.senha,
+                        senhaService.derivar(atualizarEmpresaDTO.senha),
                         atualizarEmpresaDTO.cnpj,
                         paisId,
                         estadoId,
                         atualizarEmpresaDTO.cep,
                         atualizarEmpresaDTO.descricao,
-                        atualizarEmpresaDTO.ativo
+                        atual.ativo
                 )
         )
     }

@@ -109,13 +109,13 @@ class CandidatoDAO implements
 
     }
 
-    Optional<Candidato> buscarPorEmailESenha(String email, String senha) {
+    Optional<Candidato> buscarAtivoPorEmail(String email) {
         String sql = """
             SELECT id, nome, sobrenome, email, data_nascimento, 
             idade, cpf, id_pais, cep, descricao, ativo, senha, id_estado
             FROM candidatos
             WHERE email = ?
-                AND senha = ?
+                AND ativo = true
         """
 
         try (
@@ -123,7 +123,6 @@ class CandidatoDAO implements
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, email)
-            statement.setString(2, senha)
 
             def resultSet = statement.executeQuery()
 
@@ -181,7 +180,7 @@ class CandidatoDAO implements
             id_estado = ?,
             cep = ?,
             descricao = ?
-        WHERE id = ?
+        WHERE id = ? AND ativo = true
     """
 
         try (
@@ -200,7 +199,9 @@ class CandidatoDAO implements
             statement.setString(10, candidato.descricao)
             statement.setLong(11, candidato.id)
 
-            statement.executeUpdate()
+            if (statement.executeUpdate() == 0) {
+                throw new IllegalStateException('Candidato inexistente ou inativo.')
+            }
         }
 
         return candidato

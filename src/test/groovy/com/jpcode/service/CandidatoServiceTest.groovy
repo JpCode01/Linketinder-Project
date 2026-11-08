@@ -1,5 +1,7 @@
 package com.jpcode.service
 
+import com.jpcode.dto.candidato.AtualizarCandidatoDTO
+
 import com.jpcode.dao.contratos.CompetenciaRepository
 import com.jpcode.dao.contratos.ReferenciaCompetenciaRepository
 import com.jpcode.dao.contratos.ReferenciaRepository
@@ -117,7 +119,7 @@ class CandidatoServiceTest extends Specification {
     @Unroll
     def "deve lançar exceção quando login não for encontrado para email '#email' e senha informados"() {
         given:
-        candidatoRepository.buscarPorEmailESenha(email, senha) >> Optional.empty()
+        candidatoRepository.buscarAtivoPorEmail(email) >> Optional.empty()
 
         when:
         service.logar(email, senha)
@@ -148,9 +150,10 @@ class CandidatoServiceTest extends Specification {
                 "Desenvolvedor"
         )
 
-        candidatoRepository.buscarPorEmailESenha(
-                "joao@email.com",
-                "123"
+        candidato.senha = new SenhaService().derivar("123")
+
+        candidatoRepository.buscarAtivoPorEmail(
+                "joao@email.com"
         ) >> Optional.of(candidato)
 
         expect:
@@ -200,7 +203,10 @@ class CandidatoServiceTest extends Specification {
         service.cadastrarCandidato(cadastrarCandidatoDTO)
 
         then:
-        1 * candidatoRepository.salvar(_) >> candidatoSalvo
+        1 * candidatoRepository.salvar({ Candidato novo ->
+            novo.ativo && novo.senha != cadastrarCandidatoDTO.senha &&
+                    new SenhaService().verificar(cadastrarCandidatoDTO.senha, novo.senha)
+        }) >> candidatoSalvo
         1 * competenciasCandidatoRepository.salvar(1L, 10L)
         1 * competenciasCandidatoRepository.salvar(1L, 20L)
     }
@@ -242,5 +248,75 @@ class CandidatoServiceTest extends Specification {
 
         expect:
         service.competenciasEmString(1L) == competencias
+    }
+
+    def 'rejeita login incorreto ou inativo sem revelar credenciais'() {
+        given:
+        Candidato candidato = candidatoParaAtualizacao()
+        candidato.ativo = ativo
+        candidato.senha = new SenhaService().derivar('segredo armazenado')
+        candidatoRepository.buscarAtivoPorEmail(candidato.email) >> Optional.of(candidato)
+
+        when:
+        service.logar(candidato.email, senha)
+
+        then:
+        CandidatoLoginException erro = thrown()
+        erro.message == 'Credenciais inválidas para candidato.'
+        new CandidatoLoginException(candidato.email, candidato.senha).message == erro.message
+        new CandidatoLoginException(candidato.email, senha).message == erro.message
+
+        where:
+        ativo | senha
+        true  | 'incorreta'
+        false | 'segredo armazenado'
+    }
+
+    def 'atualiza candidato com hash novo e preserva atividade sem confiar no DTO'() {
+        given:
+        Candidato atual = candidatoParaAtualizacao()
+        candidatoRepository.buscarPorId(1L) >> Optional.of(atual)
+        paisRepository.buscarIdPorNome('BRASIL') >> Optional.of(1L)
+        estadoRepository.buscarIdPorNome('SP') >> Optional.of(2L)
+        AtualizarCandidatoDTO dto = atualizacao(false)
+
+        when:
+        service.atualizarCandidato(dto)
+
+        then:
+        1 * candidatoRepository.atualizarDados({ Candidato novo ->
+            novo.ativo && novo.senha != dto.senha &&
+                    new SenhaService().verificar(dto.senha, novo.senha)
+        })
+    }
+
+    def 'nao atualiza candidato ausente ou inativo mesmo com DTO ativo'() {
+        given:
+        Candidato atual = candidatoParaAtualizacao()
+        atual.ativo = false
+        candidatoRepository.buscarPorId(1L) >> (ausente ? Optional.empty() : Optional.of(atual))
+
+        when:
+        service.atualizarCandidato(atualizacao(true))
+
+        then:
+        thrown(tipo)
+        0 * candidatoRepository.atualizarDados(_)
+        0 * paisRepository._
+
+        where:
+        ausente | tipo
+        true    | CandidatoNaoEncontradoPorIdException
+        false   | IllegalStateException
+    }
+
+    private static Candidato candidatoParaAtualizacao() {
+        new Candidato(1L, 'Nome', 'Sobrenome', 'candidato@example.invalid', 'antiga',
+                'cpf', LocalDate.of(2000, 1, 1), 1L, 26, 2L, '00000000', 'Descricao', true)
+    }
+
+    private static AtualizarCandidatoDTO atualizacao(boolean ativo) {
+        new AtualizarCandidatoDTO(1L, 'Nome', 'Sobrenome', 'candidato@example.invalid', 'nova senha',
+                'cpf', LocalDate.of(2000, 1, 1), 'BRASIL', 26, 'SP', '00000000', 'Descricao', ativo)
     }
 }

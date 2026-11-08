@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02, T03 e T04 concluídas e validadas; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026, sem execução de commits pelos agentes.
+Status: T01, T02, T03, T04 e T05 concluídas e validadas; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05 autorizada explicitamente em 08/11/2026, sem execução de commits pelos agentes.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -235,6 +235,36 @@ Convenções: `B = src/main/groovy/com/jpcode`, `T = src/test/groovy/com/jpcode`
 - **Passos:** implementar parâmetros de 3.4; buscar conta ativa por e-mail; substituir comparação SQL por verificação de hash no serviço; cobrir cadastro e atualização de senha de candidato/empresa. Proteger atualização inativa no serviço e no `UPDATE ... WHERE ativo = true`, sem reativação via DTO. Sanear exceções; preservar compatibilidade de compilação dos consumidores existentes usando delegação segura quando necessária.
 - **Validação:** unitários para senha correta/incorreta, mesmo segredo com salts diferentes, formato inválido, conta inativa e atualização; verificar ausência de credenciais nas mensagens. Medição real do tempo de derivação no JDK de execução como evidência separada.
 - **Conclusão:** nenhuma senha nova dos fluxos abrangidos é persistida em texto simples; login não depende de comparação da senha no SQL.
+
+**Estado da T05 em 08/11/2026: concluída.** Criado `SenhaService` com os parâmetros aprovados em 3.4: PBKDF2-HMAC-SHA256, 600.000 iterações, salt de 16 bytes por `SecureRandom` e chave de 256 bits. A representação `v1$PBKDF2WithHmacSHA256$600000$<salt Base64>$<hash Base64>` valida versão, algoritmo, custo exato, tamanho e codificação canônica antes da derivação; custos arbitrários e texto simples são rejeitados. Comparação por `MessageDigest.isEqual` e limpeza de buffers temporários/`PBEKeySpec`. Nenhuma dependência adicionada.
+
+Cadastros e atualizações de candidato/empresa derivam a senha no serviço antes de chamar o DAO. `UsuarioRepository.buscarAtivoPorEmail` substitui a busca por e-mail/senha e filtra atividade no SQL; os serviços também rejeitam conta inativa e verificam o hash. Atualizações consultam o estado persistido, rejeitam conta inexistente/inativa e não usam `ativo` do DTO para mudar o ciclo de vida. Ambos os DAOs usam `UPDATE ... WHERE id = ? AND ativo = true` e sinalizam zero linhas alteradas. `ServiceConfig` injeta o serviço de senhas; construtores anteriores dos serviços continuam disponíveis pelo parâmetro padrão seguro. Exceções de login têm mensagem genérica; os construtores anteriores delegam sem incluir e-mail, senha, hash ou salt. Nenhum consumidor restante da busca SQL antiga foi encontrado.
+
+**Arquivos:** criados `B/service/SenhaService.groovy`, `T/service/SenhaServiceTest.groovy` e `T/integracao/SenhaPersistenciaTest.groovy` (este último para verificar os DAOs reais de T05). Modificados os dois serviços de contas, os dois DAOs, `UsuarioRepository`, as duas exceções de login, `ServiceConfig` e os dois testes de serviços previstos, além deste plano e do changelog. A alteração preexistente do responsável em `queriesLinketinder.sql` foi preservada, sem qualquer edição pelo agente.
+
+**Segurança do banco verificada antes das escritas:** inspecionados `SuportePostgres` e o script temporário existente `build/executar-t01.ps1`. O script carrega do `.env` somente variáveis de teste para o processo, sem imprimir valores nem editar o arquivo. O suporte exige as três variáveis explícitas, aceita exclusivamente banco `linketinder_test` ou `linketinder_test_<sufixo>`, sem parâmetros JDBC ou fallback para `PostgresConnectionFactory`, e confere `current_database()` antes de criar schemas. Cada caso usa schema aleatório sem `public` no `search_path`, DDL atual sem exemplos e rollback no encerramento. O teste novo empresta essa conexão aos DAOs por proxy que adia somente `close` até o cleanup, mantendo JDBC real e isolamento. Nenhuma escrita/migração/reset no banco de desenvolvimento foi executada.
+
+**Evidências executadas:**
+
+- `.\gradlew.bat test --tests 'com.jpcode.service.*'` — bloqueado inicialmente pelo cache Gradle no sandbox; repetição autorizada fora dele compilou o código principal, mas falhou na compilação dos testes por import ausente de `AtualizarCandidatoDTO`. Import corrigido antes do build completo; essa tentativa não é contada como testes aprovados.
+- `.\build\executar-t01.ps1` — primeira tentativa bloqueada pela política de scripts no sandbox; repetição autorizada fora dele executou `.\gradlew.bat build --init-script .\build\classpath-t01.gradle exportarClasspathT01` com banco dedicado configurado: **BUILD SUCCESSFUL, 148 testes, zero falhas, erros ou ignorados**, conferidos nos XMLs de `build/test-results/test/`. São 70 testes de serviços, 71 JDBC reais e 7 de segurança do suporte. Regressão de T01–T04 preservada; compilação principal já concluída na tentativa anterior, compilação dos testes, empacotamento e JaCoCo concluídos no build final.
+- `java -version` — Oracle JDK **25.0.3**, HotSpot 64 bits. `java -cp <conteúdo de build/runtime-t01.txt> groovy.ui.GroovyMain build/medir-senha-t05.groovy` — script temporário não versionado, sem banco e sem imprimir credenciais; 3 aquecimentos e 10 derivações medidas. Primeira execução: mínimo **455,93 ms**, mediana **466,57 ms**, média **474,96 ms**, máximo **539,58 ms**. Repetição após o término dos testes: mínimo **461,63 ms**, mediana **465,38 ms**, média **469,83 ms**, máximo **511,12 ms**. Custo observado neste ambiente, sem reduzir o fator aprovado nem definir SLA.
+- Revisão integral do diff, incluindo arquivos novos, e `git diff --check` — sem erros de whitespace. A única alteração anterior à tarefa era a remoção de SQL legado pelo responsável; as alterações do agente pertencem exclusivamente a T05. Não houve alterações de frontend, schema, rotas, DTOs anônimos ou regras de match.
+
+**Verificação dos critérios de T05:**
+
+| Critério | Evidência observada |
+| --- | --- |
+| Senha correta/incorreta, salt individual e parâmetros aprovados | `SenhaServiceTest`: duas derivações do mesmo segredo diferem, ambas verificam; senha errada falha; representação gerada independentemente pela API Java verifica |
+| Formato inválido, custo limitado e ausência de fallback | Rejeitados texto simples, versão/algoritmo/custo alterados, overflow, Base64 inválido/não canônico, salt curto e campos extras |
+| Cadastro e atualização sem persistência em texto simples | Asserções dos dois testes de serviço e round-trip JDBC real dos dois perfis; senha nova verifica e a anterior deixa de autenticar |
+| Login por conta ativa e atualização protegida | JDBC confirma bloqueio após desativação, seleção da nova conta ativa com e-mail reutilizado e rejeição de UPDATE de entidade lida antes da desativação; unitários rejeitam conta ausente/inativa mesmo com DTO ativo |
+| Ausência de credenciais nos erros e consultas abrangidos | Mensagens exatas das exceções, inclusive construtores de compatibilidade; serialização dos DTOs reais de perfil sem senha/hash/salt |
+| Compatibilidade e custo medido | Build completo e regressões aprovados; medição separada no JDK efetivamente usado |
+
+**Anonimato, acesso e limites:** DTOs anônimos permanecem exclusivamente com `id`, `descricao` e `competencias`; produtores/consumidores de descoberta e match não foram alterados. Inspeção das servlets de candidato/empresa confirmou uso de DTOs de consulta e ausência de serialização da entidade com credenciais nas operações abrangidas. Login e atualização de inativos foram exercitados nos serviços/DAOs reais; a matriz completa de autorização HTTP, sessões e navegador continua nas tarefas posteriores. Não foram executados testes HTTP ou frontend, nem implementados login HTTP/recrutador ou unicidade concorrente entre perfis. CA-03/CA-04 estão verificados somente na parcela de T05 para os dois perfis existentes, sem declarar aceite full-stack dos três perfis.
+
+**Conclusão:** todos os critérios de T05 verificados, sem bloqueios pendentes da tarefa. Relatórios em `build/reports/tests/test/` e `build/reports/jacoco/test/`. Changelog atualizado somente com entregas implementadas. Especificação e estado das demais tarefas preservados; T06 e seguintes não iniciadas. Nenhum `git add`, `git commit` ou `git push` executado; a autorização explícita deste pedido prevalece sobre o checkpoint de commit da skill. Consumo de tokens não disponível como medição confiável.
 
 ### T06 — Implementar recrutador, áreas e gravação serializada de contas
 
@@ -511,7 +541,7 @@ Registrar evidência por CA em `validacao.md`: comando/ação, ambiente, resulta
 - [x] T02 — Autoria e integridade empresarial (evidências e limites registrados na tarefa).
 - [x] T03 — Unicidades parciais (evidências e limites registrados na tarefa).
 - [x] T04 — Schema de retribuição e match (evidências e limites registrados na tarefa).
-- [ ] T05 — Proteção de senhas.
+- [x] T05 — Proteção de senhas (evidências e limites registrados na tarefa).
 - [ ] T06 — Cadastro e unicidade concorrente entre perfis.
 - [ ] T07 — Login e contexto HTTP.
 - [ ] T08 — Criação e consulta de vagas.

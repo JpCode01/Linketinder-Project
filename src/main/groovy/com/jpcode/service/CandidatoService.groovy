@@ -17,6 +17,7 @@ import com.jpcode.model.referencia.Estado
 import com.jpcode.model.referencia.Pais
 
 class CandidatoService {
+    final SenhaService senhaService
     final ReferenciaRepository<Pais> paisRepository
     final ReferenciaRepository<Estado> estadoRepository
     final ReferenciaRepository<Competencia> competenciaRepository
@@ -24,7 +25,8 @@ class CandidatoService {
     final CompetenciaRepository competenciasCandidatoRepository
     final UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository
 
-    CandidatoService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, ReferenciaRepository<Competencia> competenciaRepository, ReferenciaCompetenciaRepository referenciaCompetenciaRepository, CompetenciaRepository competenciasCandidatoRepository, UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository) {
+    CandidatoService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, ReferenciaRepository<Competencia> competenciaRepository, ReferenciaCompetenciaRepository referenciaCompetenciaRepository, CompetenciaRepository competenciasCandidatoRepository, UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository, SenhaService senhaService = new SenhaService()) {
+        this.senhaService = senhaService
         this.paisRepository = paisRepository
         this.estadoRepository = estadoRepository
         this.competenciaRepository = competenciaRepository
@@ -48,7 +50,7 @@ class CandidatoService {
                             cadastrarCandidatoDTO.nome,
                             cadastrarCandidatoDTO.sobrenome,
                             cadastrarCandidatoDTO.email,
-                            cadastrarCandidatoDTO.senha,
+                            senhaService.derivar(cadastrarCandidatoDTO.senha),
                             cadastrarCandidatoDTO.cpf,
                             cadastrarCandidatoDTO.dataNascimento,
                             paisId,
@@ -105,9 +107,12 @@ class CandidatoService {
     }
     
     Candidato logar(String email, String senha) {
-        return candidatoRepository.buscarPorEmailESenha(email, senha)
-        .orElseThrow(() ->
-        new CandidatoLoginException(email, senha))
+        Candidato candidato = candidatoRepository.buscarAtivoPorEmail(email)
+                .orElseThrow(() -> new CandidatoLoginException())
+        if (!candidato.ativo || !senhaService.verificar(senha, candidato.senha)) {
+            throw new CandidatoLoginException()
+        }
+        return candidato
     }
 
     void desativarCandidato(Long idCandidato) {
@@ -115,6 +120,11 @@ class CandidatoService {
     }
     
     void atualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
+        Candidato atual = candidatoRepository.buscarPorId(atualizarCandidatoDTO.id)
+                .orElseThrow(() -> new CandidatoNaoEncontradoPorIdException(atualizarCandidatoDTO.id))
+        if (!atual.ativo) {
+            throw new IllegalStateException('Candidato inativo não pode ser atualizado.')
+        }
         Long paisId = paisRepository.buscarIdPorNome(atualizarCandidatoDTO.pais)
                 .orElseThrow(() ->
                         new PaisNaoEncontradoException(atualizarCandidatoDTO.pais)
@@ -130,7 +140,7 @@ class CandidatoService {
                         atualizarCandidatoDTO.nome,
                         atualizarCandidatoDTO.sobrenome,
                         atualizarCandidatoDTO.email,
-                        atualizarCandidatoDTO.senha,
+                        senhaService.derivar(atualizarCandidatoDTO.senha),
                         atualizarCandidatoDTO.cpf,
                         atualizarCandidatoDTO.dataNascimento,
                         paisId,
@@ -138,7 +148,7 @@ class CandidatoService {
                         estadoId,
                         atualizarCandidatoDTO.cep,
                         atualizarCandidatoDTO.descricao,
-                        atualizarCandidatoDTO.ativo
+                        atual.ativo
                 ))
     }
     

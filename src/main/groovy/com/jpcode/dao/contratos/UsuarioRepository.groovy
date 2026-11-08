@@ -2,7 +2,7 @@ package com.jpcode.dao.contratos
 
 interface UsuarioRepository<T, R, L> {
 
-    Optional<T> buscarPorEmailESenha(String email, String senha)
+    Optional<T> buscarAtivoPorEmail(String email)
 
     T salvar(T objeto)
 

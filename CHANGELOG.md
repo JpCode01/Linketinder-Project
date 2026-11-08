@@ -8,6 +8,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Serviço de senhas PBKDF2-HMAC-SHA256 com 600.000 iterações, salt aleatório individual de 16 bytes, chave de 256 bits e representação versionada com validação estrita, sem fallback para texto simples (T05).
+- Testes unitários e JDBC de derivação, login, atualização de senha e bloqueio de contas inativas para candidatos e empresas, incluindo ausência de credenciais nos erros e nos DTOs de perfil serializados (T05).
 - FKs de reciprocidade e propriedade empresarial no DDL atual, impedindo retribuição sem interesse na vaga e match sem a retribuição correspondente; vínculo opcional do recrutador ator à mesma empresa (T04).
 - Testes JDBC de contexto candidato/vaga, rejeição de matches órfãos e empresas divergentes, repetição sem duplicatas e dependências de exclusão, preservando os cascades existentes (T04).
 - Índices únicos parciais de CPF/CNPJ e e-mail por perfil para contas ativas no DDL atual; a unicidade de e-mail entre perfis permanece para T06 (T03).
@@ -31,6 +33,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Cadastro e atualização de candidatos e empresas derivam a senha antes da persistência; login busca conta ativa por e-mail e verifica o hash no serviço, sem comparar senha no SQL (T05).
 - Retribuição empresarial contextualizada por vaga no DDL atual, com ator recrutador opcional e unicidade por candidato/vaga também no match; adaptação dos DAOs e atomicidade permanecem para T09 (T04).
 - Substituídas as unicidades permanentes de CPF/e-mail de candidatos e CNPJ/e-mail de empresas por unicidades condicionadas à atividade, permitindo reutilização sem transferência de histórico (T03).
 - Definido `ativo NOT NULL DEFAULT TRUE` para candidatos no DDL atual, alinhado ao estado inicial de empresas e recrutadores (T01).
@@ -42,4 +45,5 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Corrigido
 
+- Removida a exposição de credenciais nas exceções de login de candidato e empresa; atualizações rejeitam contas inativas no serviço e no SQL e preservam a atividade persistida sem confiar no DTO (T05).
 - Corrigida a consulta das competências do candidato para utilizar o repositório de associações entre candidatos e competências.

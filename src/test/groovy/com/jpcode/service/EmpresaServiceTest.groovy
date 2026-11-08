@@ -8,6 +8,7 @@ import com.jpcode.dto.empresa.CadastrarEmpresaDTO
 import com.jpcode.dto.empresa.EmpresaComReferenciasDTO
 import com.jpcode.dto.empresa.EmpresaViewListDTO
 import com.jpcode.exception.empresa.EmpresaLoginException
+import com.jpcode.exception.empresa.EmpresaNaoEncontradaPorIdException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import com.jpcode.model.core.Empresa
@@ -73,7 +74,10 @@ class EmpresaServiceTest extends Specification {
         Empresa resultado = service.cadastrarEmpresa(cadastrarEmpresaDTO)
 
         then:
-        1 * empresaRepository.salvar(_) >> empresaSalva
+        1 * empresaRepository.salvar({ Empresa nova ->
+            nova.ativo && nova.senha != cadastrarEmpresaDTO.senha &&
+                    new SenhaService().verificar(cadastrarEmpresaDTO.senha, nova.senha)
+        }) >> empresaSalva
         resultado == empresaSalva
     }
 
@@ -137,9 +141,10 @@ class EmpresaServiceTest extends Specification {
                 "Empresa de tecnologia"
         )
 
-        empresaRepository.buscarPorEmailESenha(
-                "empresa@email.com",
-                "123"
+        empresa.senha = new SenhaService().derivar("123")
+
+        empresaRepository.buscarAtivoPorEmail(
+                "empresa@email.com"
         ) >> Optional.of(empresa)
 
         expect:
@@ -148,9 +153,8 @@ class EmpresaServiceTest extends Specification {
 
     def "deve lançar exceção quando login da empresa não for encontrado"() {
         given:
-        empresaRepository.buscarPorEmailESenha(
-                "empresa@email.com",
-                "123"
+        empresaRepository.buscarAtivoPorEmail(
+                "empresa@email.com"
         ) >> Optional.empty()
 
         when:
@@ -198,6 +202,7 @@ class EmpresaServiceTest extends Specification {
 
     def "deve atualizar empresa"() {
         given:
+        empresaRepository.buscarPorId(1L) >> Optional.of(empresaParaAtualizacao())
         AtualizarEmpresaDTO atualizarEmpresaDTO = new AtualizarEmpresaDTO(
                 1L,
                 "Empresa Atualizada",
@@ -208,7 +213,7 @@ class EmpresaServiceTest extends Specification {
                 "SP",
                 "12900000",
                 "Nova descricao",
-                true
+                false
         )
 
         paisRepository.buscarIdPorNome("BRASIL") >> Optional.of(1L)
@@ -218,7 +223,10 @@ class EmpresaServiceTest extends Specification {
         service.atualizarEmpresa(atualizarEmpresaDTO)
 
         then:
-        1 * empresaRepository.atualizarDados(_)
+        1 * empresaRepository.atualizarDados({ Empresa nova ->
+            nova.ativo && nova.senha != atualizarEmpresaDTO.senha &&
+                    new SenhaService().verificar(atualizarEmpresaDTO.senha, nova.senha)
+        })
     }
 
     def "deve remover competencia da vaga"() {
@@ -246,5 +254,53 @@ class EmpresaServiceTest extends Specification {
         resultado[0].nome == "JAVA"
         resultado[1].id == 2L
         resultado[1].nome == "SPRING"
+    }
+
+    def 'rejeita login incorreto ou inativo sem revelar credenciais'() {
+        given:
+        Empresa empresa = empresaParaAtualizacao()
+        empresa.ativo = ativo
+        empresa.senha = new SenhaService().derivar('segredo armazenado')
+        empresaRepository.buscarAtivoPorEmail(empresa.email) >> Optional.of(empresa)
+
+        when:
+        service.logar(empresa.email, senha)
+
+        then:
+        EmpresaLoginException erro = thrown()
+        erro.message == 'Credenciais inválidas para empresa.'
+        new EmpresaLoginException(empresa.email, empresa.senha).message == erro.message
+        new EmpresaLoginException(empresa.email, senha).message == erro.message
+
+        where:
+        ativo | senha
+        true  | 'incorreta'
+        false | 'segredo armazenado'
+    }
+
+    def 'nao atualiza empresa ausente ou inativa mesmo com DTO ativo'() {
+        given:
+        Empresa atual = empresaParaAtualizacao()
+        atual.ativo = false
+        empresaRepository.buscarPorId(1L) >> (ausente ? Optional.empty() : Optional.of(atual))
+
+        when:
+        service.atualizarEmpresa(new AtualizarEmpresaDTO(1L, 'Nome', atual.email, 'nova senha',
+                'cnpj', 'BRASIL', 'SP', '00000000', 'Descricao', true))
+
+        then:
+        thrown(tipo)
+        0 * empresaRepository.atualizarDados(_)
+        0 * paisRepository._
+
+        where:
+        ausente | tipo
+        true    | EmpresaNaoEncontradaPorIdException
+        false   | IllegalStateException
+    }
+
+    private static Empresa empresaParaAtualizacao() {
+        new Empresa(1L, 'Nome', 'empresa@example.invalid', 'antiga', 'cnpj',
+                1L, 2L, '00000000', 'Descricao', true)
     }
 }

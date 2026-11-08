@@ -94,13 +94,13 @@ class EmpresaDAO implements
         }
     }
 
-    Optional<Empresa> buscarPorEmailESenha(String emailCorporativo, String senha) {
+    Optional<Empresa> buscarAtivoPorEmail(String emailCorporativo) {
         String sql = """
             SELECT id, nome, cnpj, email_corporativo, descricao, 
             id_pais, cep, id_estado, ativo, senha
             FROM empresas
             WHERE email_corporativo = ?
-                AND senha = ?
+                AND ativo = true
         """
 
         try (
@@ -108,7 +108,6 @@ class EmpresaDAO implements
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, emailCorporativo)
-            statement.setString(2, senha)
 
             def resultSet = statement.executeQuery()
 
@@ -160,7 +159,7 @@ class EmpresaDAO implements
             id_estado = ?,
             cep = ?,
             descricao = ?
-        WHERE id = ?
+        WHERE id = ? AND ativo = true
     """
 
         try (
@@ -177,7 +176,9 @@ class EmpresaDAO implements
             statement.setString(8, empresa.descricao)
             statement.setLong(9, empresa.id)
 
-            statement.executeUpdate()
+            if (statement.executeUpdate() == 0) {
+                throw new IllegalStateException('Empresa inexistente ou inativa.')
+            }
         }
 
         return empresa
