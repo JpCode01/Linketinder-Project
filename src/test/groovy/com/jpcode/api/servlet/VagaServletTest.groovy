@@ -1,5 +1,6 @@
 package com.jpcode.api.servlet
 
+import com.jpcode.api.SessaoHttp
 import com.jpcode.controller.vaga.VagaController
 import com.jpcode.model.core.Vaga
 import com.jpcode.model.referencia.Competencia
@@ -23,7 +24,7 @@ class VagaServletTest extends Specification {
         controller.buscarCompetenciasDeVaga(7L) >> [new Competencia(1L, 'RH')]
 
         when:
-        new VagaServlet(controller).doGet(request, response)
+        new VagaServlet(controller, Stub(SessaoHttp, constructorArgs: [null, null, null]) { recuperarAtor(_) >> [id: 1L, tipo: 'candidato'] }).doGet(request, response)
         def json = new JsonSlurper().parseText(corpo.toString())
 
         then:

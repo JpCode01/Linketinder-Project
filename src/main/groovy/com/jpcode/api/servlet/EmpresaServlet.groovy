@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
-class EmpresaServlet extends HttpServlet {
+class EmpresaServlet extends JsonServlet {
 
     private final SessaoHttp sessaoHttp
     private final EmpresaController empresaController
@@ -24,15 +24,33 @@ class EmpresaServlet extends HttpServlet {
         this.sessaoHttp = sessaoHttp
     }
 
+    protected List<String> metodosPermitidos() { ['GET', 'POST', 'PUT'] }
+
+    private RecrutadorServlet recrutadorServlet
+
+    EmpresaServlet(EmpresaController controller, SessaoHttp sessao, RecrutadorServlet recrutadorServlet) {
+        this(controller, sessao)
+        this.recrutadorServlet = recrutadorServlet
+    }
+
     @Override
     protected void doPost(
             HttpServletRequest request,
             HttpServletResponse response) {
+        if (request.pathInfo && request.pathInfo != '/') {
+            if (request.pathInfo ==~ /\/[^\/]+\/recrutadores/ && recrutadorServlet != null) {
+                recrutadorServlet.doPost(request, response)
+                return
+            }
+            erro(response, 404, 'Rota inexistente.')
+            return
+        }
         response.setContentType("application/json")
         response.setCharacterEncoding("UTF-8")
 
         try {
-            Map dados = new JsonSlurper().parse(request.inputStream)
+            Map dados = lerJson(request, ['nome', 'email', 'senha', 'cnpj', 'pais', 'estado', 'cep', 'descricao'])
+            validarCampos(dados, true)
 
             CadastrarEmpresaDTO dto = new CadastrarEmpresaDTO(
                     dados.nome as String,
@@ -48,9 +66,12 @@ class EmpresaServlet extends HttpServlet {
             empresaController.cadastrarEmpresa(dto)
 
             response.status = HttpServletResponse.SC_CREATED
-        } catch (Exception e) {
-            response.status = HttpServletResponse.SC_BAD_REQUEST
-            response.writer.write([erro: "JSON inválido ou campos em formato incorreto, verifique se o Estado e País estão disponíveis."])
+        } catch (com.jpcode.exception.conta.IdentificadorEmUsoException ignored) {
+            erro(response, 409, 'Identificador já utilizado por conta ativa.')
+        } catch (IllegalArgumentException | java.time.DateTimeException | groovy.json.JsonException | PaisNaoEncontradoException | EstadoNaoEncontradoException | com.jpcode.exception.referencia.CompetenciaNaoEncontradaException ignored) {
+            erro(response, 400, 'JSON, campos ou referências inválidos.')
+        } catch (Exception ignored) {
+            erro(response, 500, 'Erro interno ao processar requisição.')
         }
     }
 
@@ -104,7 +125,8 @@ class EmpresaServlet extends HttpServlet {
             HttpServletResponse response
     ) {
         try {
-            Map dados = new JsonSlurper().parse(request.inputStream) as Map
+            Map dados = lerJson(request, ['nome', 'email', 'senha', 'cnpj', 'pais', 'estado', 'cep', 'descricao'], ['ativo'])
+            validarCampos(dados, false)
 
             AtualizarEmpresaDTO dto = new AtualizarEmpresaDTO(
                     idPath.toLong(),
@@ -131,9 +153,13 @@ class EmpresaServlet extends HttpServlet {
         } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
             response.status = HttpServletResponse.SC_BAD_REQUEST
             response.writer.write(
-                    JsonOutput.toJson([erro: e.message])
+                    JsonOutput.toJson([erro: "Referência inválida."])
             )
 
+        } catch (com.jpcode.exception.conta.IdentificadorEmUsoException ignored) {
+            erro(response, 409, 'Identificador já utilizado por conta ativa.')
+        } catch (IllegalArgumentException | groovy.json.JsonException ignored) {
+            erro(response, 400, 'JSON ou campos inválidos.')
         } catch (Exception e) {
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
             response.writer.write(
@@ -204,4 +230,8 @@ class EmpresaServlet extends HttpServlet {
         }
     }
 
+    private static void validarCampos(Map dados, boolean cadastro) {
+        ['nome', 'email', 'senha', 'cnpj', 'pais', 'estado', 'cep', 'descricao'].each { texto(dados, it) }
+        if (dados.containsKey('ativo') && !(dados.ativo instanceof Boolean)) throw new IllegalArgumentException()
+    }
 }

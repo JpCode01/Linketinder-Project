@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02, T03, T04, T05, T06, T07, T08, T09 e T10 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09 e T10 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa.
+Status: T01, T02, T03, T04, T05, T06, T07, T08, T09, T10 e T11 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09, T10 e T11 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -498,6 +498,39 @@ Serviço e controller expõem `consultarMatchesEmpresa`, `consultarMatchesCandid
 - **Validação:** testes de parsing, método/rota, campos inválidos, status e lista permitida de propriedades; mocks de servlet não substituem navegador real de T18. Verificar origem permitida, origem rejeitada e preflight.
 - **Conclusão:** cada capacidade obrigatória possui rota e consumidor planejado compatíveis; nenhum endpoint antigo evita validação nova.
 
+**Estado da T11 em 08/11/2026: concluída e validada no escopo HTTP backend.** Conferidos checkout inicialmente limpo em `feature/recruiter`, entregas T01–T10, contratos reais, composição manual, DDL atual e suportes de teste. Aplicada a skill `skills/feature-com-spec/SKILL.md`; a autorização explícita deste pedido prevalece sobre o checkpoint de commit. Nenhum `git add`, `git commit` ou `git push` executado.
+
+**Implementação:** registradas as capacidades obrigatórias de 3.5: cadastro empresarial e perfil próprio de recrutador, áreas, países/estados, criação autoral e consultas internas de vagas, interesse inicial/curtidas, interessados, retribuição e matches dos três perfis. As servlets usam controllers existentes, sem SQL ou nova regra de domínio. Países e estados têm leitura pelo contrato de persistência, DAO, serviço e controller; competências continuam `string[]`. `JsonServlet` concentra parsing, validação de campos, métodos, serialização e erros HTTP. A empresa encaminha somente o POST de cadastro de recrutador ao handler correspondente, preservando os demais caminhos empresariais.
+
+O ator vem exclusivamente de `SessaoHttp`, com revalidação de atividade. IDs delimitam recursos e titularidade; propriedade/autoria e reciprocidade continuam verificadas pelos serviços/DAOs de T08–T10. GET de descoberta de vagas exige candidato ativo e mantém o DTO anônimo; POST empresarial e PUT de vaga exigem empresa ativa, derivam seu ID da sessão e impedem injeção de autoria ou propriedade alheia. POSTs em subcaminhos de cadastro não criam contas. Perfis próprios e listagens mantêm as restrições de T10. Nenhum endpoint opcional de recrutador ou gravação direta de match foi disponibilizado.
+
+`CorsFilter`, registrado no contexto existente, permite somente `http://127.0.0.1:5500` com credenciais, responde preflight sem exigir sessão e valida origem e conteúdo JSON nas mutações. Cookies preservam HttpOnly/SameSite=Lax, conferidos em HTTP real. Códigos compatíveis de sucesso permanecem `200`/`201`/`204`. Formato/campos/referências inválidos retornam `400`, sessão ausente/inativa `401`, escopo incompatível `403`, recurso/rota inexistente `404`, conflitos de identificadores/estado da retribuição `409` e falhas inesperadas `500` genérico; método não permitido retorna `405`. Ajustados erros antigos de cadastro/atualização e o erro empresarial antes escrito como representação de Map, agora JSON válido. Erros não reproduzem mensagens SQL ou dados enviados pelo cliente.
+
+**Arquivos criados:** `B/api/filter/CorsFilter.groovy`; `B/api/servlet/{JsonServlet,RecrutadorServlet,AreaRecrutamentoServlet,ReferenciaServlet,CurtidaServlet,MatchServlet}.groovy`; `T/api/servlet/ContratoHttpTest.groovy`; `T/integracao/ContratoHttpPostgresTest.groovy`. **Modificados:** `B/api/servlet/{CandidatoServlet,EmpresaServlet,VagaServlet,CompetenciaServlet,LoginServlet}.groovy`, `B/config/ApiServletConfig.groovy`, `B/controller/referencia/ReferenciaController.groovy`, `B/service/ReferenciaService.groovy`, `B/dao/contratos/ReferenciaRepository.groovy`, `B/dao/referencia/{PaisDAO,EstadoDAO}.groovy`, `T/api/servlet/{VagaServletTest,VisibilidadeServletTest}.groovy`, `CHANGELOG.md` e este plano. Os dois testes anteriores recebem o contexto de candidato agora obrigatório. Sem mudanças no frontend, schema, DTOs anônimos, dependências ou terminal.
+
+**Segurança do banco antes das escritas:** auditados todos os pontos de conexão e setup/cleanup da suíte. `SuportePostgres` exige URL/usuário/senha de teste, rejeita configuração parcial, parâmetros JDBC e bancos fora de `linketinder_test`/`linketinder_test_<sufixo>`, e confere `current_database()` em cada conexão. `SuporteContasPostgres` cria schema aleatório, usa apenas esse schema no `search_path` e limita `DROP SCHEMA` ao nome criado/validado. Os demais casos usam esse suporte ou rollback de schema transacional. A jornada HTTP injeta explicitamente todos os DAOs reais e a factory dedicada na composição de teste; nenhum caminho de conexão faz fallback ao desenvolvimento. O construtor de `DaoConfig` não abre conexão. Preparação, mutações de inatividade, contagens e limpeza usam exclusivamente a factory validada. Não foram executados exemplos SQL legados, migrações, resets ou escritas de desenvolvimento.
+
+**Comandos e resultados executados:**
+
+- `.\gradlew.bat compileGroovy compileTestGroovy` — bloqueado inicialmente pelo acesso ao cache Gradle no sandbox; repetição autorizada fora dele: **BUILD SUCCESSFUL**.
+- `.\gradlew.bat test --tests 'com.jpcode.api.*'` — as rodadas iniciais identificaram construção incorreta de mocks/fixtures sem construtores e um PUT de teste sem JSON; corrigidos. A ampliação das rotas/testes também teve falhas de sintaxe Groovy/Spock corrigidas antes da validação final.
+- `.\build\validar-t11.ps1` — carregador temporário local, ignorado pelo Git, que lê somente as três variáveis de teste do `.env`, valida a URL dedicada antes da execução e não imprime seus valores. Política de scripts bloqueou o sandbox; execução autorizada fora dele rodou `.\gradlew.bat test --tests 'com.jpcode.api.*' --tests 'com.jpcode.integracao.ContratoHttpPostgresTest'`: **BUILD SUCCESSFUL, 126 testes, zero falhas, erros ou ignorados**. Essa rodada precedeu seis casos adicionais de IDs inválidos e a ampliação da continuidade após inatividade, incluídos no build completo abaixo.
+- `.\build\validar-t11.ps1 -Completo` — executou `.\gradlew.bat build --rerun-tasks` com a mesma configuração dedicada: **BUILD SUCCESSFUL, 424 testes, zero falhas, erros ou ignorados**, confirmados nos **21 XMLs** de `build/test-results/test/`. Inclui **67 novos casos HTTP** com controllers mockados e transporte/Tomcat/sessão reais, **uma nova jornada HTTP/JDBC real**, 64 testes anteriores de servlet, 105 de serviços, 15 de fachada, 165 JDBC anteriores e sete do suporte de segurança. Compilação, JAR e JaCoCo concluídos. Para reexecutar sem o carregador local, carregar explicitamente `LINKETINDER_TEST_JDBC_URL`, `LINKETINDER_TEST_DB_USER` e `LINKETINDER_TEST_DB_PASSWORD` no ambiente do processo e usar o comando Gradle correspondente; não publicar os valores.
+- Revisão integral do diff, inclusive arquivos novos, e `git diff --check` — sem erros de whitespace; mudanças restritas à T11. Relatórios em `build/reports/tests/test/` e `build/reports/jacoco/test/`.
+
+**Critérios específicos de T11 verificados:**
+
+| Critério | Evidência observada |
+| --- | --- |
+| Parsing, método/rota, campos inválidos e códigos | HTTP real verifica corpos inválidos, IDs malformados, injeção de ator/empresa/autoria, métodos opcionais indisponíveis, rotas extras e erros genéricos; jornada real verifica `201`, `204`, `400`, `401`, `403` e `409`. |
+| Propriedades permitidas e anonimato | Igualdade exata de chaves em descoberta por lista/ID, curtidas e interessados; perfil próprio de recrutador sem credenciais; contrato completo de match com somente nome/área do recrutador. Match em A mantém descoberta anônima e não libera o colega de B. |
+| Sessão, atividade, titularidade e escopo | Ausência de sessão em cada superfície protegida; perfil/ID divergentes; empresa alheia; colega da mesma empresa; inativação após login e invalidação da sessão. Empresa continua consultando autoria histórica e forma novo match após inatividade do autor. |
+| CORS, preflight e cookies | Origem explícita/credenciais, rejeição de origem divergente/ausente nas mutações, JSON obrigatório, preflight sem sessão e bloqueio de cabeçalhos não permitidos; cookies reais com HttpOnly/SameSite=Lax. |
+| Rotas e consumidores planejados compatíveis | Catálogos mantêm nomes/siglas e formatos de 3.5; criação empresarial e autoral, perfil, interesse, retribuição e matches operam pela composição real. Curtida inicial não gera match, repetição não duplica e retribuição em outra vaga não ocorre sem interesse. |
+| Integridade/transações preservadas | Jornada HTTP confirma N:N, ausência de vaga parcial com competência inválida, nenhuma retribuição/match nas falhas e unicidade após repetição. Regressão JDBC T01–T10 repete FKs, rollback, locks e concorrência; nenhuma transação foi transferida às servlets. |
+
+**Limites e parada:** nenhum bloqueio ou validação pendente no escopo específico de T11. Os testes de transporte Java não executam um navegador; cookies/CORS no navegador e aceite full-stack dos CA compartilhados continuam em T18. Clientes/DTOs/serviços frontend permanecem para T12 e jornadas/seletor para T13–T17; CA-25 não é declarado concluído no frontend. T12 e posteriores não implementadas, endpoints opcionais continuam excluídos, especificação aprovada e status das demais tarefas preservados. Consumo de tokens não disponível como medição confiável.
+
 ### Frontend
 
 ### T12 — Criar clientes HTTP e adaptar composição assíncrona
@@ -725,7 +758,7 @@ Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decis
 - [x] T08 — Criação e consulta de vagas (evidências e limites registrados na tarefa).
 - [x] T09 — Interesse, retribuição e match atômicos (evidências e limites registrados na tarefa).
 - [x] T10 — Matches e matriz de visibilidade (evidências e limites registrados na tarefa).
-- [ ] T11 — Rotas, contratos e acesso pelo navegador.
+- [x] T11 — Rotas, contratos e acesso pelo navegador (superfície HTTP validada; navegador real permanece em T18).
 - [ ] T12 — Clientes/DTOs e serviços assíncronos.
 - [ ] T13 — Cadastros e login frontend.
 - [ ] T14 — Seletor de competências.

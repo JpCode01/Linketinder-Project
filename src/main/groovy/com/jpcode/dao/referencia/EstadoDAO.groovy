@@ -62,4 +62,13 @@ class EstadoDAO implements ReferenciaRepository {
             return Optional.of(resultSet.getLong("id"))
         }
     }
+    List<Estado> buscar() {
+        try (def conexao = connectionFactory.getConnection();
+             def comando = conexao.prepareStatement('SELECT id, sigla FROM estados ORDER BY id');
+             def resultado = comando.executeQuery()) {
+            List<Estado> referencias = []
+            while (resultado.next()) referencias.add(new Estado(resultado.getLong('id'), resultado.getString('sigla')))
+            return referencias
+        }
+    }
 }

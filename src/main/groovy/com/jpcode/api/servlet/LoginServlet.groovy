@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
-class LoginServlet extends HttpServlet {
+class LoginServlet extends JsonServlet {
     private final CandidatoController candidatoController
     private final EmpresaController empresaController
     private final RecrutadorController recrutadorController
@@ -25,6 +25,8 @@ class LoginServlet extends HttpServlet {
         this.recrutadorController = recrutadorController
         this.sessaoHttp = sessaoHttp
     }
+
+    protected List<String> metodosPermitidos() { ['POST'] }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {

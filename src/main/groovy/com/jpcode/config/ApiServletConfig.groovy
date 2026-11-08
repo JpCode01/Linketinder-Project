@@ -1,13 +1,12 @@
 package com.jpcode.config
 
-import com.jpcode.api.servlet.CompetenciaServlet
-import com.jpcode.api.servlet.LoginServlet
-import com.jpcode.api.servlet.CandidatoServlet
-import com.jpcode.api.servlet.VagaServlet
+import com.jpcode.api.servlet.*
+import com.jpcode.api.filter.CorsFilter
+import org.apache.tomcat.util.descriptor.web.FilterDef
+import org.apache.tomcat.util.descriptor.web.FilterMap
 import org.apache.catalina.Context
 import org.apache.catalina.startup.Tomcat
 import org.apache.tomcat.util.http.Rfc6265CookieProcessor
-import com.jpcode.api.servlet.EmpresaServlet
 
 class ApiServletConfig {
 
@@ -32,6 +31,16 @@ class ApiServletConfig {
         ['candidato', 'empresa', 'recrutador'].each { tipo ->
             contexto.addServletMapping("/login/${tipo}".toString(), 'loginServlet')
         }
+        def filtro = new FilterDef(filterName: 'corsFilter', filter: new CorsFilter())
+        contexto.addFilterDef(filtro)
+        def mapeamento = new FilterMap(filterName: 'corsFilter')
+        mapeamento.addURLPattern('/*')
+        contexto.addFilterMap(mapeamento)
+        registrar('recrutadorServlet', new RecrutadorServlet(controllerConfig.recrutadorController, controllerConfig.vagaController, controllerConfig.sessaoHttp), ['/recrutadores', '/recrutadores/*'])
+        registrar('areaRecrutamentoServlet', new AreaRecrutamentoServlet(controllerConfig.recrutadorController), ['/areas-recrutamento'])
+        registrar('referenciaServlet', new ReferenciaServlet(controllerConfig.referenciaController), ['/referencias/*'])
+        registrar('curtidaServlet', new CurtidaServlet(controllerConfig.vagaController, controllerConfig.matchController, controllerConfig.sessaoHttp), ['/curtidas/*'])
+        registrar('matchServlet', new MatchServlet(controllerConfig.matchController, controllerConfig.sessaoHttp), ['/matches/*'])
         registrarCompetenciaServlet()
         registrarCandidatoServlet()
         registrarEmpresaServlet()
@@ -76,7 +85,8 @@ class ApiServletConfig {
                 contexto,
                 "empresaServlet",
                 new EmpresaServlet(
-                        controllerConfig.empresaController, controllerConfig.sessaoHttp
+                        controllerConfig.empresaController, controllerConfig.sessaoHttp,
+                        new RecrutadorServlet(controllerConfig.recrutadorController, controllerConfig.vagaController, controllerConfig.sessaoHttp)
                 )
         )
 
@@ -96,7 +106,7 @@ class ApiServletConfig {
                 contexto,
                 "vagaServlet",
                 new VagaServlet(
-                        controllerConfig.vagaController
+                        controllerConfig.vagaController, controllerConfig.sessaoHttp
                 )
         )
 
@@ -109,5 +119,9 @@ class ApiServletConfig {
                 "/vagas/*",
                 "vagaServlet"
         )
+    }
+    private void registrar(String nome, jakarta.servlet.http.HttpServlet servlet, List<String> rotas) {
+        tomcat.addServlet(contexto, nome, servlet)
+        rotas.each { contexto.addServletMapping(it, nome) }
     }
 }

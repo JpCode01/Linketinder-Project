@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletResponse
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
-class CandidatoServlet extends HttpServlet {
+class CandidatoServlet extends JsonServlet {
 
     private final SessaoHttp sessaoHttp
     private final CandidatoController candidatoController
@@ -27,13 +27,20 @@ class CandidatoServlet extends HttpServlet {
         this.sessaoHttp = sessaoHttp
     }
 
+    protected List<String> metodosPermitidos() { ['GET', 'POST', 'PUT'] }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        if (request.pathInfo && request.pathInfo != '/') {
+            erro(response, 404, 'Rota inexistente.')
+            return
+        }
         response.setContentType("application/json")
         response.setCharacterEncoding("UTF-8")
 
         try {
-            Map dados = new JsonSlurper().parse(request.inputStream)
+            Map dados = lerJson(request, ['nome', 'sobrenome', 'email', 'senha', 'cpf', 'dataNascimento', 'pais', 'idade', 'estado', 'cep', 'descricao', 'competencias'])
+            validarCampos(dados, true)
 
             CadastrarCandidatoDTO dto = new CadastrarCandidatoDTO(
                     dados.nome as String,
@@ -51,11 +58,12 @@ class CandidatoServlet extends HttpServlet {
             )
             candidatoController.cadastrarCandidato(dto)
             response.status  = HttpServletResponse.SC_CREATED
-        } catch (Exception e) {
-            response.status = HttpServletResponse.SC_BAD_REQUEST
-            response.writer.write(
-                    JsonOutput.toJson([erro: "JSON inválido ou campos em formato incorreto, verifique se o Estado e País estão disponíveis."])
-            )
+        } catch (com.jpcode.exception.conta.IdentificadorEmUsoException ignored) {
+            erro(response, 409, 'Identificador já utilizado por conta ativa.')
+        } catch (IllegalArgumentException | java.time.DateTimeException | groovy.json.JsonException | PaisNaoEncontradoException | EstadoNaoEncontradoException | com.jpcode.exception.referencia.CompetenciaNaoEncontradaException ignored) {
+            erro(response, 400, 'JSON, campos ou referências inválidos.')
+        } catch (Exception ignored) {
+            erro(response, 500, 'Erro interno ao processar requisição.')
         }
     }
 
@@ -168,7 +176,8 @@ class CandidatoServlet extends HttpServlet {
             HttpServletResponse response
     ) {
         try {
-            Map dados = new JsonSlurper().parse(request.inputStream) as Map
+            Map dados = lerJson(request, ['nome', 'sobrenome', 'email', 'senha', 'cpf', 'dataNascimento', 'pais', 'idade', 'estado', 'cep', 'descricao'], ['ativo'])
+            validarCampos(dados, false)
 
             AtualizarCandidatoDTO dto = new AtualizarCandidatoDTO(
                     idPath.toLong(),
@@ -204,7 +213,7 @@ class CandidatoServlet extends HttpServlet {
         } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
             response.status = HttpServletResponse.SC_BAD_REQUEST
             response.writer.write(
-                    JsonOutput.toJson([erro: e.message])
+                    JsonOutput.toJson([erro: "Referência inválida."])
             )
 
         } catch (NumberFormatException | DateTimeParseException e) {
@@ -213,6 +222,10 @@ class CandidatoServlet extends HttpServlet {
                     JsonOutput.toJson([erro: "ID, data ou campo numérico inválido."])
             )
 
+        } catch (com.jpcode.exception.conta.IdentificadorEmUsoException ignored) {
+            erro(response, 409, 'Identificador já utilizado por conta ativa.')
+        } catch (IllegalArgumentException | groovy.json.JsonException ignored) {
+            erro(response, 400, 'JSON ou campos inválidos.')
         } catch (Exception e) {
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
             response.writer.write(
@@ -223,4 +236,11 @@ class CandidatoServlet extends HttpServlet {
         }
     }
 
+    private static void validarCampos(Map dados, boolean cadastro) {
+        ['nome', 'sobrenome', 'email', 'senha', 'cpf', 'pais', 'estado', 'cep', 'descricao'].each { texto(dados, it) }
+        if (!(dados.dataNascimento instanceof String)) throw new IllegalArgumentException()
+        if (!(dados.idade instanceof Integer) || dados.idade < 0) throw new IllegalArgumentException()
+        if (cadastro) competencias(dados)
+        if (dados.containsKey('ativo') && !(dados.ativo instanceof Boolean)) throw new IllegalArgumentException()
+    }
 }

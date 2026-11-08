@@ -8,6 +8,9 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Rotas HTTP de cadastro/perfil de recrutador, áreas e referências, vagas por titular, curtidas e matches, conectadas aos controllers existentes com sessão e escopo por ator (T11).
+- Filtro CORS para `http://127.0.0.1:5500`, credenciais, preflight e validação de origem/JSON nas mutações; suporte comum a respostas e erros JSON sem detalhes internos (T11).
+- Testes de contratos em Tomcat real e jornada HTTP com PostgreSQL dedicado para persistência, isolamento, anonimato, reciprocidade e autoria histórica (T11).
 - Consultas backend de matches restritas ao candidato titular, empresa proprietária ou recrutador autor ativo, com nome e área do autor no contrato pós-match, inclusive quando ele está inativo no histórico (T10).
 - Testes de visibilidade de perfis, JSON anônimo e consultas JDBC de matches para isolamento por titular/vaga, autoria histórica e preservação dos campos autorizados sem credenciais (T10).
 - Operações backend explícitas de retribuição e consulta de interessados por empresa proprietária ou recrutador autor ativo, com contratos anônimos preservados e continuidade empresarial após inatividade do autor (T09).
@@ -44,6 +47,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Descoberta, criação e atualização HTTP de vagas exigem sessão ativa e perfil/escopo apropriados; criação empresarial usa o ator autenticado e rejeita injeção de autoria ou empresa divergente (T11).
+- Entradas HTTP de cadastro/atualização validam formato e campos permitidos; conflitos de identificadores retornam `409`, entradas inválidas `400` e falhas inesperadas erros genéricos `500`, preservando contratos de sucesso compatíveis (T11).
 - Consultas HTTP de candidato e empresa por ID restritas ao próprio perfil com sessão ativa; listagens identificáveis bloqueadas. A mesma restrição de titular protege a atualização existente desses perfis (T10).
 - Retribuição contextualizada por candidato/vaga e gravação de match na mesma conexão/transação, com revalidação de atividade, propriedade, autoria e interesse prévio; interesse inicial permanece único e não gera match. Operações legadas sem contexto de ator/vaga e gravação direta de match são bloqueadas (T09).
 - Renomeado o método empresarial de criação de vagas para `criarVagaEmpresa` no controller, serviço e testes, explicitando o ator e evitando sobrecarga ambígua sobre o contexto de autorização. Preservados `criarVagaRecrutador` e o método legado `criarVaga(CadastrarVagaDTO)`, sem mudanças de comportamento; convenção permanente registrada em `AGENTS.md`.
@@ -60,6 +65,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Corrigido
 
+- Resposta de erro do cadastro empresarial serializada como JSON válido; POSTs em subcaminhos de cadastro não criam contas fora das rotas aprovadas (T11).
 - Consulta empresarial de competências do candidato nos matches utiliza `buscarPorId`, conforme o contrato de persistência (T10).
 - Exclusão JDBC de vaga remove match e retribuição antes da vaga na mesma transação, revertendo todas as remoções em caso de falha e preservando os cascades existentes (T09).
 - Criação de vaga não deixa registros parciais quando uma competência é inválida ou uma associação falha; atualização valida o escopo empresarial sem alterar propriedade ou autoria. Consulta HTTP por ID utiliza o DTO anônimo, evitando expor os campos internos da entidade ampliada (T08).

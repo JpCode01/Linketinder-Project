@@ -147,7 +147,7 @@ class VisibilidadeServletTest extends Specification {
         vagas.buscarVaga(7L) >> vaga
         vagas.buscarCompetenciasDeVaga(7L) >> competencias
         when:
-        new VagaServlet(vagas).doGet(request, response)
+        new VagaServlet(vagas, Stub(SessaoHttp, constructorArgs: [null, null, null]) { recuperarAtor(_) >> [id: 1L, tipo: 'candidato'] }).doGet(request, response)
         then:
         1 * response.setStatus(200)
         def itens = json() instanceof List ? json() : [json()]
