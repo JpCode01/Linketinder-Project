@@ -8,6 +8,9 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Cadastro backend de recrutador pela empresa ativa, com área persistida, senha derivada, atividade inicial forçada, consulta restrita ao próprio perfil por DTO sem credenciais e leitura das áreas de recrutamento (T06).
+- Protocolo transacional JDBC de validação de identificadores, com locks ordenados nos três perfis, unicidade concorrente de e-mail entre contas ativas e conflitos de domínio sem detalhes SQL (T06).
+- Testes unitários de recrutador e integração PostgreSQL com conexões independentes para concorrência, rollback, liberação de locks e reutilização de identificadores sem transferência de vínculos históricos (T06).
 - Serviço de senhas PBKDF2-HMAC-SHA256 com 600.000 iterações, salt aleatório individual de 16 bytes, chave de 256 bits e representação versionada com validação estrita, sem fallback para texto simples (T05).
 - Testes unitários e JDBC de derivação, login, atualização de senha e bloqueio de contas inativas para candidatos e empresas, incluindo ausência de credenciais nos erros e nos DTOs de perfil serializados (T05).
 - FKs de reciprocidade e propriedade empresarial no DDL atual, impedindo retribuição sem interesse na vaga e match sem a retribuição correspondente; vínculo opcional do recrutador ator à mesma empresa (T04).
@@ -33,6 +36,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Cadastro, atualização e desativação nos DAOs de candidato e empresa participam do mesmo protocolo de gravação de contas; cadastro de recrutador utiliza esse protocolo, preservando CPF por perfil, CNPJ empresarial e reutilização após inatividade. Testes JDBC de senhas passam a usar conexões próprias com transações reais em schema isolado (T06).
 - Cadastro e atualização de candidatos e empresas derivam a senha antes da persistência; login busca conta ativa por e-mail e verifica o hash no serviço, sem comparar senha no SQL (T05).
 - Retribuição empresarial contextualizada por vaga no DDL atual, com ator recrutador opcional e unicidade por candidato/vaga também no match; adaptação dos DAOs e atomicidade permanecem para T09 (T04).
 - Substituídas as unicidades permanentes de CPF/e-mail de candidatos e CNPJ/e-mail de empresas por unicidades condicionadas à atividade, permitindo reutilização sem transferência de histórico (T03).

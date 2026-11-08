@@ -1,5 +1,7 @@
 package com.jpcode.config
 
+import com.jpcode.controller.recrutador.RecrutadorController
+
 import com.jpcode.controller.candidato.CandidatoController
 import com.jpcode.controller.competencia.CompetenciaController
 import com.jpcode.controller.empresa.EmpresaController
@@ -9,6 +11,7 @@ import com.jpcode.controller.vaga.VagaController
 import com.jpcode.facade.MatchFacade
 
 class ControllerConfig {
+    final RecrutadorController recrutadorController
 
     final CandidatoController candidatoController
     final EmpresaController empresaController
@@ -18,6 +21,8 @@ class ControllerConfig {
     final ReferenciaController referenciaController
 
     ControllerConfig(ServiceConfig serviceConfig) {
+        recrutadorController = new RecrutadorController(serviceConfig.recrutadorService)
+
 
         candidatoController = new CandidatoController(
                 serviceConfig.candidatoService
@@ -49,4 +54,5 @@ class ControllerConfig {
                 serviceConfig.referenciaService
         )
     }
+
 }

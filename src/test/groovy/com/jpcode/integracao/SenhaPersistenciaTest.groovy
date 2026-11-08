@@ -17,16 +17,13 @@ import com.jpcode.service.SenhaService
 import groovy.json.JsonOutput
 import spock.lang.Specification
 
-import java.lang.reflect.InvocationTargetException
-import java.lang.reflect.Proxy
-import java.sql.Connection
 import java.time.LocalDate
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
 /** T05: serviços e DAOs reais, somente no banco/schema isolado de SuportePostgres. */
 class SenhaPersistenciaTest extends Specification {
-    Connection conexao
+    SuporteContasPostgres banco
     CandidatoDAO candidatoDAO
     EmpresaDAO empresaDAO
     CandidatoService candidatoService
@@ -35,23 +32,8 @@ class SenhaPersistenciaTest extends Specification {
 
     def setup() {
         assumeTrue(SuportePostgres.configurado(), 'Integração NÃO EXECUTADA: configure o banco dedicado de testes.')
-        conexao = SuportePostgres.abrir()
-        SuportePostgres.criarSchemaAtual(conexao)
-        conexao.createStatement().withCloseable { comando ->
-            comando.execute("INSERT INTO pais (nome) VALUES ('BRASIL'); INSERT INTO estados (sigla) VALUES ('SP')")
-        }
-        // DAOs fecham a conexão recebida. Este proxy só adia close para cleanup,
-        // mantendo todas as operações reais na transação descartável do teste.
-        Connection emprestada = (Connection) Proxy.newProxyInstance(Connection.classLoader,
-                [Connection] as Class[], { Object proxy, java.lang.reflect.Method metodo, Object[] argumentos ->
-            if (metodo.name == 'close') return null
-            try {
-                return metodo.invoke(conexao, argumentos)
-            } catch (InvocationTargetException erro) {
-                throw erro.cause
-            }
-        } as java.lang.reflect.InvocationHandler)
-        ConnectionFactory factory = Stub() { getConnection() >> emprestada }
+        banco = new SuporteContasPostgres()
+        ConnectionFactory factory = banco.factory
         candidatoDAO = new CandidatoDAO(factory)
         empresaDAO = new EmpresaDAO(factory)
         def pais = new PaisDAO(factory)
@@ -63,7 +45,7 @@ class SenhaPersistenciaTest extends Specification {
     }
 
     def cleanup() {
-        SuportePostgres.fechar(conexao)
+        banco?.close()
     }
 
     def 'cadastro atualizacao e login usam hash real para #perfil'() {

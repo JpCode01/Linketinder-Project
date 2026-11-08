@@ -30,7 +30,7 @@ class SuportePostgres {
         endereco.group(1)
     }
 
-    static Connection abrir(Map<String, String> ambiente = System.getenv()) {
+    static Connection conectar(Map<String, String> ambiente = System.getenv()) {
         String banco = validarConfiguracao(ambiente)
         Properties propriedades = new Properties()
         propriedades.setProperty('user', ambiente[USUARIO])
@@ -46,6 +46,16 @@ class SuportePostgres {
                     }
                 }
             }
+            return conexao
+        } catch (Exception erro) {
+            conexao.close()
+            throw erro
+        }
+    }
+
+    static Connection abrir(Map<String, String> ambiente = System.getenv()) {
+        Connection conexao = conectar(ambiente)
+        try {
             conexao.autoCommit = false
             String schema = 'linketinder_test_' + UUID.randomUUID().toString().replace('-', '')
             conexao.createStatement().withCloseable { comando ->

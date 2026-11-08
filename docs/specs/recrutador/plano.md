@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02, T03, T04 e T05 concluídas e validadas; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05 autorizada explicitamente em 08/11/2026, sem execução de commits pelos agentes.
+Status: T01, T02, T03, T04, T05 e T06 concluídas e validadas; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05 e T06 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -278,6 +278,40 @@ Cadastros e atualizações de candidato/empresa derivam a senha no serviço ante
 - **Validação:** mocks para referências inválidas e cadastro; JDBC concorrente entre cada par de perfis, inclusive mesmo perfil, com barreira de início e conexões separadas; testar atualização concorrente e reutilização após inatividade. Auditar todos os INSERTs/UPDATEs de contas.
 - **Conclusão:** somente uma conta ativa pode confirmar o mesmo e-mail; mesmo CPF entre candidato/recrutador continua permitido; falha libera locks e não altera dados.
 
+**Estado da T06 em 08/11/2026: concluída.** Implementados entidade própria de recrutador (sem herdar `Pessoa`), área, DTOs de cadastro/perfil, contratos, DAOs, serviço e controller com composição manual nas três configurações existentes. `RecrutadorService.cadastrarRecrutador` recebe a empresa operante separadamente do DTO, exige empresa ativa e área existente, deriva a senha antes da persistência e força atividade inicial. O DAO revalida a empresa após obter os locks e protege a referência da área com `FOR KEY SHARE`. Cadastro e consulta própria retornam somente `RecrutadorViewDTO`, sem senha/hash/salt; consulta rejeita titular divergente, ausente ou inativo. A leitura das áreas vem do banco, sem catálogo fixo ou interface de gestão.
+
+`ValidacaoContaDAO` possui a conexão e a transação: `READ COMMITTED`, locks `SHARE ROW EXCLUSIVE` na ordem `candidatos`, `empresas`, `recrutadores`, validação de e-mail ativo nos três perfis, CPF/CNPJ no perfil correto, escrita na mesma conexão e commit ou rollback com fechamento. Atualização exclui somente a própria linha do próprio perfil e exige atividade persistida; desativação participa dos mesmos locks. Os sete escritores existentes estão abrangidos: `salvar`, `atualizarDados` e `desativar` de candidato/empresa, e `salvar` de recrutador. Não foram criados atualização/desativação de recrutador ou endpoints opcionais. Os índices parciais de T03 permanecem como defesa intratabela; conflitos usam `IdentificadorEmUsoException` com mensagem genérica, sem SQL ou identificadores de terceiros. Não foi introduzida normalização de identificadores, identidade central ou trigger.
+
+**Arquivos:** criados os do campo “Novos” desta tarefa e dois suportes necessários: `B/dao/contratos/AreaRecrutamentoRepository.groovy`, que acrescenta listagem ao contrato de referências sem modificar seus consumidores, e `T/integracao/SuporteContasPostgres.groovy`, para transações confirmadas em conexões independentes. Alterados os dois DAOs de contas existentes e as três configurações. `T/integracao/SuportePostgres.groovy` extrai a abertura validada de conexão para reutilização; `SenhaPersistenciaTest.groovy` substitui a conexão emprestada por conexões próprias, mantendo a regressão de T05 com o novo protocolo. Os serviços existentes de candidato/empresa já derivavam a senha e iniciavam contas ativas por T05, sem necessidade de alteração adicional. Atualizados somente este plano e o changelog na documentação.
+
+**Segurança do banco verificada antes das escritas:** revisados o suporte existente, o novo suporte e o script temporário preexistente `build/executar-t01.ps1`. O script carrega somente as variáveis `LINKETINDER_TEST_*` do `.env` para o processo, sem editar o arquivo ou imprimir valores. `SuportePostgres.conectar` exige configuração completa, aceita exclusivamente `linketinder_test`/`linketinder_test_<sufixo>`, sem parâmetros JDBC e sem fallback para `PostgresConnectionFactory`, e verifica `current_database()` em cada conexão antes das escritas. T01–T04 continuam usando rollback do schema/fixtures; os testes de contas criam e confirmam schema aleatório próprio para permitir conexões independentes. O `search_path` contém somente esse schema; cleanup usa `DROP SCHEMA ... CASCADE` exclusivamente no nome gerado, validado pelo padrão `linketinder_test_[a-f0-9]{32}`, em nova conexão igualmente validada. Os executores são encerrados antes da limpeza, com espera e timeouts limitados. Nenhum reset, migração ou escrita no banco principal foi executado; apenas o DDL atual e fixtures próprias foram usados.
+
+**Comandos e resultados observados:**
+
+- `git status --short` e `git branch --show-current` — início sem alterações preexistentes, branch `feature/recruiter`.
+- `.\gradlew.bat compileGroovy` — primeira tentativa bloqueada no sandbox pelo lock do cache `C:\.gradle`. Repetição autorizada fora dele revelou `return` com expressão em método `void` nas novas delegações de desativação; corrigido antes dos testes aprovados.
+- `.\gradlew.bat test --tests 'com.jpcode.service.RecrutadorServiceTest'` — execução autorizada fora do sandbox: compilação principal/testes e **9 testes, zero falhas, erros ou ignorados**, confirmados no XML.
+- `.\build\executar-t01.ps1` — tentativa no sandbox bloqueada pela política de scripts; primeira execução autorizada fora dele executou 189 testes com 9 falhas de comparação textual: a mensagem esperada nos testes novos continha `j?` em vez de `já` por codificação na geração do arquivo. As verificações anteriores nessas mesmas execuções já observavam somente um cadastro confirmado e um conflito de domínio. Corrigida a codificação dos arquivos novos e ampliadas as verificações de desativação concorrente, identificadores e rollback antes da repetição final.
+- `.\build\executar-t01.ps1` — repetição final autorizada, executando `.\gradlew.bat build --init-script .\build\classpath-t01.gradle exportarClasspathT01`: **BUILD SUCCESSFUL, 201 testes, zero falhas, erros ou ignorados**, conferidos nos XMLs. São **79 testes de serviços, 115 JDBC reais e 7 de segurança do suporte**. Inclui compilação, empacotamento, JaCoCo e regressão de T01–T05. Nenhuma dependência ou configuração de build versionada alterada.
+- `java -cp <conteúdo de build/runtime-t01.txt> groovy.ui.GroovyMain build/verificar-composicao-t06.groovy` — script temporário não versionado: instancia `DaoConfig → ServiceConfig → ControllerConfig`, confirma `RecrutadorController` e serializa os DTOs anônimos reais com igualdade exata das chaves `id`, `descricao`, `competencias`. **Passou**, sem iniciar servidor ou abrir conexão.
+- Auditoria dos INSERTs/UPDATEs de contas em `src/main` e revisão do diff completo, incluindo arquivos novos; `git diff --check` — todos os escritores abrangidos e sem erros de whitespace na revisão final.
+
+**Critérios de T06 e rastreabilidade:**
+
+| Critério e parcela dos requisitos | Evidência verificada |
+| --- | --- |
+| Cadastro com empresa ativa, área válida, hash e atividade inicial (RN-01; parcela backend CA-01/CA-02/CA-04) | Mocks rejeitam empresa ausente/inativa e área ausente/nula antes de derivar/persistir; round-trip de serviço/DAO reais confere hash, FKs e leitura das áreas; DAO revalida referências; três DAOs forçam ativo mesmo com entidade inativa |
+| Consulta própria sem credenciais (seção 7; parcela backend de acesso) | Unitários rejeitam titular divergente, conta ausente/inativa, conferem chaves exatas do DTO e ausência de hash; consulta própria também exercitada com JDBC real |
+| Apenas uma conta ativa confirma o e-mail (RN-08; CA-20 no escopo de persistência) | Nove combinações ordenadas de cadastro entre os três perfis, incluindo os pares do mesmo perfil; seis combinações de atualização contra cadastro; duas atualizações simultâneas; seis combinações de desativação contra cadastro. Barreira inicial, conexões reais independentes, timeouts e contagem final de e-mails ativos |
+| Serialização efetiva e revalidação posterior ao commit | Teste mantém lock e e-mail ainda não confirmado na primeira conexão, observa o segundo escritor realmente bloqueado em `pg_locks`, confirma a primeira e verifica conflito de domínio no segundo, com uma única conta ativa |
+| CPF por perfil e CNPJ empresarial (RN-07/RN-09; CA-19/CA-22 backend) | Mesmo CPF simultâneo em candidato/recrutador permitido; duplicata de CPF no próprio perfil e CNPJ empresarial rejeitada; disputa concorrente de CPF/CNPJ nos três perfis confirma somente um cadastro; conflito de UPDATE não altera os dados |
+| Reutilização inativa sem transferência (RN-07 a RN-09; CA-21 backend) | Novos IDs nos três perfis, contas antigas mantidas, vagas/interesse preservados com IDs históricos; reutilização de e-mail também entre perfis; regressão de schema de T03 preserva os demais vínculos históricos |
+| Falha reverte e libera locks | Falhas reais de INSERT nos três DAOs não reservam e-mail e permitem nova tentativa; falha SQL injetada após UPDATE na transação comum reverte a alteração e permite novas gravações concorrentes; conflitos de UPDATE também preservam dados |
+
+Os **44 casos novos JDBC** estão em `UnicidadeContaTest`; os **9 unitários novos**, em `RecrutadorServiceTest`. Relatórios em `build/reports/tests/test/` e `build/reports/jacoco/test/`. Para repetir, fornecer as três variáveis `LINKETINDER_TEST_JDBC_URL`, `LINKETINDER_TEST_DB_USER`, `LINKETINDER_TEST_DB_PASSWORD` no ambiente e executar `.\gradlew.bat build`; ausência total de configuração indica explicitamente integração não executada, sem contar como aprovação.
+
+**Anonimato, limites e conclusão:** DTOs e consultas de descoberta/match, servlets existentes, schema e frontend não foram alterados. Confirmadas por serialização as chaves exatas dos contratos anônimos; cadastro/perfil de recrutador não retornam credenciais. T06 fornece o contexto explícito de empresa/titular aos métodos backend; autenticação da origem desse contexto via sessão e restrições HTTP permanecem em T07/T11. Não foram executados testes de navegador ou HTTP, nem declarado aceite full-stack dos CA compartilhados. A garantia concorrente aplica-se a todos os escritores de contas da aplicação, não a SQL administrativo externo ao protocolo. Não há pendências ou bloqueios de T06. T07 e posteriores permanecem pendentes; especificação aprovada preservada; nenhum `git add`, `git commit` ou `git push` executado. A autorização explícita deste pedido prevalece sobre o checkpoint de commit da skill. Consumo de tokens não disponível como medição confiável.
+
 ### T07 — Autenticar os três perfis e manter contexto no servidor
 
 - **Objetivo:** fornecer login HTTP real e distinguir ator autenticado nas operações.
@@ -542,7 +576,7 @@ Registrar evidência por CA em `validacao.md`: comando/ação, ambiente, resulta
 - [x] T03 — Unicidades parciais (evidências e limites registrados na tarefa).
 - [x] T04 — Schema de retribuição e match (evidências e limites registrados na tarefa).
 - [x] T05 — Proteção de senhas (evidências e limites registrados na tarefa).
-- [ ] T06 — Cadastro e unicidade concorrente entre perfis.
+- [x] T06 — Cadastro e unicidade concorrente entre perfis (evidências e limites registrados na tarefa).
 - [ ] T07 — Login e contexto HTTP.
 - [ ] T08 — Criação e consulta de vagas.
 - [ ] T09 — Interesse, retribuição e match atômicos.
