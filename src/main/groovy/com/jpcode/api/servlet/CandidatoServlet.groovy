@@ -1,5 +1,6 @@
 package com.jpcode.api.servlet
 
+import com.jpcode.api.SessaoHttp
 import com.jpcode.controller.candidato.CandidatoController
 import com.jpcode.dto.candidato.AtualizarCandidatoDTO
 import com.jpcode.dto.candidato.CadastrarCandidatoDTO
@@ -18,10 +19,12 @@ import java.time.format.DateTimeParseException
 
 class CandidatoServlet extends HttpServlet {
 
+    private final SessaoHttp sessaoHttp
     private final CandidatoController candidatoController
 
-    CandidatoServlet(CandidatoController candidatoController) {
+    CandidatoServlet(CandidatoController candidatoController, SessaoHttp sessaoHttp) {
         this.candidatoController = candidatoController
+        this.sessaoHttp = sessaoHttp
     }
 
     @Override
@@ -68,25 +71,40 @@ class CandidatoServlet extends HttpServlet {
         String idPath = request.pathInfo?.substring(1)
 
         if (!idPath) {
-            listarCandidatos(response)
+            response.status = HttpServletResponse.SC_FORBIDDEN
+            response.writer.write(JsonOutput.toJson([erro: "Listagem de perfis não permitida."]))
             return
         }
 
+        if (!autorizarPerfilProprio(idPath, request, response)) return
         buscarCandidatoPorId(idPath, response)
     }
 
-    private void listarCandidatos(HttpServletResponse response) {
+    private boolean autorizarPerfilProprio(String idPath, HttpServletRequest request, HttpServletResponse response) {
         try {
-            response.status = HttpServletResponse.SC_OK
-            response.writer.write(
-                    JsonOutput.toJson(candidatoController.buscarCandidatos())
-            )
-        } catch (Exception e) {
-            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
-            response.writer.write(
-                    JsonOutput.toJson([erro: "Erro interno ao listar candidatos."])
-            )
+            Map ator = sessaoHttp.recuperarAtor(request)
+            if (!(idPath ==~ /[0-9]+/) || idPath.toLong() <= 0) {
+                response.status = 400
+                response.writer.write(JsonOutput.toJson([erro: 'ID inválido.']))
+                return false
+            }
+            if (ator.tipo != 'candidato' || ator.id != idPath.toLong()) {
+                response.status = 403
+                response.writer.write(JsonOutput.toJson([erro: 'Acesso restrito ao próprio perfil.']))
+                return false
+            }
+            return true
+        } catch (SecurityException ignored) {
+            response.status = 401
+            response.writer.write(JsonOutput.toJson([erro: 'Sessão ausente ou conta inativa.']))
+        } catch (NumberFormatException ignored) {
+            response.status = 400
+            response.writer.write(JsonOutput.toJson([erro: 'ID inválido.']))
+        } catch (Exception ignored) {
+            response.status = 500
+            response.writer.write(JsonOutput.toJson([erro: 'Erro interno ao validar acesso.']))
         }
+        return false
     }
 
     private void buscarCandidatoPorId(
@@ -139,6 +157,7 @@ class CandidatoServlet extends HttpServlet {
             return
         }
 
+        if (!autorizarPerfilProprio(idPath, request, response)) return
         atualizarCandidato(idPath, request, response)
     }
 

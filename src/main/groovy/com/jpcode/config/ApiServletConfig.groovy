@@ -56,7 +56,7 @@ class ApiServletConfig {
                 contexto,
                 "candidatoServlet",
                 new CandidatoServlet(
-                        controllerConfig.candidatoController
+                        controllerConfig.candidatoController, controllerConfig.sessaoHttp
                 )
         )
 
@@ -76,7 +76,7 @@ class ApiServletConfig {
                 contexto,
                 "empresaServlet",
                 new EmpresaServlet(
-                        controllerConfig.empresaController
+                        controllerConfig.empresaController, controllerConfig.sessaoHttp
                 )
         )
 

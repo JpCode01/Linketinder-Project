@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02, T03, T04, T05, T06, T07, T08 e T09 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08 e T09 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa.
+Status: T01, T02, T03, T04, T05, T06, T07, T08, T09 e T10 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09 e T10 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -454,6 +454,38 @@ As assinaturas antigas necessárias à compilação permanecem: `curtirCandidato
 - **Validação:** comparar chaves exatas dos JSONs anônimos e ausência de credenciais em todos os retornos; testar perfis/IDs alternativos, outro recrutador da mesma empresa e autor inativo. Comparar todos os campos atuais de match mais os dois novos campos permitidos.
 - **Conclusão:** a matriz da seção 6 vale na resposta HTTP e na consulta; match em A não libera contexto B.
 
+**Estado da T10 em 08/11/2026: concluída e validada no escopo backend.** Branch `feature/recruiter`, checkout inicialmente limpo; dependências T07–T09 e entregas T01–T06 conferidas no código, contratos, testes e DDL atual. Aplicada a skill `skills/feature-com-spec/SKILL.md`; a autorização explícita deste pedido permite implementar T10 sem executar o checkpoint de commit. Especificação aprovada preservada.
+
+**Implementação:** `MatchEncontradoDTO` conserva todos os campos anteriores e acrescenta somente `nomeRecrutador` e `areaRecrutamento`, anuláveis para vaga direta. O DAO compartilha o SELECT/mapeamento entre as três consultas de ator e obtém os dois campos por LEFT JOIN da autoria da vaga, sem exigir atividade do autor histórico. A consulta empresarial usa `buscarPorId` para competências do candidato. O filtro empresarial usa propriedade; o de candidato usa titularidade; o de recrutador usa autoria e atividade. A atividade do observador é exigida sem suprimir histórico de contrapartes inativas.
+
+Serviço e controller expõem `consultarMatchesEmpresa`, `consultarMatchesCandidato` e `consultarMatchesRecrutador` com IDs operante/titular explícitos. O serviço rejeita IDs divergentes, titulares ausentes/inativos e recrutador com empresa inativa antes da consulta. Métodos legados de consulta delegam à validação de atividade; o construtor usado exclusivamente para gravação transacional continua disponível e não permite consulta sem os validadores. `ServiceConfig` injeta os repositórios existentes, preservando composição manual e a transação de T09.
+
+`CandidatoServlet` e `EmpresaServlet` recebem `SessaoHttp` na composição existente. GET por ID exige sessão revalidada, perfil correspondente e ID próprio; listagens identificáveis respondem `403` sem consultar perfis. Ausência de sessão/conta inativa responde `401`, perfil/ID alheio `403`, ID inválido autenticado `400` e falha inesperada retorna erro genérico. A mesma guarda é aplicada ao PUT existente do perfil para não deixar um caminho alternativo sobre o ID protegido, sem ampliar operações ou contratos. O GET anônimo de vaga já corrigido em T08 e os DTOs anônimos não precisaram de alteração. Não foram criadas rotas de match/curtidas/recrutador nem implementada T11.
+
+**Arquivos criados:** `T/api/servlet/VisibilidadeServletTest.groovy` e `T/integracao/ConsultaMatchTest.groovy`. **Modificados:** DTO, DAO, contrato, serviço e controller de match; `ServiceConfig`, `ApiServletConfig`, servlets de candidato/empresa e `T/service/MatchServiceTest.groovy`, além deste plano e `CHANGELOG.md`. Sem alteração de schema, frontend, dependências ou menus de terminal.
+
+**Segurança do banco antes das escritas:** inspecionados setup/cleanup e todos os pontos de conexão da suíte JDBC. `SuportePostgres` exige as três variáveis `LINKETINDER_TEST_*`, rejeita configuração parcial, URL com parâmetros e bancos fora de `linketinder_test`/`linketinder_test_<sufixo>`, e confere `current_database()` em cada conexão. Não há fallback para a conexão de desenvolvimento. `SuporteContasPostgres` aplica somente o DDL atual e fixtures próprias em schema aleatório sem `public` no `search_path`; cleanup remove apenas esse schema com nome validado. Demais testes usam esse suporte ou rollback do schema transacional de `SuportePostgres`. O carregador local lê somente configuração de teste do `.env`, sem alterá-lo nem imprimir valores. Nenhuma migração, reset ou escrita de desenvolvimento foi executada.
+
+**Comandos e resultados executados:**
+
+- `.\gradlew.bat test --tests 'com.jpcode.service.MatchServiceTest' --tests 'com.jpcode.api.servlet.VisibilidadeServletTest'` — primeira tentativa bloqueada pelo cache Gradle no sandbox; repetição autorizada fora dele: **BUILD SUCCESSFUL, 50 testes, zero falhas, erros ou ignorados** (17 de serviço e 33 de servlet), confirmados nos XMLs. Compilação principal/de testes e JaCoCo concluídos.
+- `.\build\executar-t07.ps1` — script local temporário já existente e auditado, inicialmente bloqueado pela política de scripts no sandbox. Repetição autorizada carregou apenas o ambiente dedicado e executou `.\gradlew.bat build --init-script .\build\classpath-t01.gradle exportarClasspathT01 --rerun-tasks`: **BUILD SUCCESSFUL, 356 testes, zero falhas, erros ou ignorados**, confirmados nos 19 XMLs. Inclui 105 testes de serviços, 64 de servlet/contexto, 15 de fachada, 165 JDBC reais e sete de segurança do suporte. São 56 casos adicionais sobre os 300 de T09: 14 de serviço, 33 de servlet e nove JDBC. Compilação, JAR e relatório JaCoCo concluídos.
+- `java -cp <conteúdo de build/runtime-t01.txt> groovy.ui.GroovyMain build/verificar-http-t10.groovy` — script temporário não versionado iniciou Tomcat em porta efêmera com `ApiServletConfig` real. **Seis checagens HTTP passaram:** GET das duas listagens retorna `403`; GET e PUT por ID dos dois perfis sem sessão retornam `401`; respostas têm JSON com somente `erro` e mensagem esperada. Abertura de conexão de desenvolvimento foi substituída por falha explícita durante esse smoke, com contador final de **zero conexões**. Tomcat encerrado em `finally`. Não é teste de login/jornada autenticada em navegador.
+- Revisão integral do diff e dos arquivos novos; `git diff --check` sem erros. `git diff --exit-code -- docs/specs/recrutador/spec.md queriesLinketinder.sql frontend` sem alterações; `git diff --cached --stat` vazio. Relatórios em `build/reports/tests/test/` e `build/reports/jacoco/test/`.
+
+**Verificação dos critérios específicos de T10:**
+
+| Critério/parcela dos requisitos | Evidência executada |
+| --- | --- |
+| CA-06/CA-14: conjunto por titular, propriedade ou autoria | JDBC com duas empresas, três recrutadores, duas pessoas candidatas e quatro vagas confirma conjuntos exatos; serviço rejeita ID alheio e titular ausente/inativo; outro recrutador da mesma empresa não recebe o candidato do match alheio |
+| CA-13/CA-16: contrato completo e autoria correta | Comparação exata de todos os campos/valores do JSON de match autoral, incluindo competências e localização; retribuição empresarial apresenta nome/área do autor; vaga direta conserva as 21 chaves com ambos os campos novos nulos |
+| CA-15: contratos anônimos e caminhos alternativos | JSON de descoberta por lista/ID, vagas curtidas e interessados exige somente `id`, `descricao`, `competencias`; perfis/listagens alternativos são bloqueados e perfil próprio conserva lista exata de campos sem credenciais |
+| CA-17/RN-04: match em A não libera B | JDBC mantém a pessoa candidata anônima entre interessados de B; recrutador de B só identifica a outra pessoa candidata com match próprio em B; tentativa de consultar interessados de A é rejeitada; descoberta e curtidas permanecem anônimas |
+| CA-18/RN-06: autoria histórica e conta inativa | Empresa forma e consulta match com autor inativo; nome/área históricos preservados; conta inativa não consulta; histórico de contrapartes inativas continua disponível aos titulares ativos |
+| Credenciais, HTTP e regressão | Chaves exatas dos contratos de match/perfil/anônimos, erros genéricos, sessões ausentes/inativas e perfis/IDs incompatíveis testados; smoke HTTP real sem banco; regressão T01–T09, incluindo concorrência, rollback e integridade referencial, passou |
+
+**Limites e parada:** nenhum bloqueio ou validação pendente de T10. A matriz foi verificada nas consultas reais, na serialização e nas servlets existentes; ligar os novos métodos de match às sessões/rotas e verificar a superfície HTTP completa pertence a T11. Navegador, frontend e aceite full-stack dos critérios compartilhados permanecem nas tarefas posteriores, sem declaração de conclusão antecipada. Nenhum `git add`, `git commit` ou `git push` executado. Consumo de tokens não disponível como medição confiável.
+
 ### T11 — Completar e verificar a superfície HTTP dos fluxos
 
 - **Objetivo:** conectar capacidades de domínio às rotas de 3.5 e ao navegador.
@@ -692,7 +724,7 @@ Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decis
 - [x] T07 — Login e contexto HTTP (evidências e limites registrados na tarefa).
 - [x] T08 — Criação e consulta de vagas (evidências e limites registrados na tarefa).
 - [x] T09 — Interesse, retribuição e match atômicos (evidências e limites registrados na tarefa).
-- [ ] T10 — Matches e matriz de visibilidade.
+- [x] T10 — Matches e matriz de visibilidade (evidências e limites registrados na tarefa).
 - [ ] T11 — Rotas, contratos e acesso pelo navegador.
 - [ ] T12 — Clientes/DTOs e serviços assíncronos.
 - [ ] T13 — Cadastros e login frontend.

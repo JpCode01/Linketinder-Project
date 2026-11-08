@@ -51,6 +51,18 @@ class MatchController {
         return matchService.verMatchesPorCandidato(idCandidato)
     }
 
+    List<MatchEncontradoDTO> consultarMatchesEmpresa(Long idEmpresaOperante, Long idEmpresa) {
+        return matchService.consultarMatchesEmpresa(idEmpresaOperante, idEmpresa)
+    }
+
+    List<MatchEncontradoDTO> consultarMatchesCandidato(Long idCandidatoOperante, Long idCandidato) {
+        return matchService.consultarMatchesCandidato(idCandidatoOperante, idCandidato)
+    }
+
+    List<MatchEncontradoDTO> consultarMatchesRecrutador(Long idRecrutadorOperante, Long idRecrutador) {
+        return matchService.consultarMatchesRecrutador(idRecrutadorOperante, idRecrutador)
+    }
+
     void curtirCandidato(
             Long idEmpresa,
             Long idCandidato,

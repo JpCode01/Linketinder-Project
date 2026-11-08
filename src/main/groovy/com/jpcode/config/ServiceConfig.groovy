@@ -63,7 +63,7 @@ class ServiceConfig {
         )
 
         matchService = new MatchService(
-                daoConfig.matchDAO
+                daoConfig.matchDAO, daoConfig.candidatoDAO, daoConfig.empresaDAO, daoConfig.recrutadorDAO
         )
 
         matchFacade = new MatchFacade(daoConfig.connectionFactory, daoConfig.empresaCurtirDAO,

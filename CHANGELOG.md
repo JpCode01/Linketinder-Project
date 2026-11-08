@@ -8,6 +8,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Consultas backend de matches restritas ao candidato titular, empresa proprietária ou recrutador autor ativo, com nome e área do autor no contrato pós-match, inclusive quando ele está inativo no histórico (T10).
+- Testes de visibilidade de perfis, JSON anônimo e consultas JDBC de matches para isolamento por titular/vaga, autoria histórica e preservação dos campos autorizados sem credenciais (T10).
 - Operações backend explícitas de retribuição e consulta de interessados por empresa proprietária ou recrutador autor ativo, com contratos anônimos preservados e continuidade empresarial após inatividade do autor (T09).
 - Testes de fachada e JDBC para isolamento por vaga/ator, idempotência concorrente, locks de atividade/autoria/interesse, rollback entre retribuição e match e posse das conexões transacionais (T09).
 - Criação backend de vagas diretas e de recrutador, com empresa derivada do vínculo persistido, validação de atividade e gravação transacional de vaga e competências; consultas internas por proprietária ou autor e identificação histórica do recrutador, inclusive inativo (T08).
@@ -42,6 +44,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Consultas HTTP de candidato e empresa por ID restritas ao próprio perfil com sessão ativa; listagens identificáveis bloqueadas. A mesma restrição de titular protege a atualização existente desses perfis (T10).
 - Retribuição contextualizada por candidato/vaga e gravação de match na mesma conexão/transação, com revalidação de atividade, propriedade, autoria e interesse prévio; interesse inicial permanece único e não gera match. Operações legadas sem contexto de ator/vaga e gravação direta de match são bloqueadas (T09).
 - Renomeado o método empresarial de criação de vagas para `criarVagaEmpresa` no controller, serviço e testes, explicitando o ator e evitando sobrecarga ambígua sobre o contexto de autorização. Preservados `criarVagaRecrutador` e o método legado `criarVaga(CadastrarVagaDTO)`, sem mudanças de comportamento; convenção permanente registrada em `AGENTS.md`.
 - Cadastro, atualização e desativação nos DAOs de candidato e empresa participam do mesmo protocolo de gravação de contas; cadastro de recrutador utiliza esse protocolo, preservando CPF por perfil, CNPJ empresarial e reutilização após inatividade. Testes JDBC de senhas passam a usar conexões próprias com transações reais em schema isolado (T06).
@@ -57,6 +60,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Corrigido
 
+- Consulta empresarial de competências do candidato nos matches utiliza `buscarPorId`, conforme o contrato de persistência (T10).
 - Exclusão JDBC de vaga remove match e retribuição antes da vaga na mesma transação, revertendo todas as remoções em caso de falha e preservando os cascades existentes (T09).
 - Criação de vaga não deixa registros parciais quando uma competência é inválida ou uma associação falha; atualização valida o escopo empresarial sem alterar propriedade ou autoria. Consulta HTTP por ID utiliza o DTO anônimo, evitando expor os campos internos da entidade ampliada (T08).
 - Removida a exposição de credenciais nas exceções de login de candidato e empresa; atualizações rejeitam contas inativas no serviço e no SQL e preservam a atividade persistida sem confiar no DTO (T05).

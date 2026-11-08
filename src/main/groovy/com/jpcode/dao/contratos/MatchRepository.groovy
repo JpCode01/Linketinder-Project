@@ -10,4 +10,6 @@ interface MatchRepository {
     List<MatchEncontradoDTO> buscarMatchesPorEmpresa(Long idEmpresa)
 
     List<MatchEncontradoDTO> buscarMatchesPorCandidato(Long idCandidato)
+
+    List<MatchEncontradoDTO> buscarMatchesPorRecrutador(Long idRecrutador)
 }
