@@ -1,6 +1,8 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12 e T13 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09, T10, T11 e T12 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa. T13 aprovada explicitamente pelo responsável em 09/11/2026, após confirmação de funcionamento dos endpoints; evidências e limites registrados na tarefa.
+Status: T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14 e T15 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09, T10, T11 e T12 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa. T13 aprovada explicitamente pelo responsável em 09/11/2026, após confirmação de funcionamento dos endpoints; evidências e limites registrados na tarefa. T15 aprovada explicitamente pelo responsável em 09/11/2026, após informar que tudo foi testado, incluindo a correção pontual das competências do candidato anônimo.
+
+T14 aprovada explicitamente pelo responsável em 09/11/2026; aceite e limites da validação registrados na respectiva tarefa.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -667,7 +669,7 @@ Na rodada automatizada original, o agente não executou navegador real com backe
 ### T14 — Substituir checkboxes existentes por seletor pesquisável reutilizável
 
 - **Objetivo:** usar o catálogo backend já integrado em seleção pesquisável nos três formulários previstos.
-- **Estado:** implementação entregue em 09/11/2026 nos formulários existentes; validação automatizada registrada abaixo. Conclusão pendente de navegador com backend/banco dedicado e persistência N:N; checklist permanece desmarcado. Integração no formulário recrutador permanece em T17.
+- **Estado:** concluída e aprovada explicitamente pelo responsável em 09/11/2026. Validações automatizadas e seus limites preservados abaixo; conclusão registrada pelo aceite do responsável. Integração no formulário recrutador permanece em T17.
 - **Referência:** RN-10; seção 8, “Competências e contratos TypeScript”; CA-23 a CA-25.
 - **Camada:** Frontend.
 - **Existentes:** `F/ts/models/Competencia.ts` (classe, não enum), DTOs de consulta, `CompetenciaService` e `CompetenciaApiClient`; `F/ts/pages/candidato/CadastroCandidatoPage.ts`; `F/ts/pages/empresa/EmpresaVaga.ts`; `F/html/{cadastro-candidato,empresa}.html`; `F/css/style.css`.
@@ -709,12 +711,14 @@ Na rodada automatizada original, o agente não executou navegador real com backe
 
 **Anonimato e autorização:** nenhum DTO, endpoint, consulta ou contexto autenticado foi alterado. Regressão backend executada verifica sessão, escopo e visibilidade; T12/T13 continuam verificando transporte com cookies, navegação e isolamento por vaga. Nomes do catálogo não são usados como identidade de ator nem para buscar perfis alheios. A composição `DaoConfig` encontrada em fixture HTTP não abre conexão: os controllers são substituídos por mocks. Essas evidências não substituem o aceite full-stack em navegador.
 
-**Pendências e parada:** não há ferramenta de navegador disponível nesta sessão; DOM controlado não substitui navegador com backend/PostgreSQL. Permanecem pendentes os cenários de pesquisa/seleção/remoção/texto livre/lista vazia/falha em navegador e a comprovação de persistência N:N em banco dedicado auditado. Por isso T14 não é marcada como concluída. T13 mantém seu status anterior; T15 e posteriores não implementadas. A autorização explícita deste pedido prevalece sobre o checkpoint de commit da skill `feature-com-spec`; nenhum `git add`, `git commit` ou `git push` executado. Especificação aprovada preservada. Consumo de tokens sem medição confiável disponível.
+**Limites da rodada automatizada anterior ao aceite:** o agente não executou os cenários de pesquisa/seleção/remoção/texto livre/lista vazia/falha em navegador nem comprovou persistência N:N em banco dedicado auditado; não havia ferramenta de navegador disponível. DOM controlado não substitui navegador com backend/PostgreSQL. Naquela rodada, T14 permaneceu desmarcada e T15 e posteriores não haviam sido implementadas. A autorização explícita deste pedido prevalece sobre o checkpoint de commit da skill `feature-com-spec`; nenhum `git add`, `git commit` ou `git push` executado. Especificação aprovada preservada. Consumo de tokens sem medição confiável disponível.
+
+**Aceite final do responsável (09/11/2026):** responsável declarou: “T14 também pode ser aprovada”. T14 marcada como concluída por esse aceite explícito. Não houve nova execução de testes pelo agente nem informação adicional sobre navegador, ambiente de banco ou persistência N:N; os limites técnicos das evidências anteriores permanecem registrados. Integração no formulário recrutador continua em T17; demais tarefas preservadas.
 
 ### T15 — Adequar a jornada e os matches existentes do candidato
 
 - **Objetivo:** estender a jornada candidata importada à visibilidade e aos matches com recrutador.
-- **Estado (09/11/2026):** pendente, sem implementação. O bloqueio anterior pela dependência T13 foi resolvido pelo aceite explícito do responsável registrado nessa tarefa. T12 e T13 estão concluídas; T15 permanece desmarcada e não é iniciada automaticamente por essa atualização documental.
+- **Estado (09/11/2026):** concluída e aprovada explicitamente pelo responsável após informar que tudo foi testado, incluindo a correção das competências do candidato anônimo. Aceite baseado nos testes automatizados registrados e na confirmação manual do responsável; limites da execução pelo agente preservados abaixo. Dependências T12 e T13 concluídas.
 - **Referência:** RN-03 a RN-05; seção 6; CA-08, CA-10, CA-14 a CA-17.
 - **Camada:** Frontend.
 - **Existentes:** `F/ts/pages/candidato/{CandidatoPage,CandidatoPerfil,CandidatoVaga,CandidatoVagaCurtida,CandidatoComponentes,CandidatoMatch}.ts`; `F/html/candidato.html`; clientes/serviços compatibilizados em T12.
@@ -723,6 +727,39 @@ Na rodada automatizada original, o agente não executou navegador real com backe
 - **Passos:** conservar perfil próprio separado da descoberta e estado de curtidas pela listagem anônima. Cards continuam somente ID/descrição/competências, mesmo após match. Estender o componente existente para todos os campos autorizados do contrato de match e nome/área do autor quando presentes, sem buscar outro perfil. Revisar vazio/carregamento/erro, repetição e atualização visual após confirmação.
 - **Validação:** compilação/build; navegador com vaga direta e duas vagas da mesma empresa; curtir não revela identidade; retribuir só A revela apenas o match de A. Inspecionar JSON, refresh, contrato completo e ausência de chamadas alternativas identificáveis.
 - **Conclusão:** jornada existente funciona sob os contratos de T11 e apresenta o recrutador somente no match correspondente, sem recriar tela de matches.
+
+**Entrega de T15 (09/11/2026):**
+
+- Estendido `CandidatoMatch` existente para os campos autorizados de `MatchResponseDTO`: identificação/contato, CNPJ, descrição e país/estado da empresa; dados e competências da vaga; nome/sobrenome, e-mail, CPF, descrição, idade, país/estado e competências do candidato; ID do match e nome/área opcionais do recrutador. Dados são apresentados como texto, sem leitura de perfil alheio ou exposição de outros dados do autor. Vaga direta não apresenta campos de recrutador nulos.
+- Descoberta e curtidas continuam usando exclusivamente cards de `VagaAnonimaResponseDTO`, inclusive após um match. Perfil próprio permanece no fluxo existente, consultado pelo titular antes das demais listas. Estado de curtida continua derivado da listagem anônima HTTP, sem verificação global ou identidade de ator no corpo.
+- Curtida bloqueia cliques simultâneos e só confirma o card após sucesso HTTP; depois recarrega a listagem anônima de curtidas. Falha mantém o coração sem confirmação, permite nova tentativa e apresenta mensagem no card. Nenhuma consulta de match ou identificação é disparada pela curtida inicial.
+- Listas de descoberta, curtidas e matches apresentam carregamento e mensagem vazia; falhas mantêm indicação de erro e permitem nova carga. Rejeições `401`/`403` reutilizam a recuperação de navegação de T13, sem fallback para outro ator. O armazenamento local permanece apenas navegação; autorização continua no backend inalterado.
+
+**Arquivos:** modificados `F/ts/pages/candidato/{CandidatoMatch,CandidatoVaga,CandidatoVagaCurtida}.ts`, `CHANGELOG.md` e este plano; criado `frontend/tests/candidato-t15.test.cjs`. Nenhuma alteração de backend, contratos, DDL, dependências ou especificação aprovada. T16 e posteriores não implementadas; status das demais tarefas preservados.
+
+**Validação e rastreabilidade:**
+
+| Critério / comando | Evidência e limite |
+| --- | --- |
+| `npx.cmd tsc --noEmit`, em `frontend` | Passou, TypeScript estrito. |
+| `npx.cmd gulp build`, em `frontend` | Passou, Webpack compilou; aviso não impeditivo `DEP0180`. Saída gerada somente pelo build. |
+| `node --test tests/candidato-t15.test.cjs`, em `frontend` | Seis testes aprovados, zero falhas/ignorados. Páginas, serviços, clientes e composição reais; DOM/fetch controlados, sem navegador ou banco. |
+| `node --test tests/transporte-t12.test.cjs tests/entrada-t13.test.cjs tests/seletor-t14.test.cjs tests/candidato-t15.test.cjs`, em `frontend` | 34 testes aprovados, zero falhas/ignorados; regressão das entregas frontend anteriores. Mensagens de erro nos casos de falha são esperadas. |
+| `.\gradlew.bat test --tests com.jpcode.service.MatchServiceTest --tests com.jpcode.facade.MatchFacadeTest --tests com.jpcode.api.servlet.ContratoHttpTest` | `BUILD SUCCESSFUL`: 99 testes nos três XMLs (17 de serviço, 15 de fachada, 67 HTTP), zero falhas/erros/ignorados; compilação e JaCoCo concluídos. Primeira tentativa falhou ao criar lock em `C:/.gradle`; repetição com permissão concedida passou. Repositórios/conexão mockados; contratos HTTP em Tomcat real com controllers mockados, sem JDBC. |
+| Revisão integral do diff, incluindo o teste novo, e `git diff --check` | Alterações limitadas a T15, sem erros de whitespace; backend, DDL, contratos, dependências e especificação aprovada sem alterações. |
+| CA-08, CA-10, CA-15 e CA-17; RN-03 a RN-05 | Testes apresentam duas vagas anônimas e somente o match de A, inclusive em recarga. Curtida envia apenas `{idVaga}`, não consulta matches e só atualiza após resposta. Esses testes verificam consumo/apresentação; formação e isolamento persistidos ainda dependem de validação real. |
+| CA-14 e CA-16; seção 6 | Consulta exclusiva a `/matches/candidato/7`; apresentação de todos os campos autorizados, vaga direta sem autor e vaga autoral com nome/área; ausência de consulta identificável alternativa. Regressão T13 mantém consulta inicial de perfil próprio. |
+| Carregamento/vazio/erro, repetição e confirmação | Testados nas três listas; cliques simultâneos não duplicam POST, falha permite repetir sem confirmação local, sucesso recarrega curtidas anônimas. `401`/`403` nas listas e no POST descartam navegação e encaminham ao login. |
+
+**Segurança do banco e limites:** inspecionados o DDL atual, `SuportePostgres`, `SuporteContasPostgres` e a composição do teste HTTP persistido. Toda conexão dedicada exige as três variáveis `LINKETINDER_TEST_*`, URL sem parâmetros para `linketinder_test[_sufixo]` e confirmação de `current_database()`, sem fallback. Setup restringe o search path ao schema aleatório; cleanup faz rollback ou remove somente o schema de nome validado. As variáveis estão ausentes nesta sessão: nenhuma integração JDBC, conexão ou escrita de banco executada. Não se declara nova validação de integridade, concorrência ou transações em PostgreSQL.
+
+**Anonimato e autorização:** a regressão HTTP executada verifica propriedades exatas dos JSONs anônimos e restrições por sessão/titular/perfil. Testes de serviço rejeitam titular divergente/inativo; testes de fachada verificam propriedade/autoria, interesse prévio e commit/rollback usando conexão mockada. O frontend consome somente seus contratos de descoberta/match, mantém nome/área do autor no match e não busca perfis alheios. Essas evidências preservam as verificações existentes, mas não substituem teste persistido nem inspeção em navegador.
+
+**Limites da rodada automatizada anterior ao aceite:** não havia ferramenta de navegador disponível nesta sessão. O agente não executou os cenários em navegador com backend/banco dedicado, vaga direta e duas vagas da mesma empresa, curtida sem identificação e retribuição somente de A, inspeção do JSON real, recarga e conferência do contrato completo. DOM/fetch controlados não comprovam cookies/CORS em navegador nem reciprocidade persistida. T15 permaneceu desmarcada até a aprovação explícita registrada abaixo. A autorização explícita deste pedido prevalece sobre o checkpoint de commit da skill `feature-com-spec`; nenhum staging, commit ou push executado. Consumo de tokens sem medição confiável disponível.
+
+**Retorno do responsável e correção pontual (09/11/2026):** responsável informou funcionamento de curtidas, criação de vagas, matches e exibição de vagas anônimas. Identificada omissão de renderização das competências no card empresarial de candidato anônimo; autorizada somente a correção dessa causa no frontend. `EmpresaCandidato.ts` passa a apresentar `candidato.competencias[].nome` com `textContent` e estilos existentes, sem modificar backend, DTOs, autorização ou antecipar T16. Naquele momento, T15 permaneceu pendente da aprovação explícita do responsável.
+
+**Aceite final do responsável (09/11/2026):** após a correção pontual, o responsável declarou: “Ótmo, tudo testado, T15 pode ser aprovado e considerado como pronto”. T15 marcada como concluída por esse aceite explícito. A confirmação é manual do responsável; não representa nova execução de navegador, JDBC ou inspeção de JSON pelo agente, nem fornece detalhes adicionais do ambiente de banco utilizado. Status das demais tarefas preservados; T16 e posteriores não iniciadas.
 
 ### T16 — Estender a operação empresarial e cadastrar recrutadores
 
@@ -904,8 +941,8 @@ Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decis
 - [x] T11 — Rotas, contratos e acesso pelo navegador (superfície HTTP validada; navegador real permanece em T18).
 - [x] T12 — Compatibilizar clientes/DTOs/serviços e consumidores da integração importada com T11 (transporte e contratos validados na nova base; navegador/aceite full-stack permanecem em T18).
 - [x] T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador (aprovada explicitamente pelo responsável em 09/11/2026 após confirmação funcional dos endpoints; evidências e limites registrados na tarefa).
-- [ ] T14 — Substituir checkboxes por seletor pesquisável de competências (implementada; navegador com banco dedicado e persistência N:N pendentes, conforme evidências da tarefa).
-- [ ] T15 — Jornada do candidato.
+- [x] T14 — Substituir checkboxes por seletor pesquisável de competências (aprovada explicitamente pelo responsável; evidências e limites registrados na tarefa).
+- [x] T15 — Jornada do candidato.
 - [ ] T16 — Jornada empresarial e gráfico.
 - [ ] T17 — Jornada do recrutador.
 - [ ] T18 — Aceite, regressão e evidências.

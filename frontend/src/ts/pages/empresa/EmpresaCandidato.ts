@@ -62,6 +62,7 @@ function criarCardCandidato(
     article.className = "candidate-card"
 
     article.appendChild(criarTopoCandidato(candidato))
+    article.appendChild(criarCompetenciasCandidato(candidato))
     article.appendChild(criarSecaoVaga(vaga))
     article.appendChild(criarRodapeCandidato(candidatoJaCurtido, aoCurtir))
 
@@ -85,6 +86,29 @@ function criarTopoCandidato(
     topo.appendChild(descricao)
 
     return topo
+}
+
+function criarCompetenciasCandidato(
+    candidato: CandidatoAnonimoResponseDTO
+): HTMLElement {
+    const secao = document.createElement("div")
+    secao.className = "candidate-section"
+
+    const titulo = document.createElement("strong")
+    titulo.textContent = "Competências do candidato"
+
+    const tags = document.createElement("div")
+    tags.className = "job-tags"
+
+    for (const competencia of candidato.competencias) {
+        const tag = document.createElement("span")
+        tag.textContent = competencia.nome
+        tags.appendChild(tag)
+    }
+
+    secao.appendChild(titulo)
+    secao.appendChild(tags)
+    return secao
 }
 
 function criarSecaoVaga(

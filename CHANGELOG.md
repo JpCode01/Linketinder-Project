@@ -8,6 +8,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Checagens da jornada candidata com matches diretos e de recrutador, contrato completo, anonimato por vaga, confirmação de curtida, repetição, falhas e sessão rejeitada (T15).
 - Seletor reutilizável de competências por nomes do catálogo HTTP, com pesquisa parcial, seleção múltipla sem duplicatas, remoção e estados vazios; texto livre não selecionado não integra o cadastro (T14).
 - Checagens do seletor e dos payloads de candidato/vaga, incluindo RH/administração, falhas de carregamento, preservação após erro e limpeza após sucesso (T14).
 - Opção de login de recrutador com Strategy e autenticação HTTP existente, sem autocadastro ou navegação para uma tela ainda ausente; confirmação visual enquanto a jornada permanece em T17 (T13).
@@ -54,6 +55,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Matches do candidato apresentam os campos autorizados do contrato e, quando presentes, nome e área do recrutador autor. Listas de vagas, curtidas e matches indicam carregamento e ausência de resultados e tratam rejeição de sessão (T15).
 - Cadastro de candidato e criação empresarial de vagas utilizam o seletor pesquisável no lugar dos checkboxes. Criação de vaga fica bloqueada enquanto o catálogo carrega ou quando seu carregamento falha (T14).
 - Cadastros de candidato/empresa encaminham ao login somente após confirmação HTTP, preservam a senha digitada e impedem submissões duplicadas ou envio nativo do formulário. Cadastro de candidato mantém cálculo de idade sem o limite local de 1–120 anos e aceita lista vazia de competências, conforme o contrato backend existente (T13).
 - Entrada dos três perfis compartilha validação e apresentação de erros, bloqueia tentativas simultâneas, limpa o campo de senha e descarta navegação anterior em nova tentativa. Páginas de candidato/empresa voltam ao login com sessão local ausente/inválida ou perfil rejeitado por `401`/`403`, mantendo autorização no servidor (T13).
@@ -79,6 +81,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Corrigido
 
+- Card empresarial de candidato anônimo passa a renderizar os nomes das competências já recebidas pelo contrato HTTP, utilizando os estilos existentes.
+- Lista de vagas curtidas do candidato é recarregada após confirmação HTTP da curtida; falhas permitem nova tentativa com mensagem no card, mantendo descoberta e curtidas anônimas (T15).
 - Conexão backend passa a usar `DB_URL`, `DB_USER` e `DB_PASSWORD` do ambiente ou do `.env` da raiz, com prioridade para o ambiente e erro se a configuração estiver incompleta. Removidos banco e credenciais fixos que direcionavam a aplicação ao banco antigo; configuração de testes permanece separada.
 - Removidas chamadas frontend às rotas inexistentes de verificação de curtidas e IDs de ator dos corpos. A descoberta usa a listagem anônima de vagas curtidas; a retribuição empresarial usa candidato/vaga e confirma o card após sucesso, permitindo repetição idempotente ao recarregar (T12).
 - Entrada histórica de candidatos curtidos delega à consulta de matches existente, eliminando a busca de perfil identificável alheio e a verificação empresarial global (T12).
