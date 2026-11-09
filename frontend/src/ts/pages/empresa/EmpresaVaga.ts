@@ -118,7 +118,7 @@ export async function exibirVagasEmpresa(
     })
 }
 
-function criarCardVaga(vaga: VagaEmpresaResponseDTO): HTMLElement {
+export function criarCardVaga(vaga: VagaEmpresaResponseDTO): HTMLElement {
     const article = document.createElement("article")
     article.className = "company-job-card"
 

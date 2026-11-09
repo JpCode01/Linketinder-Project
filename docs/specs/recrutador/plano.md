@@ -1,8 +1,10 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15 e T16 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09, T10, T11 e T12 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa. T13 aprovada explicitamente pelo responsável em 09/11/2026, após confirmação de funcionamento dos endpoints; evidências e limites registrados na tarefa. T15 aprovada explicitamente pelo responsável em 09/11/2026, após informar que tudo foi testado, incluindo a correção pontual das competências do candidato anônimo.
+Status: T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16 e T17 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09, T10, T11 e T12 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa. T13 aprovada explicitamente pelo responsável em 09/11/2026, após confirmação de funcionamento dos endpoints; evidências e limites registrados na tarefa. T15 aprovada explicitamente pelo responsável em 09/11/2026, após informar que tudo foi testado, incluindo a correção pontual das competências do candidato anônimo.
 
 T14 aprovada explicitamente pelo responsável em 09/11/2026; aceite e limites da validação registrados na respectiva tarefa.
+
+T17 aprovada explicitamente pelo responsável em 09/11/2026, após informar que realizou os testes manuais e que tudo está coerente e correto. Tarefa concluída por esse aceite; evidências automatizadas e seus limites preservados na tarefa. T18 e T19 não iniciadas.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -793,6 +795,8 @@ Na rodada automatizada original, o agente não executou navegador real com backe
 
 ### T17 — Acrescentar jornada do recrutador com escopo próprio
 
+- **Estado:** concluída e aprovada explicitamente pelo responsável em 09/11/2026, após testes manuais.
+
 - **Objetivo:** entregar criação de vagas, interessados e matches do autor ativo, reutilizando a integração consolidada.
 - **Referência:** seções 3 e 8; RN-02 a RN-06, RN-10; CA-05 a CA-07, CA-09, CA-14, CA-17, CA-18, CA-25.
 - **Camada:** Frontend.
@@ -802,6 +806,29 @@ Na rodada automatizada original, o agente não executou navegador real com backe
 - **Passos:** acrescentar seleção de página, perfil próprio e criação de vaga com seletor. Empresa deriva do vínculo backend; consultas limitam-se ao autor e às próprias vagas. Identificação vem do contrato de match; conta inativa/escopo divergente produzem falha, sem fallback empresarial ou acesso às vagas do colega. Não acrescentar autocadastro, cadastro de terceiros, vaga direta empresarial ou endpoints opcionais.
 - **Validação:** compilação/build; navegador com dois recrutadores da mesma empresa e outro de empresa distinta; IDs adulterados rejeitados no backend já existente; repetição por empresa/autor mantém match único; inatividade durante sessão bloqueia operação sem apagar autoria.
 - **Conclusão:** recrutador opera somente seu escopo sobre o backend preservado, sem duplicar a camada de transporte.
+
+**Implementação de T17 (09/11/2026):** adicionados `F/html/recrutador.html` e `F/ts/pages/recrutador/{RecrutadorPage,RecrutadorVaga,RecrutadorInteressados,RecrutadorMatch}.ts`. `App.ts` seleciona a página e a Strategy do recrutador navega após login HTTP confirmado; removida a mensagem provisória de indisponibilidade de T13 e ajustada sua asserção de navegação. Perfil próprio é carregado antes das operações. Consultas de vagas/matches usam o ID de navegação do recrutador e os serviços/clientes existentes; autorização permanece na sessão backend. Criação envia somente nome, descrição, local e competências selecionadas por nomes, sem empresa ou autoria no corpo. A empresa é derivada no backend existente. Seletor de T14 reutilizado, com bloqueio enquanto carrega ou após falha, preservação em erro e limpeza após sucesso. Criação/retribuição impedem envios simultâneos, aguardam confirmação HTTP e recarregam os conjuntos pertinentes; falha de recarga é distinguida de falha da mutação já confirmada.
+
+Exportadas somente as funções de renderização existentes de `EmpresaVaga.ts`, `EmpresaCandidato.ts` e `EmpresaMatch.ts`, sem alterar suas consultas ou comportamento empresarial. A jornada do recrutador usa métodos próprios de criação, listagem, retribuição e matches, sem fallback empresarial. Interessados continuam limitados à descrição/competências e contexto da vaga; identificação é apresentada exclusivamente pelos campos do contrato de match. Perfil e demais valores recebidos são inseridos como texto. Rejeições `401`/`403` encaminham ao login e descartam a sessão de navegação; falhas comuns e conjuntos vazios têm mensagens próprias. Não acrescentados autocadastro, cadastro de terceiros, gestão de vagas, edição de perfil/senha ou novo transporte. Backend, DTOs, SQL e especificação preservados; nenhum commit executado.
+
+**Validação executada:**
+
+- Em `frontend`, `npx.cmd tsc --noEmit` e `npx.cmd gulp build`: aprovados; HTML do recrutador gerado em `dist/html/`. Apenas aviso não impeditivo `DEP0180` de `fs.Stats` no build. Arquivos de `dist/` não foram editados manualmente nem são versionados.
+- Na raiz, `node --test frontend/tests/*.test.cjs`: 53 testes aprovados na primeira rodada; após acrescentar duas checagens e revisar a apresentação do perfil, `node --test --test-reporter=dot frontend/tests/*.test.cjs`: 55 testes aprovados, sem falhas. Onze testes de T17 em `frontend/tests/recrutador-t17.test.cjs`, com páginas/serviços/clientes reais e DOM/fetch controlados. Não são evidência de navegador ou persistência real.
+- Na raiz, `.\gradlew.bat test --tests 'com.jpcode.service.*' --tests 'com.jpcode.facade.*' --tests 'com.jpcode.api.servlet.*' build`: `BUILD SUCCESSFUL`; 251 testes em 13 suítes, zero falhas/erros/ignorados, conforme XML em `build/test-results/test/`. Inclui Tomcat/HTTP real com controllers mockados, validações de sessão, titular/ator, DTOs anônimos e fachada com conexão mockada. Gera JaCoCo e compila consumidores, inclusive terminal. Esse build utiliza o filtro de testes indicado, não a suíte JDBC completa. Primeira tentativa bloqueada ao criar lock do cache Gradle fora do workspace; repetição com elevação autorizada aprovada.
+- Diff completo revisado, incluindo arquivos novos, e `git diff --check` sem erros de whitespace; somente avisos de conversão futura LF/CRLF em dois arquivos existentes.
+
+| Critério de T17 | Evidência e pendência |
+| --- | --- |
+| CA-05/25: criação autoral com competências | POST `/recrutadores/{id}/vagas` sem empresa/ator, nomes do catálogo, texto livre excluído, bloqueio simultâneo, preservação em erro e limpeza/recarga após 201 exercitados. Serviços backend existentes de criação e derivações reexecutados com mocks. Persistência da autoria e vínculos N:N não revalidada em PostgreSQL nesta tarefa. |
+| CA-06/07/17: escopo e anonimato | Perfis simulados de dois recrutadores da mesma empresa e outro de empresa distinta exercitam somente rotas por autor e interessados das vagas retornadas. Dois contextos do mesmo candidato permanecem anônimos mesmo após identificação no match. Testes backend existentes reexecutados para titular divergente, ator, autor e DTOs permitidos. Isolamento entre contas em navegador/SQL real ainda pendente. |
+| CA-09/14: retribuição e matches | Corpo contém apenas candidato/vaga; card só confirma após 204 e recarrega `/matches/recrutador/{id}`. Outra vaga permanece independente. Repetição após recarga e contrato completo de match exercitados com respostas controladas. Fachada existente reexecutada com mocks para mesma conexão, commit/rollback e bloqueios de domínio. Unicidade persistida na repetição por empresa/autor não revalidada em banco real. |
+| CA-18: inatividade e autoria histórica | `401`/`403` no perfil, consultas, publicação e retribuição interrompem a operação/navegação sem fallback; testes backend existentes de atividade/escopo reexecutados. Inativação durante sessão real, continuidade empresarial e autoria histórica persistida permanecem pendentes. |
+| Limites funcionais | App e HTML conferidos na automação; ausentes cadastro de terceiros e edição/senha. Login dos três perfis, jornadas candidata/empresarial e seletor mantêm suas checagens de regressão aprovadas. |
+
+**Segurança de banco e pendências na rodada automatizada anterior ao aceite:** nenhuma variável `LINKETINDER_TEST_*` está configurada nesta sessão. Inspecionado `SuportePostgres`: exige configuração explícita, restringe a URL a banco `linketinder_test` ou sufixo permitido, confere `current_database()`, usa schema isolado e rollback, sem fallback para `PostgresConnectionFactory`. Não executados testes JDBC/HTTP com PostgreSQL, conexão da aplicação ou escrita/cleanup de banco. Pacotes selecionados para regressão usam persistência/conexões mockadas; o teste HTTP usa controllers mockados. Não há ferramenta de navegador disponível na sessão. Permanecem obrigatórios o roteiro em navegador com dois recrutadores da mesma empresa e outro de empresa distinta, IDs adulterados contra o backend, repetição por empresa/autor com contagem persistida e inatividade durante sessão preservando autoria. Naquela rodada, T17 permaneceu desmarcada por essas pendências; o aceite manual posterior está registrado abaixo. T18/T19 não foram implementadas ou iniciadas. Consumo de tokens sem medição confiável disponível.
+
+**Aceite final do responsável (09/11/2026):** o responsável informou que testou manualmente T17, aprovou a tarefa e declarou que tudo está coerente e correto. T17 marcada como concluída por essa validação manual e aprovação explícita; status geral e checklist atualizados. Não foram fornecidas evidências individualizadas de cada cenário manual, nem houve nova execução de testes pelo agente. As evidências automatizadas e os limites registrados acima permanecem preservados como histórico anterior ao aceite. Esta aprovação não conclui a validação global de T18, não inicia T18/T19 e não autoriza commits.
 
 ### Integração e regressão
 
@@ -962,7 +989,7 @@ Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decis
 - [x] T14 — Substituir checkboxes por seletor pesquisável de competências (aprovada explicitamente pelo responsável; evidências e limites registrados na tarefa).
 - [x] T15 — Jornada do candidato.
 - [x] T16 — Jornada empresarial e gráfico (aprovada explicitamente pelo responsável em 09/11/2026 após testes manuais no frontend).
-- [ ] T17 — Jornada do recrutador.
+- [x] T17 — Jornada do recrutador (aprovada explicitamente pelo responsável em 09/11/2026 após testes manuais; evidências e limites registrados na tarefa).
 - [ ] T18 — Aceite, regressão e evidências.
 - [ ] T19 — Análise e remoção final de código obsoleto, após T18, com inventário e regressão completa.
 - [ ] Changelog atualizado apenas com tarefas entregues; resultados de validação registrados.

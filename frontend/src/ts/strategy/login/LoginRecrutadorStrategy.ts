@@ -10,7 +10,7 @@ export class LoginRecrutadorStrategy implements LoginStrategy {
         try {
             const sessao = await this.loginApiClient.loginRecrutador(email, senha)
             localStorage.setItem("sessao", JSON.stringify(sessao))
-            // A navegação para a jornada do recrutador será integrada em T17.
+            window.location.href = "./recrutador.html"
         } catch (erro: unknown) {
             if (erro instanceof ApiError && erro.status === 401) throw new LoginException()
             throw erro

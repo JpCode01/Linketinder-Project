@@ -8,6 +8,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Página do recrutador com perfil próprio, criação de vagas pelo seletor de competências existente, consulta das próprias vagas/interessados e retribuição contextualizada, com matches pelo contrato autorizado (T17; aprovada pelo responsável após testes manuais).
+- Checagens da jornada do recrutador com páginas, serviços e clientes reais sob DOM/fetch controlados, cobrindo contexto por autor/vaga, confirmação HTTP, falhas e sessão rejeitada (T17).
 - Formulário empresarial de cadastro de recrutador com áreas persistidas, confirmação HTTP, bloqueio de envios simultâneos e tratamento de falhas de referência/cadastro (T16).
 - Checagens da jornada empresarial para autoria direta/histórica, contrato de match, retribuição por vaga, sessão rejeitada e gráfico por interesse, com DOM/fetch controlados (T16).
 - Checagens da jornada candidata com matches diretos e de recrutador, contrato completo, anonimato por vaga, confirmação de curtida, repetição, falhas e sessão rejeitada (T15).
@@ -57,6 +59,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Login de recrutador encaminha à nova página; cards existentes de vagas, interessados anônimos e matches são reutilizados na jornada, mantendo consultas e operações específicas do recrutador (T17).
 - Vagas empresariais distinguem criação direta e autoria de recrutador; matches apresentam os campos autorizados e nome/área do autor histórico, com atualização após confirmação da retribuição (T16).
 - Matches do candidato apresentam os campos autorizados do contrato e, quando presentes, nome e área do recrutador autor. Listas de vagas, curtidas e matches indicam carregamento e ausência de resultados e tratam rejeição de sessão (T15).
 - Cadastro de candidato e criação empresarial de vagas utilizam o seletor pesquisável no lugar dos checkboxes. Criação de vaga fica bloqueada enquanto o catálogo carrega ou quando seu carregamento falha (T14).

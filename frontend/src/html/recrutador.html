@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linketinder | Recrutador</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<header class="navbar">
+    <div class="brand-logo"><span>Link</span><strong>etinder</strong></div>
+    <nav aria-label="Navegação do recrutador">
+        <a href="#minhas-vagas">Minhas vagas</a>
+        <a href="#interessados">Interessados</a>
+        <a href="#matches">Matches</a>
+    </nav>
+</header>
+<main class="page-container">
+    <section class="profile-header company-profile">
+        <div class="profile-info">
+            <span class="profile-type company">RECRUTADOR</span>
+            <h1 id="profile-name">Carregando perfil...</h1>
+            <p id="profile-area"></p>
+            <p id="profile-description"></p>
+            <p id="profile-email"></p>
+        </div>
+    </section>
+    <p id="page-status" role="status" aria-live="polite"></p>
+    <section class="section">
+        <article class="dashboard-card create-job">
+            <div class="card-header"><h2>Criar nova vaga</h2></div>
+            <form id="job-form">
+                <div class="input-group">
+                    <label for="job-title">Título da vaga</label>
+                    <input id="job-title" type="text" required>
+                </div>
+                <div class="input-group">
+                    <label for="job-location">Localização</label>
+                    <input id="job-location" type="text" required>
+                </div>
+                <div class="input-group">
+                    <span class="skills-title">Competências</span>
+                    <div id="skills-options" class="skills-options"></div>
+                </div>
+                <div class="input-group">
+                    <label for="job-description">Descrição</label>
+                    <textarea id="job-description" rows="4" required></textarea>
+                </div>
+                <p id="job-status" role="status" aria-live="polite"></p>
+                <button id="criar-vaga" type="submit" class="btn btn-primary" disabled>Publicar vaga</button>
+            </form>
+        </article>
+    </section>
+    <section class="section" id="minhas-vagas">
+        <div class="content-header"><h2>Minhas vagas</h2></div>
+        <div class="job-list" id="job-list"></div>
+    </section>
+    <section class="section" id="interessados">
+        <div class="content-header">
+            <h2>Interessados nas minhas vagas</h2>
+            <span class="result-count" id="candidate-count"></span>
+        </div>
+        <div class="candidate-grid" id="candidate-grid"></div>
+    </section>
+    <section class="section" id="matches">
+        <div class="content-header">
+            <h2>Meus matches</h2>
+            <span class="result-count" id="liked-candidate-count"></span>
+        </div>
+        <div class="candidate-grid" id="liked-candidate-grid"></div>
+    </section>
+</main>
+<script src="../js/bundle.js"></script>
+</body>
+</html>

@@ -17,13 +17,6 @@ export function configurarLogin(idBotao: string, estrategia: LoginStrategy): voi
         localStorage.removeItem("sessao")
         try {
             await estrategia.login(email.value, senha.value)
-            if (idBotao === "login-recrutador") {
-                const mensagem = document.createElement("p")
-                mensagem.id = "login-status"
-                mensagem.setAttribute("role", "status")
-                mensagem.textContent = "Login realizado. A área do recrutador ainda não está disponível."
-                formulario.appendChild(mensagem)
-            }
         } catch (erro: unknown) {
             const mensagem = document.createElement("p")
             mensagem.id = "erro-login"

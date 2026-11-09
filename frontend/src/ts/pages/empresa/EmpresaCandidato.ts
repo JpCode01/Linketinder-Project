@@ -55,7 +55,7 @@ export async function exibirCandidatosEmpresa(
 }
 
 
-function criarCardCandidato(
+export function criarCardCandidato(
     candidato: CandidatoAnonimoResponseDTO,
     vaga: VagaEmpresaResponseDTO,
     candidatoJaCurtido: boolean,

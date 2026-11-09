@@ -72,8 +72,7 @@ test("entrada dos três perfis confirma sessão mínima, limpa senha e só naveg
         assert.deepEqual(chamadas, [{ caminho: "/login/" + tipo, metodo: "POST", corpo: { email: "conta@example.invalid", senha: " senha com espaços " } }])
         assert.deepEqual([...armazenamento], [["sessao", JSON.stringify({ id: 17, tipo })]])
         assert.equal(elementos.senha.value, "")
-        assert.equal(window.location.href, tipo === "recrutador" ? "" : "./" + tipo + ".html")
-        if (tipo === "recrutador") assert.match(document.getElementById("login-status").textContent, /Login realizado/)
+        assert.equal(window.location.href, "./" + tipo + ".html")
     }
     const html = fs.readFileSync(require("node:path").join(__dirname, "../src/html/index.html"), "utf8")
     assert.match(html, /id="login-recrutador"/)

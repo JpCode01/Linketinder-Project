@@ -40,7 +40,7 @@ export async function exibirMatchesEmpresa(
     }
 }
 
-function criarCardMatchEmpresa(
+export function criarCardMatchEmpresa(
     match: MatchResponseDTO
 ): HTMLElement {
     const article = document.createElement("article")
