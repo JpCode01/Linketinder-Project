@@ -20,6 +20,7 @@ const concluir = () => new Promise(resolve => setImmediate(resolve))
 let elementos, armazenamento
 class Elemento {
     children = []; value = ""; textContent = ""; disabled = false; hidden = true
+    focus() {}
     classList = { add() {} }
     reportValidity() { return true }
     setAttribute() {}
@@ -208,9 +209,9 @@ test("falha no carregamento de referências mantém cadastro bloqueado", async (
 test("cadastro aguarda confirmação e evita submissão duplicada; competências selecionadas continuam por nome", async () => {
     let resolver
     const { botao } = await cadastro("Candidato", () => new Promise(resolve => { resolver = resolve }))
-    const consultaOriginal = document.querySelectorAll
-    document.querySelectorAll = seletor => seletor.includes(":checked")
-        ? [{ value: "RH" }, { value: "Administração" }] : consultaOriginal(seletor)
+    const sugestoes = elementos["skills-options"].children[2]
+    sugestoes.children.find(botao => botao.textContent === "RH").click()
+    sugestoes.children.find(botao => botao.textContent === "Administração").click()
     const pendente = botao.click()
     await botao.click()
     assert.equal(chamadas.filter(c => c.metodo === "POST").length, 1)

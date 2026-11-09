@@ -1,3 +1,4 @@
+import { SeletorCompetencias } from "../../components/SeletorCompetencias"
 import { CompetenciaApiClient } from "../../api/clientes/CompetenciaApiClient";
 import { VagaEmpresaResponseDTO } from "../../api/dto/vaga/VagaEmpresaResponseDTO";
 import { VagaService } from "../../services/VagaService"
@@ -10,38 +11,29 @@ interface DadosVagaFormulario {
     competencias: string[]
 }
 
+let seletorCompetencias: SeletorCompetencias | undefined
+
 export async function carregarOpcoesCompetencias(): Promise<void> {
+    seletorCompetencias = undefined
+    const botao = document.getElementById("criar-vaga") as HTMLButtonElement | null
+    if (botao != null) botao.disabled = true
     const container = document.getElementById("skills-options")
 
     if (container == null) {
         return
     }
 
+    container.textContent = "Carregando competências..."
     try {
         const competenciaApiClient = new CompetenciaApiClient()
         const competencias = await competenciaApiClient.buscarTodas()
-
-        container.innerHTML = ""
-
-        competencias.forEach((competencia) => {
-            const label = document.createElement("label")
-            const checkbox = document.createElement("input")
-
-            checkbox.type = "checkbox"
-            checkbox.value = competencia
-
-            label.appendChild(checkbox)
-            label.appendChild(
-                document.createTextNode(competencia)
-            )
-
-            container.appendChild(label)
-        })
+        seletorCompetencias = new SeletorCompetencias(container, competencias)
+        if (botao != null) botao.disabled = false
     } catch (erro: unknown) {
+        container.textContent = "Não foi possível carregar as competências. Recarregue a página para tentar novamente."
         const mensagem = erro instanceof Error
             ? erro.message
             : "Não foi possível carregar as competências."
-
         window.alert(mensagem)
     }
 }
@@ -72,9 +64,10 @@ function capturarDadosVaga(): DadosVagaFormulario {
 }
 
 function capturarCompetenciasSelecionadas(): string[] {
-    return Array.from(document.querySelectorAll<HTMLInputElement>(
-        "#skills-options input[type='checkbox']:checked"
-    )).map(checkbox => checkbox.value)
+    if (seletorCompetencias == undefined) {
+        throw new Error("Competências ainda não carregadas.")
+    }
+    return seletorCompetencias.obterSelecionadas()
 }
 
 export function configurarCriacaoVaga(
@@ -182,12 +175,5 @@ function limparFormularioVaga(): void {
     localizacao.value = ""
     descricao.value = ""
 
-    const checkboxes =
-        document.querySelectorAll(
-            "#skills-options input[type='checkbox']"
-        )
-
-    checkboxes.forEach((checkbox) => {
-        (checkbox as HTMLInputElement).checked = false
-    })
+    seletorCompetencias?.limpar()
 }

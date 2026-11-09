@@ -660,6 +660,7 @@ Não foi executado navegador real com backend/PostgreSQL dedicado. Permanecem pe
 ### T14 — Substituir checkboxes existentes por seletor pesquisável reutilizável
 
 - **Objetivo:** usar o catálogo backend já integrado em seleção pesquisável nos três formulários previstos.
+- **Estado:** implementação entregue em 09/11/2026 nos formulários existentes; validação automatizada registrada abaixo. Conclusão pendente de navegador com backend/banco dedicado e persistência N:N; checklist permanece desmarcado. Integração no formulário recrutador permanece em T17.
 - **Referência:** RN-10; seção 8, “Competências e contratos TypeScript”; CA-23 a CA-25.
 - **Camada:** Frontend.
 - **Existentes:** `F/ts/models/Competencia.ts` (classe, não enum), DTOs de consulta, `CompetenciaService` e `CompetenciaApiClient`; `F/ts/pages/candidato/CadastroCandidatoPage.ts`; `F/ts/pages/empresa/EmpresaVaga.ts`; `F/html/{cadastro-candidato,empresa}.html`; `F/css/style.css`.
@@ -668,6 +669,40 @@ Não foi executado navegador real com backend/PostgreSQL dedicado. Permanecem pe
 - **Passos:** reutilizar o catálogo `string[]` corrigido em T12; filtrar parte do nome, selecionar somente item existente, manter múltiplos nomes sem duplicatas e permitir remoção. Texto livre não selecionado não integra payload. Substituir a lógica dos checkboxes por componente compartilhado, sem fabricar objetos/IDs para o catálogo nem mudar os DTOs de referências das consultas. Não existe enum a remover na base importada.
 - **Validação:** compilação/build; navegador com RH/administração, pesquisa parcial, duplicata, remoção, texto livre, lista vazia e falha. Verificar payload e, em banco dedicado auditado, persistência N:N.
 - **Conclusão:** componente reutilizável seleciona referências por nome nos formulários, preservando o backend e sem duplicar lógica.
+
+**Entrega de T14 (09/11/2026):**
+
+- Criado `F/ts/components/SeletorCompetencias.ts`, recebendo o catálogo `string[]` já consultado pelos consumidores. Pesquisa por parte do nome sem distinguir maiúsculas/minúsculas, sugestões somente do catálogo, múltiplas seleções únicas e remoção. O payload usa uma cópia dos nomes selecionados; pesquisa livre nunca é incorporada. Cada instância tem estado próprio, sem IDs fabricados ou persistência local.
+- Substituída a renderização/captura dos checkboxes em `CadastroCandidatoPage` e `EmpresaVaga` pelo mesmo componente. Catálogo vazio permite lista vazia, conforme os contratos existentes. Cadastro candidato continua bloqueado se referências falham; criação empresarial também fica bloqueada durante carregamento/falha do catálogo. Falha de submissão mantém seleção; sucesso de vaga limpa seleção e pesquisa.
+- Incluídos rótulo da pesquisa, grupos de sugestões/seleção, mensagem de estado e botões nativos `type="button"`, com foco visível e remoção nomeada. Enter no campo de pesquisa não submete o formulário nem seleciona texto livre; sugestões podem ser acessadas por Tab e ativadas pelo teclado. Nomes são escritos com `textContent`.
+- Mantidos os containers HTML existentes. Sem alterações de backend, DTOs, schema, dependências, sessão ou regras de negócio. Formulário recrutador não foi criado: seu consumo do componente pertence expressamente a T17.
+
+**Arquivos:** criados `F/ts/components/SeletorCompetencias.ts` e `frontend/tests/seletor-t14.test.cjs`; modificados `F/ts/pages/candidato/CadastroCandidatoPage.ts`, `F/ts/pages/empresa/EmpresaVaga.ts`, `F/css/style.css`, `frontend/tests/{transporte-t12,entrada-t13}.test.cjs`, `CHANGELOG.md` e este plano. Os testes anteriores foram adaptados para selecionar sugestões reais em vez de simular checkboxes, preservando suas asserções de transporte/payload.
+
+**Comandos e evidências:**
+
+| Verificação | Resultado e alcance |
+| --- | --- |
+| `npx.cmd tsc --noEmit`, em `frontend` | Passou, TypeScript estrito. Tentativa inicial na raiz apenas exibiu ajuda por ausência de tsconfig; execução válida no diretório frontend concluiu com código zero. |
+| `npx.cmd gulp build`, em `frontend` | Passou; Webpack 5.110.3 compilou. Aviso não impeditivo `DEP0180`; `dist` gerado somente pelo build. |
+| `node --test tests/transporte-t12.test.cjs tests/entrada-t13.test.cjs tests/seletor-t14.test.cjs`, em `frontend` | Execução final: 28 testes aprovados, zero falhas/ignorados, incluindo oito novos casos T14. DOM/fetch controlados; sem navegador, rede ou banco. A primeira rodada detectou três falhas por acentuação corrompida na gravação via PowerShell; corrigidas antes da execução final. |
+| `.\gradlew.bat --gradle-user-home C:/Users/Mysterio/.gradle test --tests 'com.jpcode.api.*' --tests 'com.jpcode.service.*' --rerun-tasks` | `BUILD SUCCESSFUL`: 236 testes em 12 XMLs, zero falhas/erros/ignorados; compilação e JaCoCo concluídos. Acesso inicial ao lock do cache externo negado no sandbox; repetição autorizada passou. Testes de serviços/servlets e HTTP em Tomcat com controllers mockados, sem selecionar integrações JDBC. |
+| Revisão integral do diff, incluindo arquivos novos, e `git diff --check` | Sem erros de whitespace. Alterações restritas a componente, dois consumidores, estilos, testes e documentação T14; backend, SQL, contratos, dependências e especificação aprovada sem diff. |
+
+**Aceite e limites por critério:**
+
+| Critério | Evidência / pendência |
+| --- | --- |
+| CA-23: pesquisa parcial, múltiplas seleções, duplicatas, remoção e texto livre | Exercitados no componente real e nos payloads dos dois formulários com DOM controlado, incluindo Enter, nenhuma correspondência, catálogo duplicado e lista vazia. Interação e apresentação em navegador real pendentes. |
+| CA-24: RH/administração sem catálogo fixo | Fetch controlado fornece esses nomes; sugestões, seleção e envio por nomes aprovados. Persistência real dessas referências ainda não executada nesta tarefa. |
+| CA-25: catálogo backend e vínculos N:N | Consumidores existentes continuam consultando `/competencias` e enviando nomes pelos serviços/clientes reais, com credenciais. Contratos de referências e backend preservados. N:N não foi revalidado em banco; integração recrutadora pertence a T17, sem declarar aceite integral de CA-25. |
+| Falhas, limpeza e compatibilidade | Testes verificam falha HTTP/rede de catálogo nos dois formulários, bloqueio sem POST, seleção preservada após erro de cadastro e limpeza somente após sucesso da vaga; regressão T12/T13 inclui sessão, descoberta anônima e retribuição por vaga. |
+
+**Segurança do banco:** antes de considerar escritas, inspecionados o DDL atual e os suportes `SuportePostgres`/`SuporteContasPostgres`. Exigem as três variáveis explícitas, URL restrita a `linketinder_test[_sufixo]`, confirmação de `current_database()` em cada conexão e nenhum fallback para desenvolvimento. Setup usa schema aleatório exclusivo, sem `public`; cleanup faz rollback ou remove somente o schema de nome validado. As variáveis `LINKETINDER_TEST_*` estão ausentes no processo: nenhuma conexão/escrita ou integração JDBC executada, sem tentativa de usar desenvolvimento. Não se declara nova validação de transações/integridade persistida.
+
+**Anonimato e autorização:** nenhum DTO, endpoint, consulta ou contexto autenticado foi alterado. Regressão backend executada verifica sessão, escopo e visibilidade; T12/T13 continuam verificando transporte com cookies, navegação e isolamento por vaga. Nomes do catálogo não são usados como identidade de ator nem para buscar perfis alheios. A composição `DaoConfig` encontrada em fixture HTTP não abre conexão: os controllers são substituídos por mocks. Essas evidências não substituem o aceite full-stack em navegador.
+
+**Pendências e parada:** não há ferramenta de navegador disponível nesta sessão; DOM controlado não substitui navegador com backend/PostgreSQL. Permanecem pendentes os cenários de pesquisa/seleção/remoção/texto livre/lista vazia/falha em navegador e a comprovação de persistência N:N em banco dedicado auditado. Por isso T14 não é marcada como concluída. T13 mantém seu status anterior; T15 e posteriores não implementadas. A autorização explícita deste pedido prevalece sobre o checkpoint de commit da skill `feature-com-spec`; nenhum `git add`, `git commit` ou `git push` executado. Especificação aprovada preservada. Consumo de tokens sem medição confiável disponível.
 
 ### T15 — Adequar a jornada e os matches existentes do candidato
 
@@ -861,7 +896,7 @@ Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decis
 - [x] T11 — Rotas, contratos e acesso pelo navegador (superfície HTTP validada; navegador real permanece em T18).
 - [x] T12 — Compatibilizar clientes/DTOs/serviços e consumidores da integração importada com T11 (transporte e contratos validados na nova base; navegador/aceite full-stack permanecem em T18).
 - [ ] T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador (implementada; validação em navegador com banco dedicado pendente, conforme evidências da tarefa).
-- [ ] T14 — Substituir checkboxes por seletor pesquisável de competências.
+- [ ] T14 — Substituir checkboxes por seletor pesquisável de competências (implementada; navegador com banco dedicado e persistência N:N pendentes, conforme evidências da tarefa).
 - [ ] T15 — Jornada do candidato.
 - [ ] T16 — Jornada empresarial e gráfico.
 - [ ] T17 — Jornada do recrutador.

@@ -1,3 +1,4 @@
+import { SeletorCompetencias } from "../../components/SeletorCompetencias"
 import { CadastrarCandidatoRequestDTO } from "../../api/dto/candidato/CadastrarCandidatoRequestDTO";
 import { ServiceConfig } from "../../config/ServiceConfig";
 import { Estado } from "../../models/Estado";
@@ -14,7 +15,10 @@ const competenciaService = serviceConfig
 const referenciaService = serviceConfig
     .criarReferenciaService()
 
+let seletorCompetencias: SeletorCompetencias | undefined
+
 export function cadastrarCandidato(): void {
+    seletorCompetencias = undefined
     const formulario = document.getElementById(
         "candidate-registration-form"
     ) as HTMLFormElement | null
@@ -98,27 +102,7 @@ function preencherCompetencias(competencias: string[]): void {
         throw new Error("Container de competências não encontrado.")
     }
 
-    containerCompetencias.innerHTML = ""
-
-    for (const competencia of competencias) {
-        const opcaoCompetencia = document.createElement("div")
-        opcaoCompetencia.classList.add("skill-option")
-
-        const checkbox = document.createElement("input")
-        checkbox.type = "checkbox"
-        checkbox.name = "competencias"
-        checkbox.value = competencia
-        checkbox.id = `competencia-${containerCompetencias.childElementCount}`
-
-        const label = document.createElement("label")
-        label.htmlFor = checkbox.id
-        label.textContent = competencia
-
-        opcaoCompetencia.appendChild(checkbox)
-        opcaoCompetencia.appendChild(label)
-
-        containerCompetencias.appendChild(opcaoCompetencia)
-    }
+    seletorCompetencias = new SeletorCompetencias(containerCompetencias, competencias)
 }
 
 function preencherPaises(paises: Pais[]): void {
@@ -257,14 +241,10 @@ function obterValor(id: string): string {
 }
 
 function capturarCompetenciasSelecionadas(): string[] {
-    const checkboxesSelecionados =
-        document.querySelectorAll<HTMLInputElement>(
-            '#skills-options input[name="competencias"]:checked'
-        )
-
-    return Array.from(checkboxesSelecionados).map(
-        (checkbox: HTMLInputElement): string => checkbox.value
-    )
+    if (seletorCompetencias == undefined) {
+        throw new Error("Competências ainda não carregadas.")
+    }
+    return seletorCompetencias.obterSelecionadas()
 }
 
 function mostrarErro(mensagem: string): void {

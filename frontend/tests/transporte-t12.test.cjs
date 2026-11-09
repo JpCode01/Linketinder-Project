@@ -139,6 +139,8 @@ test("estratégias persistem somente sessão confirmada e falhas não simulam su
 // DOM mínimo para verificar os consumidores existentes; não representa navegador real.
 class Elemento {
     children = []; textContent = ""; value = ""; disabled = false; dataset = {}; eventos = {}
+    focus() {}
+    setAttribute() {}
     className = ""; classes = new Set()
     classList = { add: nome => this.classes.add(nome) }
     appendChild(filho) { this.children.push(filho); return filho }
@@ -209,9 +211,9 @@ test("catálogo RH/administração preenche ambos os formulários sem IDs fabric
     simular(c => c.caminho === "/competencias" ? respostaJson(nomes) : new Response(null, { status: 201 }))
     const pagina = carregar("pages/empresa/EmpresaVaga")
     await pagina.carregarOpcoesCompetencias()
-    const checkboxes = elementos["skills-options"].children.map(label => label.children[0])
-    assert.deepEqual(checkboxes.map(c => c.value), nomes)
-    document.querySelectorAll = () => checkboxes
+    const sugestoes = elementos["skills-options"].children[2]
+    assert.deepEqual(sugestoes.children.map(botao => botao.textContent), nomes)
+    for (const nome of nomes) sugestoes.children.find(botao => botao.textContent === nome).onclick()
     elementos["job-title"].value = "Analista"
     elementos["job-location"].value = "Remoto"
     elementos["job-description"].value = "Descrição"
@@ -224,10 +226,9 @@ test("catálogo RH/administração preenche ambos os formulários sem IDs fabric
     simular(c => respostaJson(c.caminho === "/competencias" ? nomes : []))
     carregar("pages/candidato/CadastroCandidatoPage").cadastrarCandidato()
     await concluir()
-    const opcoes = candidato["skills-options"].children
-    assert.deepEqual(opcoes.map(opcao => opcao.children[0].value), nomes)
-    assert.deepEqual(opcoes.map(opcao => opcao.children[1].textContent), nomes)
-    assert.notEqual(opcoes[0].children[0].id, opcoes[1].children[0].id)
+    const opcoes = candidato["skills-options"].children[2].children
+    assert.deepEqual(opcoes.map(botao => botao.textContent), nomes)
+    assert.ok(opcoes.every(botao => botao.type === "button"))
 })
 
 test("gráfico preserva contagem por interesse; nenhum fetch ativo contorna transporte", async () => {
