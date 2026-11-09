@@ -114,6 +114,10 @@ A comunicação com o banco é feita via **JDBC**, utilizando `PreparedStatement
 
 ### ConnectionFactory
 
+`PostgresConnectionFactory` usa `DB_URL`, `DB_USER` e `DB_PASSWORD`. Variáveis de ambiente têm prioridade sobre as mesmas chaves no arquivo `.env`, lido em UTF-8 no diretório de execução. Inicie o backend na raiz do projeto para usar esse arquivo. A configuração deve estar completa; não há banco ou credenciais padrão. O arquivo aceita linhas `CHAVE=valor`, valores entre aspas simples/duplas e comentários em linhas iniciadas por `#`.
+
+Para o ambiente de recrutadores, configure `DB_URL=jdbc:postgresql://localhost:5432/linketinder-recrutador` no `.env` local e informe usuário/senha somente nesse arquivo ignorado pelo Git ou no ambiente. Reinicie o backend após alterações. As variáveis `LINKETINDER_TEST_*` continuam exclusivas dos testes de integração e não configuram a aplicação.
+
 As conexões são centralizadas na classe `database/ConnectionFactory`, que as fornece aos DAOs. A camada de serviço não executa consultas SQL diretamente:
 
 ```text

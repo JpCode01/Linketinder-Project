@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11 e T12 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09, T10, T11 e T12 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa.
+Status: T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12 e T13 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09, T10, T11 e T12 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa. T13 aprovada explicitamente pelo responsável em 09/11/2026, após confirmação de funcionamento dos endpoints; evidências e limites registrados na tarefa.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -619,7 +619,7 @@ T13–T19 não implementadas nem marcadas como concluídas. O login automático 
 ### T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador
 
 - **Objetivo:** completar a entrada dos três perfis aproveitando formulários e autenticação HTTP já existentes.
-- **Estado:** implementação entregue em 09/11/2026; validação automatizada registrada abaixo. Conclusão pendente da verificação em navegador com backend e banco dedicado; checklist permanece desmarcado.
+- **Estado:** concluída e aprovada explicitamente pelo responsável em 09/11/2026, após confirmação manual de funcionamento de todos os endpoints. Validação automatizada e limites do relato manual registrados abaixo; checklist marcado por esse aceite.
 - **Referência:** seção 7; seção 8, “Interface”; RN-06 a RN-09; CA-03, CA-04, CA-19 a CA-22.
 - **Camada:** Frontend.
 - **Existentes:** `F/ts/strategy/login/{LoginStrategy,LoginCandidatoStrategy,LoginEmpresaStrategy}.ts`; `F/ts/pages/LoginPage.ts`; `F/ts/pages/login/{LoginCandidato,LoginEmpresa}.ts`; cadastros de candidato/empresa e `F/html/{index,cadastro-candidato,cadastro-empresa}.html`; `ReferenciaService`; contratos de T12.
@@ -653,9 +653,16 @@ T13–T19 não implementadas nem marcadas como concluídas. O login automático 
 
 As duas falhas da primeira execução da suíte nova identificaram a exigência local de competência mínima ainda presente; removida conforme a revisão do contrato, com asserções preservadas e execução final aprovada. A primeira tentativa Gradle restrita falhou por acesso negado ao lock no cache externo; execução autorizada concluiu com tarefas em cache. A execução final com `--rerun-tasks` produziu resultados novos, contabilizados acima. Revisão integral do diff, inclusive arquivos novos, e `git diff --check` sem erros. Backend, SQL, dependências, DTOs anônimos e especificação aprovada sem alterações. Regressão T12 inclui descoberta anônima e retribuição isolada por vaga.
 
-**Banco, pendências e parada:** nenhuma conexão ou escrita de banco realizada. Variáveis `LINKETINDER_TEST_*` ausentes; não foi possível estabelecer uma conexão dedicada de teste. `SuportePostgres` inspecionado: exige configuração explícita e banco `linketinder_test[_sufixo]`, confere `current_database()`, sem fallback; setup/cleanup isolam schema e rollback. Integrações JDBC não selecionadas nem executadas. Integridade, transações, hash persistido, concorrência e reutilização de identificadores não são declarados novamente validados por esta tarefa frontend.
+**Registro da validação automatizada original, anterior ao aceite manual:** nenhuma conexão ou escrita de banco realizada naquela rodada. Variáveis `LINKETINDER_TEST_*` ausentes; não foi possível estabelecer uma conexão dedicada de teste. `SuportePostgres` inspecionado: exige configuração explícita e banco `linketinder_test[_sufixo]`, confere `current_database()`, sem fallback; setup/cleanup isolam schema e rollback. Integrações JDBC não selecionadas nem executadas. Integridade, transações, hash persistido, concorrência e reutilização de identificadores não são declarados novamente validados por esta tarefa frontend.
 
-Não foi executado navegador real com backend/PostgreSQL dedicado. Permanecem pendentes os cenários de navegador previstos em T13: novos cadastros, referência inválida, conflito, login válido/inválido/inativo dos três perfis, refresh, falhas e inspeção de cookies/rede/armazenamento. As verificações automatizadas com DOM controlado não substituem esses cenários; por isso T13 permanece sem marcação de conclusão. Jornada recrutadora depende de T17 conforme o plano. Nenhuma implementação de T14 ou posteriores; demais tarefas e especificação preservadas. Nenhum `git add`, `git commit` ou `git push`; autorização deste pedido prevalece sobre o checkpoint de commit da skill `feature-com-spec`. Consumo de tokens sem medição confiável disponível.
+Na rodada automatizada original, o agente não executou navegador real com backend/PostgreSQL dedicado; por isso manteve T13 desmarcada à época. As verificações com DOM controlado continuam distintas de validação manual. O aceite posterior do responsável está registrado abaixo. A jornada recrutadora continua em T17. Nenhum `git add`, `git commit` ou `git push`; autorização do responsável prevalece sobre o checkpoint de commit da skill `feature-com-spec`. Consumo de tokens sem medição confiável disponível.
+
+**Ajustes de ambiente e aceite manual de T13 (09/11/2026):**
+
+- Corrigida, com autorização específica, a configuração backend de `PostgresConnectionFactory`: removidos banco e credenciais fixos; leitura de `DB_URL`, `DB_USER` e `DB_PASSWORD` do ambiente ou do `.env` no diretório de execução, com prioridade para o ambiente e rejeição de configuração incompleta, sem fallback. No IntelliJ, o diretório de execução de `RestServer` deve ser a raiz do projeto para localizar o `.env`. `README.md`, `AGENTS.md` e `CHANGELOG.md` atualizados, e criado `src/test/groovy/com/jpcode/database/PostgresConnectionFactoryTest.groovy`. Nenhuma dependência, rota, DTO ou regra de negócio alterada.
+- Validação desse ajuste: `.\gradlew.bat --gradle-user-home C:/Users/Mysterio/.gradle test --tests 'com.jpcode.database.PostgresConnectionFactoryTest' --tests 'com.jpcode.api.*' build` concluiu com `BUILD SUCCESSFUL`; 140 testes em cinco classes, zero falhas/erros/ignorados. Os nove testes de configuração usam driver controlado; a regressão HTTP usa controllers mockados. A fábrica corrigida também confirmou `current_database() = 'linketinder-recrutador'` em consulta somente de leitura. Não houve testes de cadastro com escrita nem alteração de schema/dados pelo agente.
+- O responsável informou posteriormente que todos os endpoints estão funcionando e atribuiu o erro `400` à caixa dos nomes de competências, países e estados cadastrados em minúsculas no banco. Esse é o diagnóstico e resultado manual relatado pelo responsável; o agente confirmou por leitura a incompatibilidade da busca de países com nomes fora de maiúsculas, mas não alterou os dados de referência nem implementou mudança nos DAOs para normalização de caixa.
+- Por solicitação explícita do responsável, T13 fica aprovada e concluída com base nas evidências automatizadas já registradas e em sua confirmação funcional. O relato manual não forneceu resultados individualizados de cada cenário, capturas de navegador ou inspeção de cookies/rede; esses detalhes não são apresentados como executados pelo agente. O aceite não declara concluída a validação global de T18, não confirma validação com o Tutor e não altera o estado de T14 ou posteriores.
 
 ### T14 — Substituir checkboxes existentes por seletor pesquisável reutilizável
 
@@ -707,6 +714,7 @@ Não foi executado navegador real com backend/PostgreSQL dedicado. Permanecem pe
 ### T15 — Adequar a jornada e os matches existentes do candidato
 
 - **Objetivo:** estender a jornada candidata importada à visibilidade e aos matches com recrutador.
+- **Estado (09/11/2026):** pendente, sem implementação. O bloqueio anterior pela dependência T13 foi resolvido pelo aceite explícito do responsável registrado nessa tarefa. T12 e T13 estão concluídas; T15 permanece desmarcada e não é iniciada automaticamente por essa atualização documental.
 - **Referência:** RN-03 a RN-05; seção 6; CA-08, CA-10, CA-14 a CA-17.
 - **Camada:** Frontend.
 - **Existentes:** `F/ts/pages/candidato/{CandidatoPage,CandidatoPerfil,CandidatoVaga,CandidatoVagaCurtida,CandidatoComponentes,CandidatoMatch}.ts`; `F/html/candidato.html`; clientes/serviços compatibilizados em T12.
@@ -895,7 +903,7 @@ Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decis
 - [x] T10 — Matches e matriz de visibilidade (evidências e limites registrados na tarefa).
 - [x] T11 — Rotas, contratos e acesso pelo navegador (superfície HTTP validada; navegador real permanece em T18).
 - [x] T12 — Compatibilizar clientes/DTOs/serviços e consumidores da integração importada com T11 (transporte e contratos validados na nova base; navegador/aceite full-stack permanecem em T18).
-- [ ] T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador (implementada; validação em navegador com banco dedicado pendente, conforme evidências da tarefa).
+- [x] T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador (aprovada explicitamente pelo responsável em 09/11/2026 após confirmação funcional dos endpoints; evidências e limites registrados na tarefa).
 - [ ] T14 — Substituir checkboxes por seletor pesquisável de competências (implementada; navegador com banco dedicado e persistência N:N pendentes, conforme evidências da tarefa).
 - [ ] T15 — Jornada do candidato.
 - [ ] T16 — Jornada empresarial e gráfico.

@@ -79,6 +79,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Corrigido
 
+- Conexão backend passa a usar `DB_URL`, `DB_USER` e `DB_PASSWORD` do ambiente ou do `.env` da raiz, com prioridade para o ambiente e erro se a configuração estiver incompleta. Removidos banco e credenciais fixos que direcionavam a aplicação ao banco antigo; configuração de testes permanece separada.
 - Removidas chamadas frontend às rotas inexistentes de verificação de curtidas e IDs de ator dos corpos. A descoberta usa a listagem anônima de vagas curtidas; a retribuição empresarial usa candidato/vaga e confirma o card após sucesso, permitindo repetição idempotente ao recarregar (T12).
 - Entrada histórica de candidatos curtidos delega à consulta de matches existente, eliminando a busca de perfil identificável alheio e a verificação empresarial global (T12).
 - Resposta de erro do cadastro empresarial serializada como JSON válido; POSTs em subcaminhos de cadastro não criam contas fora das rotas aprovadas (T11).

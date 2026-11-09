@@ -97,7 +97,7 @@ A referência de schema é **somente** a seção de `queriesLinketinder.sql` ini
 
 O banco e os dados dos campos de seleção são preparados manualmente. Em uma instalação nova, crie o banco PostgreSQL e o usuário, aplique os `CREATE TABLE` da seção atual na ordem de dependência e cadastre países, estados e competências antes dos registros que os referenciam. Confira os IDs exigidos pelos exemplos antes de usar suas inserções.
 
-`database/PostgresConnectionFactory.groovy` contém a conexão JDBC para `localhost:5432/linketinder`. Confira ali a configuração necessária sem reproduzir credenciais em documentação, logs ou respostas. Não presuma carregamento automático de `.env`, migrações ou inicialização automática. Não modifique schema ou dados como efeito colateral de outra tarefa.
+`database/PostgresConnectionFactory.groovy` usa `DB_URL`, `DB_USER` e `DB_PASSWORD`, com prioridade para variáveis de ambiente e leitura complementar do `.env` no diretório de execução (raiz do projeto). Não há fallback de banco ou credenciais. Confira a configuração necessária sem reproduzir credenciais em documentação, logs ou respostas. As variáveis `LINKETINDER_TEST_*` são exclusivas dos testes de integração. Não presuma migrações ou inicialização automática. Não modifique schema ou dados como efeito colateral de outra tarefa.
 
 ## 10. Build, execução e testes
 
