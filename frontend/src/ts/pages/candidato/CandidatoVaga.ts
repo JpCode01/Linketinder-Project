@@ -29,21 +29,8 @@ export async function exibirVagas(
         const vagas =
             await vagaService.buscarTodasAsVagasAnonimas()
 
-        const estadosCurtidas = await Promise.all(
-            vagas.map(async (vaga) => ({
-                id: vaga.id,
-                jaCurtiu: await curtidaVagaService.jaCurtiuVaga(
-                    idCandidato,
-                    vaga.id
-                )
-            }))
-        )
-
-        const idsVagasCurtidas = new Set<number>(
-            estadosCurtidas
-                .filter(estado => estado.jaCurtiu)
-                .map(estado => estado.id)
-        )
+        const vagasCurtidas = await curtidaVagaService.buscarVagasCurtidas(idCandidato)
+        const idsVagasCurtidas = new Set(vagasCurtidas.map(vaga => vaga.id))
 
         atualizarContador({
             contador,
@@ -61,7 +48,6 @@ export async function exibirVagas(
                 vagaJaCurtida,
                 () => {
                     void curtirVaga(
-                        idCandidato,
                         vaga,
                         card,
                         curtidaVagaService
@@ -81,7 +67,6 @@ export async function exibirVagas(
 }
 
 async function curtirVaga(
-    idCandidato: number,
     vaga: VagaAnonimaResponseDTO,
     card: HTMLElement,
     curtidaVagaService: CurtidaVagaService
@@ -96,8 +81,7 @@ async function curtirVaga(
     botao.disabled = true
 
     try {
-        await curtidaVagaService.curtirViaApi(
-            idCandidato,
+        await curtidaVagaService.curtirVaga(
             vaga.id
         )
 

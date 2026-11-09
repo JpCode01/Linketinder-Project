@@ -8,6 +8,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Clientes e contratos frontend de login dos três perfis, cadastro/perfil próprio de recrutador e consulta de áreas, além de serviços e consultas de vagas/matches por autor na composição manual (T12).
+- Checagens reproduzíveis de transporte e consumidores frontend, cobrindo cookies, rotas/corpos, respostas vazias, falhas HTTP/rede/JSON, catálogo por nomes e isolamento da retribuição por vaga (T12).
 - Diagnóstico e matriz de incompatibilidades entre o frontend integrado de master e os contratos backend de T11, com origem do snapshot e validações da importação.
 - Rotas HTTP de cadastro/perfil de recrutador, áreas e referências, vagas por titular, curtidas e matches, conectadas aos controllers existentes com sessão e escopo por ator (T11).
 - Filtro CORS para `http://127.0.0.1:5500`, credenciais, preflight e validação de origem/JSON nas mutações; suporte comum a respostas e erros JSON sem detalhes internos (T11).
@@ -48,6 +50,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Clientes HTTP e estratégias existentes passam pelo transporte compartilhado em `127.0.0.1:8080`, com credenciais, erros com status e sessão de navegação tipada em minúsculas. DTOs distinguem a data JSON de perfil da entrada ISO e incluem autoria interna e nome/área anuláveis no match (T12).
+- Formulários existentes consomem competências como `string[]`; criação empresarial adapta `localizacao` para `local` e envia nomes, sem IDs fabricados ou campos locais de tipo/formação (T12).
 - Importada somente a pasta frontend de origin/master (commit da27379) para feature/recruiter, substituindo a tentativa anterior de T12 e preservando integralmente o backend; master não foi modificada.
 - Replanejadas T12–T18 sobre a integração frontend existente, com T12 novamente pendente e compatibilização direcionada aos contratos já entregues em T11, sem recriação do backend.
 - Descoberta, criação e atualização HTTP de vagas exigem sessão ativa e perfil/escopo apropriados; criação empresarial usa o ator autenticado e rejeita injeção de autoria ou empresa divergente (T11).
@@ -68,6 +72,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Corrigido
 
+- Removidas chamadas frontend às rotas inexistentes de verificação de curtidas e IDs de ator dos corpos. A descoberta usa a listagem anônima de vagas curtidas; a retribuição empresarial usa candidato/vaga e confirma o card após sucesso, permitindo repetição idempotente ao recarregar (T12).
+- Entrada histórica de candidatos curtidos delega à consulta de matches existente, eliminando a busca de perfil identificável alheio e a verificação empresarial global (T12).
 - Resposta de erro do cadastro empresarial serializada como JSON válido; POSTs em subcaminhos de cadastro não criam contas fora das rotas aprovadas (T11).
 - Consulta empresarial de competências do candidato nos matches utiliza `buscarPorId`, conforme o contrato de persistência (T10).
 - Exclusão JDBC de vaga remove match e retribuição antes da vaga na mesma transação, revertendo todas as remoções em caso de falha e preservando os cascades existentes (T09).

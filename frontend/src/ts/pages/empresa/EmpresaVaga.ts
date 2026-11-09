@@ -1,7 +1,5 @@
 import { CompetenciaApiClient } from "../../api/clientes/CompetenciaApiClient";
 import { VagaEmpresaResponseDTO } from "../../api/dto/vaga/VagaEmpresaResponseDTO";
-import { Competencia } from "../../models/Competencia"
-import { Vaga } from "../../models/Vaga"
 import { VagaService } from "../../services/VagaService"
 
 interface DadosVagaFormulario {
@@ -9,7 +7,7 @@ interface DadosVagaFormulario {
     descricao: string
     tipo: string
     localizacao: string
-    competencias: Competencia[]
+    competencias: string[]
 }
 
 export async function carregarOpcoesCompetencias(): Promise<void> {
@@ -30,12 +28,11 @@ export async function carregarOpcoesCompetencias(): Promise<void> {
             const checkbox = document.createElement("input")
 
             checkbox.type = "checkbox"
-            checkbox.value = String(competencia.id)
-            checkbox.dataset.nome = competencia.nome
+            checkbox.value = competencia
 
             label.appendChild(checkbox)
             label.appendChild(
-                document.createTextNode(competencia.nome)
+                document.createTextNode(competencia)
             )
 
             container.appendChild(label)
@@ -74,35 +71,10 @@ function capturarDadosVaga(): DadosVagaFormulario {
     }
 }
 
-function capturarCompetenciasSelecionadas(): Competencia[] {
-    const checkboxes =
-        document.querySelectorAll<HTMLInputElement>(
-            "#skills-options input[type='checkbox']:checked"
-        )
-
-    return Array.from(checkboxes).map(
-        (checkbox) => new Competencia(
-            Number(checkbox.value),
-            checkbox.dataset.nome ?? ""
-        )
-    )
-}
-
-function construirVaga(
-    dados: DadosVagaFormulario,
-    idEmpresa: number
-): Vaga {
-    const vaga = new Vaga(
-        dados.nome,
-        dados.descricao,
-        dados.tipo,
-        dados.localizacao,
-        idEmpresa
-    )
-
-    vaga.competencias = dados.competencias
-
-    return vaga
+function capturarCompetenciasSelecionadas(): string[] {
+    return Array.from(document.querySelectorAll<HTMLInputElement>(
+        "#skills-options input[type='checkbox']:checked"
+    )).map(checkbox => checkbox.value)
 }
 
 export function configurarCriacaoVaga(
@@ -118,9 +90,7 @@ export function configurarCriacaoVaga(
     botao.onclick = async (): Promise<void> => {
         try {
             const dados = capturarDadosVaga()
-            const vaga = construirVaga(dados, idEmpresa)
-
-            await vagaService.salvar(vaga)
+            await vagaService.criarVagaEmpresa(dados)
 
             limparFormularioVaga()
             window.alert("Vaga cadastrada com sucesso.")

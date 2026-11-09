@@ -1,6 +1,5 @@
 import { CadastrarCandidatoRequestDTO } from "../../api/dto/candidato/CadastrarCandidatoRequestDTO";
 import { ServiceConfig } from "../../config/ServiceConfig";
-import { Competencia } from "../../models/Competencia";
 import { Estado } from "../../models/Estado";
 import { Pais } from "../../models/Pais";
 import { LoginCandidatoStrategy } from "../../strategy/login/LoginCandidatoStrategy";
@@ -89,7 +88,7 @@ export function cadastrarCandidato(): void {
 }
 
 async function carregarOpcoesFormulario(): Promise<void> {
-    const competencias: Competencia[] =
+    const competencias: string[] =
         await competenciaService.buscarTodas()
 
     const paises: Pais[] =
@@ -103,7 +102,7 @@ async function carregarOpcoesFormulario(): Promise<void> {
     preencherEstados(estados)
 }
 
-function preencherCompetencias(competencias: Competencia[]): void {
+function preencherCompetencias(competencias: string[]): void {
     const containerCompetencias = document.getElementById("skills-options")
 
     if (containerCompetencias == null) {
@@ -119,12 +118,12 @@ function preencherCompetencias(competencias: Competencia[]): void {
         const checkbox = document.createElement("input")
         checkbox.type = "checkbox"
         checkbox.name = "competencias"
-        checkbox.value = competencia.nome
-        checkbox.id = `competencia-${competencia.id}`
+        checkbox.value = competencia
+        checkbox.id = `competencia-${containerCompetencias.childElementCount}`
 
         const label = document.createElement("label")
         label.htmlFor = checkbox.id
-        label.textContent = competencia.nome
+        label.textContent = competencia
 
         opcaoCompetencia.appendChild(checkbox)
         opcaoCompetencia.appendChild(label)

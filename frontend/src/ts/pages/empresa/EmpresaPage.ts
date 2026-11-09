@@ -1,5 +1,4 @@
 import { ServiceConfig } from "../../config/ServiceConfig";
-import { CandidatoService } from "../../services/CandidatoService";
 import { CurtidaCandidatoService } from "../../services/CurtidaCandidatoService";
 import { CurtidaVagaService } from "../../services/CurtidaVagaService";
 import { EmpresaService } from "../../services/EmpresaService";
@@ -18,10 +17,7 @@ import {
     exibirVagasEmpresa
 } from "./EmpresaVaga";
 
-interface Sessao {
-    id: number
-    tipo: string
-}
+import { SessaoResponseDTO } from "../../api/dto/login/SessaoResponseDTO"
 
 const serviceConfig: ServiceConfig = new ServiceConfig()
 const empresaApiClient: EmpresaApiClient = new EmpresaApiClient()
@@ -35,9 +31,6 @@ const empresaService: EmpresaService =
 const vagaService: VagaService =
     serviceConfig.criarVagaService()
 
-const candidatoService: CandidatoService =
-    serviceConfig.criarCandidatoService()
-
 const curtidaVagaService: CurtidaVagaService =
     serviceConfig.criarCurtidaVagaService()
 
@@ -50,7 +43,7 @@ const relatorioCompetenciasService: RelatorioCompetenciasService =
 export async function exibirPageEmpresa(): Promise<void> {
     const sessao = obterSessao()
 
-    if (sessao == undefined || sessao.tipo !== "EMPRESA") {
+    if (sessao == undefined || sessao.tipo !== "empresa") {
         return
     }
 
@@ -88,7 +81,6 @@ export async function exibirPageEmpresa(): Promise<void> {
         await exibirCandidatosEmpresa(
             empresa.id,
             vagaService,
-            candidatoService,
             curtidaVagaService,
             curtidaCandidatoService
         )
@@ -107,12 +99,12 @@ export async function exibirPageEmpresa(): Promise<void> {
     }
 }
 
-function obterSessao(): Sessao | undefined {
+function obterSessao(): SessaoResponseDTO | undefined {
     const sessao = localStorage.getItem("sessao")
 
     if (sessao == null) {
         return undefined
     }
 
-    return JSON.parse(sessao) as Sessao
+    return JSON.parse(sessao) as SessaoResponseDTO
 }

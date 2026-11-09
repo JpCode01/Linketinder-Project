@@ -9,10 +9,7 @@ import { exibirDadosCandidato } from "./CandidatoPerfil";
 import { exibirVagas } from "./CandidatoVaga";
 import { exibirVagasCurtidas } from "./CandidatoVagaCurtida";
 
-interface Sessao {
-    id: number
-    tipo: "CANDIDATO" | "EMPRESA"
-}
+import { SessaoResponseDTO } from "../../api/dto/login/SessaoResponseDTO"
 
 const serviceConfig: ServiceConfig = new ServiceConfig()
 
@@ -31,7 +28,7 @@ const candidatoService: CandidatoService =
 export async function exibirPageCandidato(): Promise<void> {
     const sessao = obterSessao()
 
-    if (sessao == undefined || sessao.tipo !== "CANDIDATO") {
+    if (sessao == undefined || sessao.tipo !== "candidato") {
         return
     }
 
@@ -65,12 +62,12 @@ export async function exibirPageCandidato(): Promise<void> {
     ])
 }
 
-function obterSessao(): Sessao | undefined {
+function obterSessao(): SessaoResponseDTO | undefined {
     const sessaoSalva = localStorage.getItem("sessao")
 
     if (sessaoSalva == null) {
         return undefined
     }
 
-    return JSON.parse(sessaoSalva) as Sessao
+    return JSON.parse(sessaoSalva) as SessaoResponseDTO
 }

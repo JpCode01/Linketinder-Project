@@ -17,7 +17,19 @@ import { CompetenciaService } from "../services/CompetenciaService";
 import { MatchService } from "../services/MatchService";
 import { ReferenciaService } from "../services/ReferenciaService";
 
+import { RecrutadorApiClient } from "../api/clientes/RecrutadorApiClient"
+import { LoginApiClient } from "../api/clientes/LoginApiClient"
+import { RecrutadorService } from "../services/RecrutadorService"
+
 export class ServiceConfig {
+    criarRecrutadorService(): RecrutadorService {
+        return new RecrutadorService(new RecrutadorApiClient())
+    }
+
+    criarLoginApiClient(): LoginApiClient {
+        return new LoginApiClient()
+    }
+
 
     criarCandidatoService(): CandidatoService {
         return new CandidatoService(

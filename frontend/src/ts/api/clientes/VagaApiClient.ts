@@ -1,78 +1,28 @@
+import { ApiClient } from "./ApiClient"
 import { CadastrarVagaRequestDTO } from "../dto/vaga/CadastrarVagaRequestDTO"
-import { VagaAnonimaResponseDTO } from "../dto/vaga/VagaAnonimaResponseDTO";
-import { VagaEmpresaResponseDTO } from "../dto/vaga/VagaEmpresaResponseDTO";
+import { VagaAnonimaResponseDTO } from "../dto/vaga/VagaAnonimaResponseDTO"
+import { VagaEmpresaResponseDTO } from "../dto/vaga/VagaEmpresaResponseDTO"
 
 export class VagaApiClient {
+    constructor(private api = new ApiClient()) {}
 
-    private readonly baseUrl: string = "http://localhost:8080/vagas"
-
-    async cadastrar(dados: CadastrarVagaRequestDTO): Promise<void> {
-        const resposta = await fetch(this.baseUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(dados)
-        })
-
-        if (!resposta.ok) {
-            const mensagem: string =
-                await this.obterMensagemErro(resposta)
-
-            throw new Error(mensagem)
-        }
+    cadastrarEmpresa(dados: CadastrarVagaRequestDTO): Promise<void> {
+        return this.api.postar("/vagas", dados)
     }
 
-    private async obterMensagemErro(
-        resposta: Response
-    ): Promise<string> {
-        const mensagemPadrao: string =
-            `Erro ao cadastrar vaga: HTTP ${resposta.status}`
-
-        if (!resposta.headers.get("Content-Type")?.includes("application/json")) {
-            return mensagemPadrao
-        }
-
-        try {
-            const corpo = await resposta.json() as { erro?: string }
-
-            if (corpo.erro != null && corpo.erro.trim() !== "") {
-                return corpo.erro
-            }
-        } catch (erro: unknown) {
-            if (!(erro instanceof SyntaxError)) {
-                throw erro
-            }
-        }
-
-        return mensagemPadrao
+    cadastrarRecrutador(idRecrutador: number, dados: CadastrarVagaRequestDTO): Promise<void> {
+        return this.api.postar(`/recrutadores/${idRecrutador}/vagas`, dados)
     }
 
-    async buscarPorEmpresa(
-        idEmpresa: number
-    ): Promise<VagaEmpresaResponseDTO[]> {
-        const resposta = await fetch(
-            `${this.baseUrl}/empresa/${idEmpresa}`
-        )
-
-        if (!resposta.ok) {
-            throw new Error(
-                `Erro ao carregar vagas da empresa: HTTP ${resposta.status}`
-            )
-        }
-
-        return await resposta.json() as VagaEmpresaResponseDTO[]
+    buscarPorEmpresa(idEmpresa: number): Promise<VagaEmpresaResponseDTO[]> {
+        return this.api.obter(`/vagas/empresa/${idEmpresa}`)
     }
 
-    async buscarTodasAsVagas(): Promise<VagaAnonimaResponseDTO[]> {
-        const resposta = await fetch(this.baseUrl)
+    buscarPorRecrutador(idRecrutador: number): Promise<VagaEmpresaResponseDTO[]> {
+        return this.api.obter(`/vagas/recrutador/${idRecrutador}`)
+    }
 
-        if (!resposta.ok) {
-            throw new Error(
-                `Erro ao carregar vagas: HTTP ${resposta.status}`
-            )
-        }
-
-        return await resposta.json() as VagaAnonimaResponseDTO[]
+    buscarTodasAsVagas(): Promise<VagaAnonimaResponseDTO[]> {
+        return this.api.obter("/vagas")
     }
 }

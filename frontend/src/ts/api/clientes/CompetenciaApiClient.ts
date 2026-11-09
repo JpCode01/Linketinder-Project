@@ -1,17 +1,9 @@
-import { Competencia } from "../../models/Competencia"
+import { ApiClient } from "./ApiClient"
 
 export class CompetenciaApiClient {
-    private readonly baseUrl: string = "http://localhost:8080/competencias"
+    constructor(private api = new ApiClient()) {}
 
-    async buscarTodas(): Promise<Competencia[]> {
-        const resposta = await fetch(this.baseUrl)
-
-        if (!resposta.ok) {
-            throw new Error(
-                `Erro ao carregar competências: HTTP ${resposta.status}`
-            )
-        }
-
-        return await resposta.json() as Competencia[]
+    buscarTodas(): Promise<string[]> {
+        return this.api.obter("/competencias")
     }
 }

@@ -12,6 +12,17 @@ export interface CandidatoViewDTO {
     descricao: string
     pais: Pais
     idade: number
-    dataNascimento: string
+    // JsonOutput serializa LocalDate como objeto, não como a data ISO de entrada.
+    dataNascimento: {
+        year: number
+        monthValue: number
+        dayOfMonth: number
+        dayOfYear: number
+        dayOfWeek: string
+        month: string
+        era: string
+        leapYear: boolean
+        chronology: { calendarType: string; id: string; isoBased: boolean }
+    }
     competencias: Competencia[]
 }

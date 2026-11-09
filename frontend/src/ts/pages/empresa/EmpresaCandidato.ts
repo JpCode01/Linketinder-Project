@@ -1,17 +1,12 @@
-import { Candidato } from "../../models/Candidato"
-import { Vaga } from "../../models/Vaga"
 import { VagaService } from "../../services/VagaService"
-import { CandidatoService } from "../../services/CandidatoService"
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
 import { CurtidaCandidatoService } from "../../services/CurtidaCandidatoService"
-import { CandidatoJaCurtidoException } from "../../exceptions/candidato/CandidatoJaCurtidoException"
 import { VagaEmpresaResponseDTO } from "../../api/dto/vaga/VagaEmpresaResponseDTO";
 import { CandidatoAnonimoResponseDTO } from "../../api/dto/candidato/CandidatoAnonimoResponseDTO";
 
 export async function exibirCandidatosEmpresa(
     idEmpresa: number,
     vagaService: VagaService,
-    candidatoService: CandidatoService,
     curtidaVagaService: CurtidaVagaService,
     curtidaCandidatoService: CurtidaCandidatoService
 ): Promise<void> {
@@ -31,18 +26,12 @@ export async function exibirCandidatosEmpresa(
         const candidatos = await curtidaVagaService.buscarCandidatosQueCurtiram(vaga.id)
 
         for (const candidato of candidatos) {
-            const candidatoJaCurtido =
-                await curtidaCandidatoService.jaCurtiuCandidato(
-                    idEmpresa,
-                    candidato.id
-                )
-
+            // Não há consulta de estado de retribuição em T11. Repetir por vaga é idempotente.
             const card = criarCardCandidato(
                 candidato,
                 vaga,
-                candidatoJaCurtido,
+                false,
                 () => curtirCandidato(
-                    idEmpresa,
                     candidato.id,
                     vaga.id,
                     card,
@@ -142,7 +131,6 @@ function criarRodapeCandidato(
 }
 
 async function curtirCandidato(
-    idEmpresa: number,
     idCandidato: number,
     idVaga: number,
     card: HTMLElement,
@@ -157,8 +145,7 @@ async function curtirCandidato(
     botao.disabled = true
 
     try {
-        await curtidaCandidatoService.curtir(
-            idEmpresa,
+        await curtidaCandidatoService.retribuirInteresseEmpresa(
             idCandidato,
             idVaga
         )

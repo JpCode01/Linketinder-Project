@@ -36,6 +36,7 @@ export function loginEmpresa(): void {
                 mostrarErroLogin(erro.message)
                 return
             }
+            mostrarErroLogin(erro instanceof Error ? erro.message : "Não foi possível entrar.")
         }
     }
 }

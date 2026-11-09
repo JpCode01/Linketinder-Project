@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02, T03, T04, T05, T06, T07, T08, T09, T10 e T11 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09, T10 e T11 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa.
+Status: T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11 e T12 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09, T10, T11 e T12 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa.
 
 Branch verificada: `feature/recruiter`. Data: 07/11/2026.
 
@@ -563,7 +563,7 @@ O ator vem exclusivamente de `SessaoHttp`, com revalidação de atividade. IDs d
 ### T12 — Compatibilizar a integração frontend existente com o backend de T11
 
 - **Objetivo:** adaptar o frontend importado de master aos contratos já implementados, preservando sua estrutura e o backend de T01–T11.
-- **Estado:** pendente; não iniciada nesta nova base. A implementação anterior foi desconsiderada por determinação do responsável.
+- **Estado:** concluída e validada no escopo de transporte/contratos frontend em 08/11/2026, com evidências novas desta base. A implementação anterior permanece desconsiderada.
 - **Referência:** seções 7 e 8; D-01, D-08; CA-01, CA-04, CA-15, CA-25; matriz de incompatibilidades da seção 2.
 - **Camada:** exclusivamente frontend.
 - **Existentes:** `F/ts/config/ServiceConfig.ts`; `F/ts/api/clientes/{CandidatoApiClient,EmpresaApiClient,VagaApiClient,CurtidaVagaApiClient,CurtidaCandidatoApiClient,MatchApiClient,ReferenciaApiClient,CompetenciaApiClient}.ts`; DTOs sob `api/dto/{candidato,empresa,vaga,match}/`; serviços HTTP correspondentes, incluindo `ReferenciaService`; estratégias/páginas consumidoras; modelos `Competencia`, `Pais` e `Estado`.
@@ -573,6 +573,48 @@ O ator vem exclusivamente de `SessaoHttp`, com revalidação de atividade. IDs d
 - **Restrições:** não alterar backend, schema, endpoints ou configuração de segurança para aceitar o frontend antigo; não importar backend de master. Não implementar tela de recrutador/seletor nem remover indiscriminadamente código histórico. Dependência genuína do backend exige decisão do responsável, nunca fallback inseguro.
 - **Validação:** `npx.cmd tsc --noEmit` e `npx.cmd gulp build`; conferir métodos/caminhos/campos contra servlets reais; checar fetch/credenciais e corpo/status, falha de rede, JSON inválido e sucesso vazio. Executar checagem reproduzível de transporte e, quando disponível, navegador com login candidato/empresa, perfil, descoberta, curtida e consulta de interessados/matches. Verificar ausência de chamadas ativas a `/verificar`, IDs de ator em corpos e buscas identificáveis alheias. Catálogo de RH/administração funciona como nomes nos formulários existentes. Qualquer teste que escreva exige auditoria prévia do banco dedicado; registrar limites concretos sem contar ausência de banco como aprovação.
 - **Conclusão:** frontend e consumidores compilam; transporte e contratos correspondem a T11; nenhum caminho integrado depende de rotas inexistentes, confirmação local, validação empresarial global ou exposição de perfil alheio. Evidências novas pertencem a esta base; não reutilizar os resultados da T12 descartada.
+
+**Entrega e rastreabilidade de T12 (08/11/2026):**
+
+- Transporte compartilhado em `ApiClient`: API em `http://127.0.0.1:8080`, `credentials: "include"`, JSON de entrada, erros com status e mensagem backend ou fallback genérico; cadastros/curtidas não tentam ler JSON de sucesso vazio. Todos os clientes e as duas estratégias existentes passam por esse transporte. A origem frontend compatível continua `http://127.0.0.1:5500`, conforme T11.
+- Login dos três perfis disponível no cliente com métodos por ator e resposta validada/restrita a `{id,tipo}`; estratégias e consumidores existentes usam os tipos minúsculos reais. O armazenamento continua somente estado de navegação. A entrada visual do recrutador pertence a T13.
+- Contratos/serviço de recrutador e áreas, criação/consulta de vagas de autor e consulta de matches de autor acrescentados à composição existente. Retribuição possui métodos explícitos de empresa/recrutador, com o mesmo endpoint que deriva o ator da sessão.
+- Interesse envia somente `{idVaga}`; retribuição somente `{idCandidato,idVaga}`. Descoberta consulta a lista anônima de vagas curtidas, sem verificações individuais inexistentes. A empresa não reconstrói retribuições por nomes/IDs de match: permite repetir por vaga e só confirma o card após sucesso HTTP. A entrada histórica `EmpresaCandidatoCurtido` delega a `EmpresaMatch`, sem ler perfil alheio.
+- Catálogo seletivo é `string[]`; os dois formulários existentes renderizam e enviam nomes de RH/administração sem criar IDs de referências. Os identificadores DOM dos checkboxes são apenas locais. DTOs anônimos e competências de consulta `{id,nome}` foram preservados. A contagem do gráfico permanece por interesse em cada vaga.
+- Vagas internas incluem ID/nome/área do autor anuláveis; matches acrescentam somente nome/área anuláveis, sem IDs artificiais de candidato/vaga ou perfil do recrutador. Perfis tipam `dataNascimento` como o objeto efetivamente serializado por `JsonOutput`; cadastros continuam ISO. O serviço empresarial adapta `localizacao → local` e envia nomes de competências, sem persistir `tipo`/`formacao`.
+
+**Inventário dos arquivos de T12** (caminhos `F/ts` relativos a `frontend/src/ts`):
+
+- Criados: `F/ts/api/clientes/{ApiClient,LoginApiClient,RecrutadorApiClient}.ts`; `F/ts/api/dto/login/SessaoResponseDTO.ts`; `F/ts/api/dto/recrutador/{CadastrarRecrutadorRequestDTO,RecrutadorViewDTO,AreaRecrutamentoResponseDTO}.ts`; `F/ts/services/RecrutadorService.ts`; `frontend/tests/transporte-t12.test.cjs`.
+- Modificados: os oito clientes existentes listados no escopo de T12; `F/ts/api/dto/candidato/CandidatoViewDTO.ts`, `api/dto/vaga/{CadastrarVagaRequestDTO,VagaEmpresaResponseDTO}.ts` e `api/dto/match/MatchResponseDTO.ts`; `config/ServiceConfig.ts`; `services/{CompetenciaService,CurtidaCandidatoService,CurtidaVagaService,MatchService,VagaService}.ts`; `strategy/login/{LoginCandidatoStrategy,LoginEmpresaStrategy}.ts`; `pages/login/{LoginCandidato,LoginEmpresa}.ts`; `pages/candidato/{CadastroCandidatoPage,CandidatoPage,CandidatoVaga}.ts`; `pages/empresa/{EmpresaCandidato,EmpresaCandidatoCurtido,EmpresaPage,EmpresaVaga}.ts`; `CHANGELOG.md` e este plano.
+
+**Comandos e resultados executados:**
+
+| Verificação | Resultado e alcance |
+| --- | --- |
+| `npx.cmd tsc --noEmit` em `frontend` | Passou, inclusive na revisão final; TypeScript estrito em todos os consumidores. |
+| `npx.cmd gulp build` em `frontend` | Passou; Webpack 5.110.3 compilou. Apenas aviso não impeditivo `DEP0180`. Saída gerada pelo build, sem edição manual de `dist`. |
+| `node --test tests/transporte-t12.test.cjs` em `frontend` | 10 testes, 10 aprovados, zero falhas/ignorados na execução final. Executa clientes/serviços/estratégias e consumidores reais com fetch e DOM controlados, sem rede ou banco. Duas asserções inicialmente detectaram mensagens com acentuação danificada na escrita; corrigidas antes da execução final. |
+| `.\gradlew.bat --gradle-user-home C:/Users/Mysterio/.gradle test --tests 'com.jpcode.api.*' --tests 'com.jpcode.service.*'` | `BUILD SUCCESSFUL`: 236 testes em 12 classes, zero falhas/erros/ignorados; relatório JaCoCo gerado. Inclui contratos HTTP em Tomcat real com controllers mockados, sessão, CORS, visibilidade e testes de serviços. Não seleciona `com.jpcode.integracao.*`. |
+| Serialização com `groovy.ui.GroovyMain` e JARs declarados/cacheados `groovy`/`groovy-json` 5.0.8 | `JsonOutput.toJson(LocalDate.of(2000,1,2))` confirmou objeto com ano, mês, dia, calendário e demais propriedades tipadas no perfil; nenhuma conexão de banco. |
+| Revisão integral do diff e `git diff --check` | Alterações limitadas a T12; sem erros de whitespace. Backend, SQL, build Gradle e especificação aprovada sem diff. |
+
+O wrapper sem configuração explícita de cache falhou ao criar lock em `C:/.gradle` durante `--version`; a execução dos testes acima usou o cache local e permissão de execução concedida, concluindo normalmente. Tentativas iniciais de serialização selecionaram JARs de fontes; a checagem válida acima usou os JARs binários das versões declaradas.
+
+**Critérios específicos verificados:**
+
+| Critério de T12 | Evidência |
+| --- | --- |
+| Frontend e consumidores compilam e empacotam | TypeScript estrito e Gulp/Webpack aprovados. |
+| Host/cookie, métodos/rotas/corpos e sucessos vazios correspondem a T11 | Servlets/registro/DTOs reais conferidos; testes de consultas, mutações e login pelos clientes/serviços compostos. |
+| Falhas HTTP/rede/JSON não simulam sucesso | Testes de status 400/401/403/404/409/500, erros não JSON, rede indisponível, JSON de sucesso inválido e sessão inválida; estratégia não persiste nem navega em login rejeitado. |
+| Nenhuma rota de verificação, identidade de ator no corpo ou reciprocidade global | Varredura do código e testes de descoberta por listagem, corpos exatos e mesmo candidato em duas vagas independentes. |
+| Ausência de leitura identificável alheia e preservação do anonimato | Consumidor empresarial usa interessados anônimos e matches; entrada histórica delega ao componente de match. DTOs anônimos inalterados; regressão de visibilidade/backend aprovada. |
+| Competências de catálogo como nomes e contratos internos/pós-match separados | Testes dos dois formulários com RH/administração, payload de vaga por nomes e gráfico por interesse; revisão dos DTOs de autoria/match/perfil contra produtores backend. |
+
+**Banco, limites e parada:** nenhuma conexão/escrita de banco realizada. A suíte frontend usa fetch controlado; as classes backend selecionadas usam mocks, sem chamadas JDBC. O suporte `SuportePostgres` foi inspecionado e exige banco dedicado sem fallback, mas a suíte de integração persistida não foi selecionada nem executada. Não se declara nova validação JDBC de integridade/transações, que permanecem inalteradas. Não há ferramenta de navegador disponível nesta sessão; o DOM controlado não comprova cookies/CORS em navegador nem aceite full-stack. Esses aceites permanecem em T18, conforme T11 e os limites da tarefa; nenhum bloqueio no escopo específico de T12.
+
+T13–T19 não implementadas nem marcadas como concluídas. O login automático herdado dos cadastros continua para adaptação em T13; não foi antecipado o seletor pesquisável nem telas/jornadas do recrutador. O arquivo preexistente não rastreado `docs/specs/recrutador/diagnostico-integracao.md` foi preservado. Especificação aprovada e demais tarefas preservadas; nenhum `git add`, `git commit` ou `git push` executado. A autorização explícita deste pedido prevalece sobre o checkpoint de commit da skill `feature-com-spec`. Consumo de tokens não disponível como medição confiável.
 
 ### T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador
 
@@ -788,7 +830,7 @@ Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decis
 - [x] T09 — Interesse, retribuição e match atômicos (evidências e limites registrados na tarefa).
 - [x] T10 — Matches e matriz de visibilidade (evidências e limites registrados na tarefa).
 - [x] T11 — Rotas, contratos e acesso pelo navegador (superfície HTTP validada; navegador real permanece em T18).
-- [ ] T12 — Compatibilizar clientes/DTOs/serviços e consumidores da integração importada com T11 (pendente na nova base).
+- [x] T12 — Compatibilizar clientes/DTOs/serviços e consumidores da integração importada com T11 (transporte e contratos validados na nova base; navegador/aceite full-stack permanecem em T18).
 - [ ] T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador.
 - [ ] T14 — Substituir checkboxes por seletor pesquisável de competências.
 - [ ] T15 — Jornada do candidato.
@@ -803,8 +845,8 @@ Implementar uma tarefa por vez após os gates aplicáveis. Cada commit continua 
 
 ## 9. Questões abertas ou bloqueios
 
-Não há ambiguidade de negócio identificada. Há incompatibilidades de transporte/contratos entre o frontend importado e o backend de T11, identificadas na seção 2 e atribuídas à nova T12. A importação exata/compilada não as resolve nem autoriza retroceder o backend. A exclusão dos endpoints opcionais foi incluída na sequência aprovada; CA-26 não é lacuna do escopo obrigatório.
+Não há ambiguidade de negócio identificada. As incompatibilidades de transporte/contratos entre o frontend importado e o backend de T11, identificadas na seção 2, foram tratadas e verificadas no escopo de T12, com evidências próprias acima. A importação isoladamente não as resolvia; o backend foi preservado. A exclusão dos endpoints opcionais foi incluída na sequência aprovada; CA-26 não é lacuna do escopo obrigatório.
 
-As decisões backend da seção 3 já implementadas e validadas em T01–T11 permanecem preservadas. A revisão autorizada começa na fronteira com o frontend e adapta T12–T18 ao snapshot importado; não reabre locks, transações, rotas, sessão nativa, parâmetros de hash ou schema. A compilação/build da importação foi executada; a compatibilidade funcional com esse backend ainda depende da nova T12.
+As decisões backend da seção 3 já implementadas e validadas em T01–T11 permanecem preservadas. A revisão autorizada começa na fronteira com o frontend e adapta T12–T18 ao snapshot importado; não reabre locks, transações, rotas, sessão nativa, parâmetros de hash ou schema. T12 validou compilação/build, transporte e contratos da nova base; jornadas completas e aceite em navegador continuam nas tarefas posteriores.
 
 A confirmação de validação com o Tutor permanece não informada na especificação e não foi inferida da aprovação da sequência. Não bloqueia a redação solicitada do plano, mas deve ser registrada antes dos encaminhamentos de commit previstos na especificação. Disponibilidade de JDK compatível, PostgreSQL separado e referências preparadas é pré-requisito da validação futura, a conferir antes de executar as tarefas correspondentes.

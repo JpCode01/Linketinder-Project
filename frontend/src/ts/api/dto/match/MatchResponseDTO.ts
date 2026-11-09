@@ -1,6 +1,8 @@
 import { Competencia } from "../../../models/Competencia"
 
 export interface MatchResponseDTO {
+    nomeRecrutador: string | null
+    areaRecrutamento: string | null
     id: number
     nomeCandidato: string
     sobrenomeCandidato: string
