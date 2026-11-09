@@ -2,7 +2,6 @@ import { CadastrarCandidatoRequestDTO } from "../../api/dto/candidato/CadastrarC
 import { ServiceConfig } from "../../config/ServiceConfig";
 import { Estado } from "../../models/Estado";
 import { Pais } from "../../models/Pais";
-import { LoginCandidatoStrategy } from "../../strategy/login/LoginCandidatoStrategy";
 
 const serviceConfig: ServiceConfig = new ServiceConfig()
 
@@ -49,7 +48,13 @@ export function cadastrarCandidato(): void {
             )
         })
 
+    formulario.onsubmit = (evento: SubmitEvent): void => {
+        evento.preventDefault()
+        if (!botaoCadastro.disabled) botaoCadastro.click()
+    }
+
     botaoCadastro.onclick = async (): Promise<void> => {
+        if (botaoCadastro.disabled) return
         if (!formulario.reportValidity()) {
             return
         }
@@ -57,30 +62,14 @@ export function cadastrarCandidato(): void {
         limparErro()
         botaoCadastro.disabled = true
 
-        let cadastroConcluido = false
-
         try {
             const dados: CadastrarCandidatoRequestDTO =
                 capturarDadosCandidato()
 
             await candidatoService.cadastrar(dados)
-            cadastroConcluido = true
-
-            const login: LoginCandidatoStrategy =
-                new LoginCandidatoStrategy()
-
-            await login.login(dados.email, dados.senha)
+            window.location.href = "./index.html"
         } catch (erro: unknown) {
-            const mensagem: string = obterMensagemErro(erro)
-
-            if (cadastroConcluido) {
-                mostrarErro(
-                    "Cadastro realizado, mas não foi possível entrar automaticamente. " +
-                    "Acesse a tela de login. " + mensagem
-                )
-            } else {
-                mostrarErro(mensagem)
-            }
+            mostrarErro(obterMensagemErro(erro))
         } finally {
             botaoCadastro.disabled = false
         }
@@ -210,10 +199,6 @@ function calcularIdade(dataNascimento: string): number {
         idade--
     }
 
-    if (idade <= 0 || idade > 120) {
-        throw new Error("A idade informada deve estar entre 1 e 120 anos.")
-    }
-
     return idade
 }
 
@@ -240,10 +225,6 @@ function capturarDadosCandidato(): CadastrarCandidatoRequestDTO {
     }
 
     const competencias: string[] = capturarCompetenciasSelecionadas()
-
-    if (competencias.length === 0) {
-        throw new Error("Selecione pelo menos uma competência.")
-    }
 
     return {
         nome,
@@ -272,7 +253,7 @@ function obterValor(id: string): string {
         throw new Error(`Campo '${id}' não encontrado.`)
     }
 
-    return elemento.value.trim()
+    return id === "password" ? elemento.value : elemento.value.trim()
 }
 
 function capturarCompetenciasSelecionadas(): string[] {

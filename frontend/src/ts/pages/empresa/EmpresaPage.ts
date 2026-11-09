@@ -17,7 +17,7 @@ import {
     exibirVagasEmpresa
 } from "./EmpresaVaga";
 
-import { SessaoResponseDTO } from "../../api/dto/login/SessaoResponseDTO"
+import { obterSessaoDoPerfil, tratarErroSessao } from "../login/SessaoNavegacao"
 
 const serviceConfig: ServiceConfig = new ServiceConfig()
 const empresaApiClient: EmpresaApiClient = new EmpresaApiClient()
@@ -41,7 +41,7 @@ const relatorioCompetenciasService: RelatorioCompetenciasService =
     serviceConfig.criarRelatorioCompetenciasService()
 
 export async function exibirPageEmpresa(): Promise<void> {
-    const sessao = obterSessao()
+    const sessao = obterSessaoDoPerfil("empresa")
 
     if (sessao == undefined || sessao.tipo !== "empresa") {
         return
@@ -52,6 +52,7 @@ export async function exibirPageEmpresa(): Promise<void> {
     try {
         empresa = await empresaApiClient.buscarPorId(sessao.id)
     } catch (erro: unknown) {
+        if (tratarErroSessao(erro)) return
         console.error("Erro ao carregar o perfil da empresa:", erro)
 
         const mensagem = document.getElementById("profile-name")
@@ -95,16 +96,7 @@ export async function exibirPageEmpresa(): Promise<void> {
 
         criarGraficoCompetencias(contagem)
     } catch (erro: unknown) {
+        if (tratarErroSessao(erro)) return
         console.error("Erro ao carregar a página da empresa:", erro)
     }
-}
-
-function obterSessao(): SessaoResponseDTO | undefined {
-    const sessao = localStorage.getItem("sessao")
-
-    if (sessao == null) {
-        return undefined
-    }
-
-    return JSON.parse(sessao) as SessaoResponseDTO
 }

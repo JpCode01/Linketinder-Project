@@ -9,7 +9,7 @@ import { exibirDadosCandidato } from "./CandidatoPerfil";
 import { exibirVagas } from "./CandidatoVaga";
 import { exibirVagasCurtidas } from "./CandidatoVagaCurtida";
 
-import { SessaoResponseDTO } from "../../api/dto/login/SessaoResponseDTO"
+import { obterSessaoDoPerfil, tratarErroSessao } from "../login/SessaoNavegacao"
 
 const serviceConfig: ServiceConfig = new ServiceConfig()
 
@@ -26,7 +26,7 @@ const candidatoService: CandidatoService =
     serviceConfig.criarCandidatoService()
 
 export async function exibirPageCandidato(): Promise<void> {
-    const sessao = obterSessao()
+    const sessao = obterSessaoDoPerfil("candidato")
 
     if (sessao == undefined || sessao.tipo !== "candidato") {
         return
@@ -38,6 +38,7 @@ export async function exibirPageCandidato(): Promise<void> {
 
         exibirDadosCandidato(candidatoDto)
     } catch (erro) {
+        if (tratarErroSessao(erro)) return
         console.error(
             "Erro ao carregar perfil do candidato:",
             erro
@@ -60,14 +61,4 @@ export async function exibirPageCandidato(): Promise<void> {
             matchService
         )
     ])
-}
-
-function obterSessao(): SessaoResponseDTO | undefined {
-    const sessaoSalva = localStorage.getItem("sessao")
-
-    if (sessaoSalva == null) {
-        return undefined
-    }
-
-    return JSON.parse(sessaoSalva) as SessaoResponseDTO
 }

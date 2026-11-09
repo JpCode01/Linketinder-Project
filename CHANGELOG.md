@@ -8,6 +8,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Opção de login de recrutador com Strategy e autenticação HTTP existente, sem autocadastro ou navegação para uma tela ainda ausente; confirmação visual enquanto a jornada permanece em T17 (T13).
+- Checagens de entrada dos três perfis, cadastros sem login automático, referências, conflitos, falhas e recuperação da navegação de sessão (T13).
 - Clientes e contratos frontend de login dos três perfis, cadastro/perfil próprio de recrutador e consulta de áreas, além de serviços e consultas de vagas/matches por autor na composição manual (T12).
 - Checagens reproduzíveis de transporte e consumidores frontend, cobrindo cookies, rotas/corpos, respostas vazias, falhas HTTP/rede/JSON, catálogo por nomes e isolamento da retribuição por vaga (T12).
 - Diagnóstico e matriz de incompatibilidades entre o frontend integrado de master e os contratos backend de T11, com origem do snapshot e validações da importação.
@@ -50,6 +52,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Cadastros de candidato/empresa encaminham ao login somente após confirmação HTTP, preservam a senha digitada e impedem submissões duplicadas ou envio nativo do formulário. Cadastro de candidato mantém cálculo de idade sem o limite local de 1–120 anos e aceita lista vazia de competências, conforme o contrato backend existente (T13).
+- Entrada dos três perfis compartilha validação e apresentação de erros, bloqueia tentativas simultâneas, limpa o campo de senha e descarta navegação anterior em nova tentativa. Páginas de candidato/empresa voltam ao login com sessão local ausente/inválida ou perfil rejeitado por `401`/`403`, mantendo autorização no servidor (T13).
 - Clientes HTTP e estratégias existentes passam pelo transporte compartilhado em `127.0.0.1:8080`, com credenciais, erros com status e sessão de navegação tipada em minúsculas. DTOs distinguem a data JSON de perfil da entrada ISO e incluem autoria interna e nome/área anuláveis no match (T12).
 - Formulários existentes consomem competências como `string[]`; criação empresarial adapta `localizacao` para `local` e envia nomes, sem IDs fabricados ou campos locais de tipo/formação (T12).
 - Importada somente a pasta frontend de origin/master (commit da27379) para feature/recruiter, substituindo a tentativa anterior de T12 e preservando integralmente o backend; master não foi modificada.

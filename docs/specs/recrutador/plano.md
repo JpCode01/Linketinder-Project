@@ -619,6 +619,7 @@ T13–T19 não implementadas nem marcadas como concluídas. O login automático 
 ### T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador
 
 - **Objetivo:** completar a entrada dos três perfis aproveitando formulários e autenticação HTTP já existentes.
+- **Estado:** implementação entregue em 09/11/2026; validação automatizada registrada abaixo. Conclusão pendente da verificação em navegador com backend e banco dedicado; checklist permanece desmarcado.
 - **Referência:** seção 7; seção 8, “Interface”; RN-06 a RN-09; CA-03, CA-04, CA-19 a CA-22.
 - **Camada:** Frontend.
 - **Existentes:** `F/ts/strategy/login/{LoginStrategy,LoginCandidatoStrategy,LoginEmpresaStrategy}.ts`; `F/ts/pages/LoginPage.ts`; `F/ts/pages/login/{LoginCandidato,LoginEmpresa}.ts`; cadastros de candidato/empresa e `F/html/{index,cadastro-candidato,cadastro-empresa}.html`; `ReferenciaService`; contratos de T12.
@@ -627,6 +628,34 @@ T13–T19 não implementadas nem marcadas como concluídas. O login automático 
 - **Passos:** conservar campos obrigatórios, senha, cálculo de idade e carregamento de país/estado existentes, validando seus contratos reais. Corrigir cadastro para navegar ao login após confirmação, substituindo a tentativa automática atual. Acrescentar opção recrutador sem autocadastro; integrar sua estratégia ao cliente de login de T12. Persistir somente `{id,tipo}` confirmado como navegação; tratar credenciais inválidas, sessão ausente/inativa, conflitos e erro de rede sem persistir senha. Rever validações frontend herdadas que restrinjam silenciosamente valores aceitos pelo backend; não criar nova regra de idade/domínio. Não recriar formulários ou voltar ao login por e-mail local.
 - **Validação:** compilação/build; navegador com cadastros novos, referência inválida, conflito, login válido/inválido e inativo dos três perfis, refresh e falhas. Inspecionar sessão/rede e ausência de login automático após cadastro; informar quando a jornada recrutadora ainda depender de T17.
 - **Conclusão:** cadastros e entrada existentes funcionam com a sessão real; opção de recrutador preparada sem inventar perfil local, credenciais persistidas ou nova regra de cadastro.
+
+**Entrega de T13 (09/11/2026):**
+
+- Cadastros existentes aguardam sucesso HTTP e encaminham a `index.html`, sem chamada de login ou gravação de identidade local. Preservados os campos obrigatórios, cálculo de idade, carregamento de países/estados e catálogo por nomes. Senha segue exatamente como digitada. Removidos limite local de idade 1–120 e exigência local de competência mínima: a servlet aceita idade não negativa e lista vazia; datas inválidas/futuras continuam rejeitadas no cálculo. Checkboxes permanecem para T14.
+- Acrescentadas opção e Strategy de recrutador, consumindo `LoginApiClient.loginRecrutador`. Resposta validada de T12 persiste somente `{id,tipo}`; não há autocadastro nem ID fabricado. Sucesso do recrutador permanece na página de entrada com confirmação e aviso de indisponibilidade da área. Nenhuma rota/tela fictícia foi criada; navegação da jornada será integrada em T17.
+- Tratamento compartilhado dos formulários de login mantém estratégias específicas por ator, valida campos, impede tentativas simultâneas e submissão nativa, remove navegação anterior na tentativa, apresenta erros e limpa o campo de senha. As páginas existentes de candidato/empresa validam o formato da sessão local e consultam o perfil no servidor antes de carregar os demais dados; `401`/`403` limpam a navegação e encaminham ao login. Armazenamento local não autentica nem autoriza operações.
+
+**Arquivos** (relativos à raiz):
+
+- Criados: `frontend/src/ts/strategy/login/LoginRecrutadorStrategy.ts`; `frontend/src/ts/pages/login/{LoginRecrutador,FormularioLogin,SessaoNavegacao}.ts`; `frontend/tests/entrada-t13.test.cjs`.
+- Modificados: `frontend/src/html/index.html`; `frontend/src/ts/pages/LoginPage.ts`; `frontend/src/ts/pages/login/{LoginCandidato,LoginEmpresa}.ts`; `frontend/src/ts/pages/candidato/{CadastroCandidatoPage,CandidatoPage}.ts`; `frontend/src/ts/pages/empresa/{CadastroEmpresaPage,EmpresaPage}.ts`; `CHANGELOG.md` e este plano. Os dois auxiliares novos concentram somente apresentação de entrada e navegação das páginas existentes, sem nova camada de autorização.
+
+**Validação e rastreabilidade:**
+
+| Critério de T13 | Evidência e limite |
+| --- | --- |
+| Compilação e empacotamento | `npx.cmd tsc --noEmit` e `npx.cmd gulp build` em `frontend` aprovados; Webpack 5.110.3, apenas aviso não impeditivo `DEP0180`. `dist` somente gerado pelo build. |
+| Cadastro confirmado sem login automático | `node --test tests/entrada-t13.test.cjs tests/transporte-t12.test.cjs`: 20 testes aprovados, zero falhas/ignorados. Páginas reais com DOM/fetch controlados verificam espera por `201` vazio, redirecionamento, payload exato, senha com espaços e ausência de POST de login/gravação local após cadastro. |
+| Referências, idade e falhas de cadastro | Mesma suíte verifica nomes/siglas reais, RH/administração por nomes, lista vazia, idade zero/acima de 120, datas inválidas/futuras, carregamento bloqueado após falha, `400`, `409`, rede e submissões duplicadas. Não estabelece unicidade persistida de RN-07–RN-09/CA-19–CA-22 nem reutilização de histórico. |
+| Entrada dos três perfis e sessão mínima | Mesma suíte executa as três páginas/estratégias pelo transporte real de T12, com respostas controladas válidas, `401`, rede/JSON inválido e tipo divergente; confirma somente ID/tipo no armazenamento e ausência de navegação fictícia. Resposta `401` simulada não comprova inatividade persistida. |
+| Refresh, sessão ausente e rejeição pelo servidor | Mesma suíte verifica estado local ausente/malformado/perfil divergente e chamadas reais dos consumidores de perfil com respostas controladas `401`/`403`, sem consultas seguintes. Não comprova cookie/CORS em navegador ou refresh full-stack. |
+| Regressão backend de API/serviços | `.\gradlew.bat --gradle-user-home C:/Users/Mysterio/.gradle test --tests 'com.jpcode.api.*' --tests 'com.jpcode.service.*' --rerun-tasks`: `BUILD SUCCESSFUL`, 236 testes em 12 classes, zero falhas/erros/ignorados nos XML novos; JaCoCo gerado. Inclui HTTP em Tomcat real com controllers mockados, login/sessão, visibilidade, serviços e hash em memória. Não seleciona integrações JDBC. |
+
+As duas falhas da primeira execução da suíte nova identificaram a exigência local de competência mínima ainda presente; removida conforme a revisão do contrato, com asserções preservadas e execução final aprovada. A primeira tentativa Gradle restrita falhou por acesso negado ao lock no cache externo; execução autorizada concluiu com tarefas em cache. A execução final com `--rerun-tasks` produziu resultados novos, contabilizados acima. Revisão integral do diff, inclusive arquivos novos, e `git diff --check` sem erros. Backend, SQL, dependências, DTOs anônimos e especificação aprovada sem alterações. Regressão T12 inclui descoberta anônima e retribuição isolada por vaga.
+
+**Banco, pendências e parada:** nenhuma conexão ou escrita de banco realizada. Variáveis `LINKETINDER_TEST_*` ausentes; não foi possível estabelecer uma conexão dedicada de teste. `SuportePostgres` inspecionado: exige configuração explícita e banco `linketinder_test[_sufixo]`, confere `current_database()`, sem fallback; setup/cleanup isolam schema e rollback. Integrações JDBC não selecionadas nem executadas. Integridade, transações, hash persistido, concorrência e reutilização de identificadores não são declarados novamente validados por esta tarefa frontend.
+
+Não foi executado navegador real com backend/PostgreSQL dedicado. Permanecem pendentes os cenários de navegador previstos em T13: novos cadastros, referência inválida, conflito, login válido/inválido/inativo dos três perfis, refresh, falhas e inspeção de cookies/rede/armazenamento. As verificações automatizadas com DOM controlado não substituem esses cenários; por isso T13 permanece sem marcação de conclusão. Jornada recrutadora depende de T17 conforme o plano. Nenhuma implementação de T14 ou posteriores; demais tarefas e especificação preservadas. Nenhum `git add`, `git commit` ou `git push`; autorização deste pedido prevalece sobre o checkpoint de commit da skill `feature-com-spec`. Consumo de tokens sem medição confiável disponível.
 
 ### T14 — Substituir checkboxes existentes por seletor pesquisável reutilizável
 
@@ -831,7 +860,7 @@ Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decis
 - [x] T10 — Matches e matriz de visibilidade (evidências e limites registrados na tarefa).
 - [x] T11 — Rotas, contratos e acesso pelo navegador (superfície HTTP validada; navegador real permanece em T18).
 - [x] T12 — Compatibilizar clientes/DTOs/serviços e consumidores da integração importada com T11 (transporte e contratos validados na nova base; navegador/aceite full-stack permanecem em T18).
-- [ ] T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador.
+- [ ] T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador (implementada; validação em navegador com banco dedicado pendente, conforme evidências da tarefa).
 - [ ] T14 — Substituir checkboxes por seletor pesquisável de competências.
 - [ ] T15 — Jornada do candidato.
 - [ ] T16 — Jornada empresarial e gráfico.

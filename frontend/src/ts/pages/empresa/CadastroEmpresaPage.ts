@@ -2,7 +2,6 @@ import { CadastrarEmpresaRequestDTO } from "../../api/dto/empresa/CadastrarEmpre
 import { ServiceConfig } from "../../config/ServiceConfig";
 import { Estado } from "../../models/Estado";
 import { Pais } from "../../models/Pais";
-import { LoginEmpresaStrategy } from "../../strategy/login/LoginEmpresaStrategy";
 
 const serviceConfig: ServiceConfig = new ServiceConfig()
 
@@ -38,7 +37,13 @@ export function cadastrarEmpresa(): void {
             )
         })
 
+    formulario.onsubmit = (evento: SubmitEvent): void => {
+        evento.preventDefault()
+        if (!botaoCadastro.disabled) botaoCadastro.click()
+    }
+
     botaoCadastro.onclick = async (): Promise<void> => {
+        if (botaoCadastro.disabled) return
         if (!formulario.reportValidity()) {
             return
         }
@@ -46,30 +51,14 @@ export function cadastrarEmpresa(): void {
         limparErro()
         botaoCadastro.disabled = true
 
-        let cadastroConcluido = false
-
         try {
             const dados: CadastrarEmpresaRequestDTO =
                 capturarDadosEmpresa()
 
             await empresaService.cadastrar(dados)
-            cadastroConcluido = true
-
-            const login: LoginEmpresaStrategy =
-                new LoginEmpresaStrategy()
-
-            await login.login(dados.email, dados.senha)
+            window.location.href = "./index.html"
         } catch (erro: unknown) {
-            const mensagem: string = obterMensagemErro(erro)
-
-            if (cadastroConcluido) {
-                mostrarErro(
-                    "Cadastro realizado, mas não foi possível entrar automaticamente. " +
-                    "Acesse a tela de login. " + mensagem
-                )
-            } else {
-                mostrarErro(mensagem)
-            }
+            mostrarErro(obterMensagemErro(erro))
         } finally {
             botaoCadastro.disabled = false
         }
@@ -164,7 +153,7 @@ function obterValor(id: string): string {
         throw new Error(`Campo '${id}' não encontrado.`)
     }
 
-    return campo.value.trim()
+    return id === "password" ? campo.value : campo.value.trim()
 }
 
 function mostrarErro(mensagem: string): void {
