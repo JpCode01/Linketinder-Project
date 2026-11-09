@@ -153,6 +153,12 @@ function criarCardVaga(vaga: VagaEmpresaResponseDTO): HTMLElement {
     article.appendChild(localizacao)
     article.appendChild(curtidas)
 
+    const autoria = document.createElement("p")
+    autoria.textContent = vaga.idRecrutador == null
+        ? "Criação direta pela empresa"
+        : `Recrutador autor: ${vaga.nomeRecrutador} — ${vaga.areaRecrutamento}`
+    article.appendChild(autoria)
+
     return article
 }
 

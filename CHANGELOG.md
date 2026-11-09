@@ -8,6 +8,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Formulário empresarial de cadastro de recrutador com áreas persistidas, confirmação HTTP, bloqueio de envios simultâneos e tratamento de falhas de referência/cadastro (T16).
+- Checagens da jornada empresarial para autoria direta/histórica, contrato de match, retribuição por vaga, sessão rejeitada e gráfico por interesse, com DOM/fetch controlados (T16).
 - Checagens da jornada candidata com matches diretos e de recrutador, contrato completo, anonimato por vaga, confirmação de curtida, repetição, falhas e sessão rejeitada (T15).
 - Seletor reutilizável de competências por nomes do catálogo HTTP, com pesquisa parcial, seleção múltipla sem duplicatas, remoção e estados vazios; texto livre não selecionado não integra o cadastro (T14).
 - Checagens do seletor e dos payloads de candidato/vaga, incluindo RH/administração, falhas de carregamento, preservação após erro e limpeza após sucesso (T14).
@@ -55,6 +57,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Modificado
 
+- Vagas empresariais distinguem criação direta e autoria de recrutador; matches apresentam os campos autorizados e nome/área do autor histórico, com atualização após confirmação da retribuição (T16).
 - Matches do candidato apresentam os campos autorizados do contrato e, quando presentes, nome e área do recrutador autor. Listas de vagas, curtidas e matches indicam carregamento e ausência de resultados e tratam rejeição de sessão (T15).
 - Cadastro de candidato e criação empresarial de vagas utilizam o seletor pesquisável no lugar dos checkboxes. Criação de vaga fica bloqueada enquanto o catálogo carrega ou quando seu carregamento falha (T14).
 - Cadastros de candidato/empresa encaminham ao login somente após confirmação HTTP, preservam a senha digitada e impedem submissões duplicadas ou envio nativo do formulário. Cadastro de candidato mantém cálculo de idade sem o limite local de 1–120 anos e aceita lista vazia de competências, conforme o contrato backend existente (T13).

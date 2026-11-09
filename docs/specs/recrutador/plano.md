@@ -1,6 +1,6 @@
 # Plano de implementação — Recrutador
 
-Status: T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14 e T15 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09, T10, T11 e T12 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa. T13 aprovada explicitamente pelo responsável em 09/11/2026, após confirmação de funcionamento dos endpoints; evidências e limites registrados na tarefa. T15 aprovada explicitamente pelo responsável em 09/11/2026, após informar que tudo foi testado, incluindo a correção pontual das competências do candidato anônimo.
+Status: T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15 e T16 concluídas e validadas nos respectivos escopos; demais tarefas pendentes. Implementações de T01, T02, T03 e T04 autorizadas explicitamente pelo responsável em 07/11/2026; T05, T06, T08, T09, T10, T11 e T12 autorizadas explicitamente em 08/11/2026, sem execução de commits pelos agentes. Evidências de T07 registradas na respectiva tarefa. T13 aprovada explicitamente pelo responsável em 09/11/2026, após confirmação de funcionamento dos endpoints; evidências e limites registrados na tarefa. T15 aprovada explicitamente pelo responsável em 09/11/2026, após informar que tudo foi testado, incluindo a correção pontual das competências do candidato anônimo.
 
 T14 aprovada explicitamente pelo responsável em 09/11/2026; aceite e limites da validação registrados na respectiva tarefa.
 
@@ -773,6 +773,24 @@ Na rodada automatizada original, o agente não executou navegador real com backe
 - **Validação:** compilação/build; navegador com erro de área/cadastro, vagas diretas/autorais, retribuição empresarial nas duas origens, refresh e autoria após inatividade. Conferir gráfico com candidato interessado em duas vagas e isolamento empresarial.
 - **Conclusão:** empresa acompanha todas as próprias vagas/matches e cadastra recrutadores com as referências existentes; gráfico mantém contagem por interesse, sem regressão de anonimato.
 
+**Implementação de T16 (09/11/2026):** formulário `EmpresaRecrutador.ts` integrado à página empresarial e aos serviços/clientes existentes de T12. Consulta áreas persistidas, deriva empresa do perfil próprio carregado, envia somente os campos de cadastro, bloqueia submissões simultâneas, confirma sucesso após HTTP e preserva dados em falhas. Vagas internas distinguem criação direta de autoria por nome/área, sem filtrar autor histórico. `EmpresaMatch` apresenta os campos autorizados e autoria opcional, trata sessão rejeitada e é recarregado após retribuição confirmada. Mantidos gráfico por interesse e contratos anônimos. Rastreado `EmpresaCandidatoCurtido.ts`: não possui consumidor ativo; sua reexportação histórica continua delegando ao match, sem busca de perfil alheio. Backend, SQL, DTOs, especificação e T17 preservados; nenhum commit executado.
+
+**Validação frontend:** `npx.cmd tsc --noEmit` e `npx.cmd gulp build` aprovados. `node --test frontend/tests/*.test.cjs`: 44 testes aprovados, incluindo dez de T16 em `frontend/tests/empresa-t16.test.cjs`; atualização simultânea de matches também verificada para não duplicar cards. São páginas/serviços/clientes reais com DOM/fetch controlados, sem navegador ou banco. `npx` via PowerShell inicialmente bloqueado pela política de scripts; utilizados os executáveis `.cmd` sem alterar a política. Build emitiu aviso de depreciação de `fs.Stats`, sem falha. Diff revisado e `git diff --check` sem erros.
+
+**Regressão backend:** `.\gradlew.bat test --tests 'com.jpcode.service.*'` aprovado, 105 testes de serviços, zero falhas e relatório JaCoCo gerado. Código desses testes inspecionado: repositórios mockados, sem acesso PostgreSQL. Primeira tentativa impedida pelo acesso ao cache Gradle fora do workspace; repetição com elevação autorizada concluída. Não executados build backend completo ou testes JDBC/HTTP de integração.
+
+| Critério de T16 | Evidência e limite |
+| --- | --- |
+| CA-01: cadastro empresarial | Área por ID persistido, rota empresarial, payload sem empresa/ator, senha exata, confirmação somente após HTTP, limpeza após sucesso, bloqueio de duplicação e falhas 400/409/500/rede exercitados. Persistência real e hash não revalidados nesta tarefa frontend. |
+| CA-05/06/18: vagas e autoria | Listagem empresarial testada com vagas diretas e autorais em recargas. Exibe nome/área histórica sem inferir atividade; não existe campo de atividade no DTO. Inativação real e isolamento backend entre empresas não reexecutados. |
+| CA-07/09: interessados e retribuição | Mesmo candidato em duas vagas, de origens distintas, permanece anônimo nos cards; POST contém candidato/vaga, aguarda 204, atualiza matches via callback e permite repetição após recarga. Falha não confirma card nem atualiza matches. Unicidade e transação persistidas dependem das implementações backend anteriores, sem nova prova JDBC aqui. |
+| CA-13/14/18: matches empresariais | Consulta somente `/matches/empresa/{id}`, campos autorizados completos, nome/área opcionais do autor, conteúdo tratado como texto e rejeições 401/403 exercitados. Autoria após inatividade real pendente de validação full-stack. |
+| Gráfico | Serviço existente usa apenas vagas da empresa e interessados anônimos por vaga; candidato com duas competências interessado em duas vagas conta duas vezes por competência. Não consulta perfis completos. Renderização visual e isolamento real pendentes. |
+
+**Limites da validação automatizada anterior ao aceite:** não há ferramenta de navegador disponível nesta sessão; jornada visual com backend real não executada. A instrução final do pedido sobre segurança de testes de banco chegou truncada; nenhum teste com escrita JDBC, alteração de schema/dados ou fallback para desenvolvimento foi executado. Naquela rodada, T16 permaneceu pendente de aceite funcional pelo responsável. Consumo de tokens sem medição confiável disponível.
+
+**Aceite final do responsável (09/11/2026):** o responsável declarou: “T16 aprovado, fiz os testes no frontend, tudo 100%”. T16 marcada como concluída por essa validação manual e aprovação explícita. O status geral e o checklist foram atualizados. Não houve nova execução de testes pelo agente; os limites e resultados das evidências automatizadas anteriores permanecem registrados. T17 e tarefas posteriores continuam pendentes; nenhum commit foi executado.
+
 ### T17 — Acrescentar jornada do recrutador com escopo próprio
 
 - **Objetivo:** entregar criação de vagas, interessados e matches do autor ativo, reutilizando a integração consolidada.
@@ -943,7 +961,7 @@ Em T19, acrescentar ao mesmo documento o inventário de obsolescência, as decis
 - [x] T13 — Adaptar cadastros/login existentes e acrescentar entrada de recrutador (aprovada explicitamente pelo responsável em 09/11/2026 após confirmação funcional dos endpoints; evidências e limites registrados na tarefa).
 - [x] T14 — Substituir checkboxes por seletor pesquisável de competências (aprovada explicitamente pelo responsável; evidências e limites registrados na tarefa).
 - [x] T15 — Jornada do candidato.
-- [ ] T16 — Jornada empresarial e gráfico.
+- [x] T16 — Jornada empresarial e gráfico (aprovada explicitamente pelo responsável em 09/11/2026 após testes manuais no frontend).
 - [ ] T17 — Jornada do recrutador.
 - [ ] T18 — Aceite, regressão e evidências.
 - [ ] T19 — Análise e remoção final de código obsoleto, após T18, com inventário e regressão completa.

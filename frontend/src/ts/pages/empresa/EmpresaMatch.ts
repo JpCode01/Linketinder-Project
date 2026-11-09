@@ -1,6 +1,7 @@
 import { MatchResponseDTO } from "../../api/dto/match/MatchResponseDTO"
 import { MatchService } from "../../services/MatchService"
 import { obterIniciais } from "./EmpresaPerfil"
+import { tratarErroSessao } from "../login/SessaoNavegacao"
 
 export async function exibirMatchesEmpresa(
     idEmpresa: number,
@@ -14,9 +15,13 @@ export async function exibirMatchesEmpresa(
     }
 
     lista.innerHTML = ""
+    if (contador != null) contador.textContent = "Carregando matches..."
 
     try {
         const matches = await matchService.buscarPorEmpresa(idEmpresa)
+
+        lista.innerHTML = ""
+        if (matches.length === 0) lista.textContent = "Você ainda não tem matches."
 
         for (const match of matches) {
             lista.appendChild(criarCardMatchEmpresa(match))
@@ -26,6 +31,7 @@ export async function exibirMatchesEmpresa(
             contador.textContent = `${matches.length} matches`
         }
     } catch (erro: unknown) {
+        if (tratarErroSessao(erro)) return
         console.error("Erro ao carregar matches da empresa:", erro)
 
         if (contador != null) {
@@ -110,8 +116,27 @@ function criarCardMatchEmpresa(
     article.appendChild(topo)
     article.appendChild(descricao)
     article.appendChild(email)
+    adicionarCampo(article, "ID do match", String(match.id))
+    adicionarCampo(article, "CPF", match.cpfCandidato)
+    adicionarCampo(article, "Idade", String(match.idadeCandidato))
+    adicionarCampo(article, "País do candidato", match.paisCandidato)
+    adicionarCampo(article, "Estado do candidato", match.estadoCandidato)
+    adicionarCampo(article, "Empresa", match.nomeEmpresa)
+    adicionarCampo(article, "CNPJ", match.cnpjEmpresa)
+    adicionarCampo(article, "E-mail corporativo", match.emailCorporativo)
+    adicionarCampo(article, "Descrição da empresa", match.descricaoEmpresa)
+    adicionarCampo(article, "País da empresa", match.paisEmpresa)
+    adicionarCampo(article, "Estado da empresa", match.estadoEmpresa)
+    if (match.nomeRecrutador != null) adicionarCampo(article, "Recrutador autor", match.nomeRecrutador)
+    if (match.areaRecrutamento != null) adicionarCampo(article, "Área de recrutamento", match.areaRecrutamento)
     article.appendChild(secaoCompetencias)
     article.appendChild(secaoVaga)
 
     return article
+}
+
+function adicionarCampo(container: HTMLElement, rotulo: string, valor: string): void {
+    const campo = document.createElement("p")
+    campo.textContent = `${rotulo}: ${valor}`
+    container.appendChild(campo)
 }

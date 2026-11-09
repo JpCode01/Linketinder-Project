@@ -11,6 +11,7 @@ import { MatchService } from "../../services/MatchService";
 import { exibirCandidatosEmpresa } from "./EmpresaCandidato";
 import { exibirMatchesEmpresa } from "./EmpresaMatch";
 import { exibirDadosEmpresa } from "./EmpresaPerfil";
+import { configurarCadastroRecrutadorEmpresa } from "./EmpresaRecrutador";
 import {
     carregarOpcoesCompetencias,
     configurarCriacaoVaga,
@@ -66,6 +67,8 @@ export async function exibirPageEmpresa(): Promise<void> {
 
     exibirDadosEmpresa(empresa)
 
+    await configurarCadastroRecrutadorEmpresa(empresa.id, serviceConfig.criarRecrutadorService())
+
     try {
         await carregarOpcoesCompetencias()
 
@@ -83,7 +86,8 @@ export async function exibirPageEmpresa(): Promise<void> {
             empresa.id,
             vagaService,
             curtidaVagaService,
-            curtidaCandidatoService
+            curtidaCandidatoService,
+            () => exibirMatchesEmpresa(empresa.id, matchService)
         )
 
         await exibirMatchesEmpresa(

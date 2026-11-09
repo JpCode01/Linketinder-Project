@@ -3,12 +3,14 @@ import { CurtidaVagaService } from "../../services/CurtidaVagaService"
 import { CurtidaCandidatoService } from "../../services/CurtidaCandidatoService"
 import { VagaEmpresaResponseDTO } from "../../api/dto/vaga/VagaEmpresaResponseDTO";
 import { CandidatoAnonimoResponseDTO } from "../../api/dto/candidato/CandidatoAnonimoResponseDTO";
+import { tratarErroSessao } from "../login/SessaoNavegacao"
 
 export async function exibirCandidatosEmpresa(
     idEmpresa: number,
     vagaService: VagaService,
     curtidaVagaService: CurtidaVagaService,
-    curtidaCandidatoService: CurtidaCandidatoService
+    curtidaCandidatoService: CurtidaCandidatoService,
+    aoRetribuir?: () => Promise<void>
 ): Promise<void> {
     const grid = document.getElementById("candidate-grid")
 
@@ -35,7 +37,8 @@ export async function exibirCandidatosEmpresa(
                     candidato.id,
                     vaga.id,
                     card,
-                    curtidaCandidatoService
+                    curtidaCandidatoService,
+                    aoRetribuir
                 )
             )
 
@@ -158,7 +161,8 @@ async function curtirCandidato(
     idCandidato: number,
     idVaga: number,
     card: HTMLElement,
-    curtidaCandidatoService: CurtidaCandidatoService
+    curtidaCandidatoService: CurtidaCandidatoService,
+    aoRetribuir?: () => Promise<void>
 ): Promise<void> {
     const botao = card.querySelector(".btn-like") as HTMLButtonElement | null
 
@@ -177,13 +181,17 @@ async function curtirCandidato(
         atualizarCardCandidatoCurtido(card)
     } catch (erro: unknown) {
         botao.disabled = false
+        if (tratarErroSessao(erro)) return
         console.error("Erro ao curtir candidato:", erro)
         alert(
             erro instanceof Error
                 ? erro.message
                 : "Não foi possível registrar a curtida."
         )
+        return
     }
+
+    if (aoRetribuir != null) await aoRetribuir()
 }
 
 function atualizarCardCandidatoCurtido(
