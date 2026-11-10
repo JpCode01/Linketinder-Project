@@ -151,9 +151,11 @@ test("CA-13/14/18: matches completos somente pelo contrato empresarial, autor op
 
 test("CA-07/09: interessados continuam anônimos nas duas origens; retribuição aguarda HTTP e atualiza matches", async () => {
     let confirmar, atualizacoes = 0
+    const retribuidos = new Set()
     preparar(c => {
         if (c.caminho === "/vagas/empresa/7") return json([vaga(1, false), vaga(2, true)])
-        if (c.metodo === "POST") return new Promise(resolve => { confirmar = () => resolve(new Response(null, {status: 204})) })
+        if (c.caminho.endsWith("/retribuidos")) return json(retribuidos.has(Number(c.caminho.split("/")[4])) ? [42] : [])
+        if (c.metodo === "POST") return new Promise(resolve => { confirmar = () => { retribuidos.add(c.corpo.idVaga); resolve(new Response(null, {status: 204})) } })
         assert.match(c.caminho, /^\/curtidas\/candidatos\/vaga\/[12]$/)
         return json([{id: 42, descricao: "Perfil anônimo", competencias: [{id: 9, nome: "RH"}]}])
     })
@@ -164,6 +166,13 @@ test("CA-07/09: interessados continuam anônimos nas duas origens; retribuição
             assert.ok(texto(card).includes("Perfil anônimo"))
             assert.ok(!/cpf-c|pessoa@teste|Pessoa Candidata/.test(texto(card)))
             const botao = card.querySelector(".btn-like")
+            if (refresh === 1) {
+                assert.equal(botao.disabled, true)
+                assert.equal(botao.textContent, "♥")
+                assert.ok(botao.className.includes("curtido"))
+                botao.click()
+                continue
+            }
             botao.click(); botao.click()
             assert.equal(botao.textContent, "\u2661")
             confirmar(); await concluir()
@@ -171,7 +180,8 @@ test("CA-07/09: interessados continuam anônimos nas duas origens; retribuição
             assert.deepEqual(chamadas.filter(c => c.metodo === "POST").at(-1).corpo, {idCandidato: 42, idVaga: indice + 1})
         }
     }
-    assert.equal(atualizacoes, 4)
+    assert.equal(atualizacoes, 2)
+    assert.equal(chamadas.filter(c => c.metodo === "POST").length, 2)
 })
 
 test("gráfico conta candidato em duas vagas duas vezes, usa apenas interessados do escopo empresarial", async () => {

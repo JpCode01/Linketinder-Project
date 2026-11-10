@@ -64,6 +64,7 @@ function preparar(responder, id = 7) {
         if (chamada.caminho === `/recrutadores/${id}`) return json({ id, nome: "Autora <script>", descricao: "Perfil próprio", email: "autora@teste", idEmpresa: id === 9 ? 34 : 33, areaRecrutamento: { id: 9, nome: "RH" } })
         if (chamada.caminho === "/competencias") return json(["RH", "Administração"])
         if (chamada.caminho === `/vagas/recrutador/${id}`) return json([10, 11].map(numero => ({ ...vaga(numero), idRecrutador: id })))
+        if (chamada.caminho.endsWith("/retribuidos")) return json([])
         if (chamada.caminho.startsWith("/curtidas/candidatos/vaga/")) return json([{ id: 3, descricao: "Perfil anônimo", competencias: [{ id: 9, nome: "RH" }] }])
         if (chamada.caminho === `/matches/recrutador/${id}`) return json([])
         assert.fail("Rota fora da jornada: " + chamada.caminho)
@@ -87,7 +88,7 @@ test("perfil próprio, consultas por autor e interessados anônimos em dois cont
         assert.equal(elementos["profile-name"].textContent, "Autora <script>")
         assert.equal(elementos["profile-area"].textContent, "RH")
         assert.equal(elementos["profile-email"].textContent, "autora@teste")
-        assert.deepEqual(chamadas.map(c => c.caminho), [`/recrutadores/${id}`, "/competencias", `/vagas/recrutador/${id}`, `/vagas/recrutador/${id}`, "/curtidas/candidatos/vaga/10", "/curtidas/candidatos/vaga/11", `/matches/recrutador/${id}`])
+        assert.deepEqual(chamadas.map(c => c.caminho), [`/recrutadores/${id}`, "/competencias", `/vagas/recrutador/${id}`, `/vagas/recrutador/${id}`, "/curtidas/candidatos/vaga/10", "/curtidas/candidatos/vaga/10/retribuidos", "/curtidas/candidatos/vaga/11", "/curtidas/candidatos/vaga/11/retribuidos", `/matches/recrutador/${id}`])
         assert.equal(elementos["job-list"].children.length, 2)
         assert.equal(elementos["candidate-grid"].children.length, 2)
         assert.match(texto(elementos["candidate-grid"]), /Perfil anônimo.*RH.*Vaga 10/)
@@ -163,6 +164,29 @@ test("retribuição aguarda 204, preserva contexto candidato/vaga e atualiza ide
     const repeticao = elementos["candidate-grid"].children[0].querySelector(".btn-like").click()
     confirmar(); await repeticao
     assert.equal(elementos["liked-candidate-grid"].children.length, 1)
+})
+
+test("recarga restaura retribuição por vaga, inclusive realizada pela empresa, sem segundo POST", async () => {
+    preparar(c => c.caminho === "/curtidas/candidatos/vaga/10/retribuidos" ? json([3]) : undefined)
+    for (let recarga = 0; recarga < 2; recarga++) {
+        await exibirPageRecrutador()
+        const [curtido, disponivel] = elementos["candidate-grid"].children.map(card => card.querySelector(".btn-like"))
+        assert.equal(curtido.disabled, true)
+        assert.equal(curtido.textContent, "♥")
+        assert.ok(curtido.className.includes("curtido"))
+        assert.equal(disponivel.disabled, false)
+        assert.equal(disponivel.textContent, "♡")
+        await curtido.click()
+    }
+    assert.equal(chamadas.filter(c => c.metodo === "POST").length, 0)
+})
+
+test("falha na consulta de retribuição impede renderizar botões disponíveis por suposição", async () => {
+    preparar(c => c.caminho.endsWith("/retribuidos") ? json({erro: "Indisponível"}, 500) : undefined)
+    await exibirPageRecrutador()
+    assert.equal(elementos["candidate-grid"].children.length, 0)
+    assert.match(elementos["page-status"].textContent, /Não foi possível/)
+    assert.equal(chamadas.filter(c => c.metodo === "POST").length, 0)
 })
 
 test("falha na retribuição não confirma card nem atualiza matches; permite tentar de novo", async () => {

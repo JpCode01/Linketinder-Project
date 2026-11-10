@@ -39,7 +39,8 @@ class CurtidaServlet extends JsonServlet {
         executar(response) {
             def curtidas = request.pathInfo =~ /^\/vagas\/candidato\/([^\/]+)$/
             def interessados = request.pathInfo =~ /^\/candidatos\/vaga\/([^\/]+)$/
-            rota(curtidas.matches() || interessados.matches())
+            def retribuidos = request.pathInfo =~ /^\/candidatos\/vaga\/([^\/]+)\/retribuidos$/
+            rota(curtidas.matches() || interessados.matches() || retribuidos.matches())
             if (curtidas.matches()) {
                 def atual = ator(request, sessao, ['candidato'])
                 Long destino = id(curtidas.group(1))
@@ -47,8 +48,12 @@ class CurtidaServlet extends JsonServlet {
                 json(response, vagas.listarVagasCurtidas(atual.id))
             } else {
                 def atual = ator(request, sessao, ['empresa', 'recrutador'])
-                Long vaga = id(interessados.group(1))
-                json(response, atual.tipo == 'empresa' ? matches.buscarInteressadosEmpresa(atual.id, vaga) : matches.buscarInteressadosRecrutador(atual.id, vaga))
+                Long vaga = id(retribuidos.matches() ? retribuidos.group(1) : interessados.group(1))
+                if (retribuidos.matches()) {
+                    json(response, atual.tipo == 'empresa' ? matches.buscarIdsCandidatosRetribuidosEmpresa(atual.id, vaga) : matches.buscarIdsCandidatosRetribuidosRecrutador(atual.id, vaga))
+                } else {
+                    json(response, atual.tipo == 'empresa' ? matches.buscarInteressadosEmpresa(atual.id, vaga) : matches.buscarInteressadosRecrutador(atual.id, vaga))
+                }
             }
         }
     }

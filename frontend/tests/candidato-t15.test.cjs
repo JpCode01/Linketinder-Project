@@ -131,8 +131,16 @@ test("curtida aguarda confirmação, impede repetição e atualiza lista anônim
     assert.deepEqual(chamadas.filter(c => c.metodo === "POST"), [{ caminho: "/curtidas/vagas", metodo: "POST", corpo: { idVaga: 1 } }])
     confirmar(); await concluir()
     assert.equal(botao.textContent, "♥")
+    assert.ok(botao.className.includes("curtido"))
     assert.equal(elementos["liked-result-count"].textContent, "1 vaga curtida")
     assert.ok(texto(elementos["liked-job-grid"]).includes("Descrição anônima 1"))
+    await exibirVagas(7, vagas, curtidas)
+    const restaurado = elementos["job-grid"].children[0].querySelector(".btn-like")
+    assert.equal(restaurado.disabled, true)
+    assert.equal(restaurado.textContent, "♥")
+    assert.ok(restaurado.className.includes("curtido"))
+    restaurado.click()
+    assert.equal(chamadas.filter(c => c.metodo === "POST").length, 1)
 })
 
 test("falha de curtida permite tentar novamente sem confirmação local ou duplicar mensagens", async () => {

@@ -20,8 +20,9 @@ export async function exibirInteressadosRecrutador(
         const cards: HTMLElement[] = []
         for (const vaga of vagas) {
             const candidatos = await curtidaVagaService.buscarCandidatosQueCurtiram(vaga.id)
+            const retribuidos = new Set(await curtidaCandidatoService.buscarIdsCandidatosRetribuidosRecrutador(vaga.id))
             for (const candidato of candidatos) {
-                const card = criarCardCandidato(candidato, vaga, false, async () => {
+                const card = criarCardCandidato(candidato, vaga, retribuidos.has(candidato.id), async () => {
                     const botao = card.querySelector(".btn-like") as HTMLButtonElement
                     if (botao.disabled) return
                     botao.disabled = true
@@ -34,6 +35,7 @@ export async function exibirInteressadosRecrutador(
                         return
                     }
                     botao.textContent = "♥"
+                    botao.classList.add("curtido")
                     botao.title = "Candidato curtido"
                     await aoRetribuir()
                 })

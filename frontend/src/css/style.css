@@ -373,7 +373,14 @@ textarea {
 }
 
 
-.btn-like:hover {
+.btn-like.curtido {
+    background: var(--red);
+    color: white;
+    border-color: var(--red);
+    cursor: default;
+}
+
+.btn-like:hover:enabled {
     background: var(--red-light);
 
     transform: scale(1.08);

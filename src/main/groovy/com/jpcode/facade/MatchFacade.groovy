@@ -55,6 +55,23 @@ class MatchFacade {
         return consultar(null, idRecrutadorOperante, idVaga)
     }
 
+    List<Long> buscarIdsCandidatosRetribuidosEmpresa(Long idEmpresaOperante, Long idVaga) {
+        exigirId(idEmpresaOperante)
+        return consultarRetribuidos(idEmpresaOperante, null, idVaga)
+    }
+
+    List<Long> buscarIdsCandidatosRetribuidosRecrutador(Long idRecrutadorOperante, Long idVaga) {
+        exigirId(idRecrutadorOperante)
+        return consultarRetribuidos(null, idRecrutadorOperante, idVaga)
+    }
+
+    private List<Long> consultarRetribuidos(Long empresa, Long recrutador, Long vaga) {
+        return emTransacao { Connection conexao ->
+            validarContexto(conexao, empresa, recrutador, null, vaga)
+            consultaRepository.buscarIdsCandidatosRetribuidos(conexao, vaga)
+        }
+    }
+
     private void retribuir(Long empresa, Long recrutador, Long candidato, Long vaga) {
         exigirId(candidato)
         emTransacao { Connection conexao ->

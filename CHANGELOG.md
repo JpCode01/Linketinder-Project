@@ -8,6 +8,8 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Adicionado
 
+- Testes de aceite T18 com Chrome headless, frontend/Tomcat/JDBC reais, cookies e contextos isolados por ator, contratos anônimos, apresentação de matches, persistência N:N e continuidade empresarial após inatividade do autor; roteiro e evidências em `docs/specs/recrutador/validacao.md`.
+- Checagem HTTP/JDBC do cadastro de candidato com o catálogo padronizado em maiúsculas, conforme decisão confirmada pelo responsável durante T18; busca backend preservada.
 - Página do recrutador com perfil próprio, criação de vagas pelo seletor de competências existente, consulta das próprias vagas/interessados e retribuição contextualizada, com matches pelo contrato autorizado (T17; aprovada pelo responsável após testes manuais).
 - Checagens da jornada do recrutador com páginas, serviços e clientes reais sob DOM/fetch controlados, cobrindo contexto por autor/vaga, confirmação HTTP, falhas e sessão rejeitada (T17).
 - Formulário empresarial de cadastro de recrutador com áreas persistidas, confirmação HTTP, bloqueio de envios simultâneos e tratamento de falhas de referência/cadastro (T16).
@@ -87,6 +89,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ### Corrigido
 
+- Bug encontrado na conclusão de T18: botões de curtida permanecem vermelhos, preenchidos e desabilitados após confirmação e recarga para candidato, empresa e recrutador. Consulta autenticada de IDs retribuídos por vaga restaura o estado empresarial/autoral, inclusive quando a outra parte autorizada retribuiu; preservados anonimato, escopo por ator e idempotência. Testes de regressão ampliados antes de T19.
 - Card empresarial de candidato anônimo passa a renderizar os nomes das competências já recebidas pelo contrato HTTP, utilizando os estilos existentes.
 - Lista de vagas curtidas do candidato é recarregada após confirmação HTTP da curtida; falhas permitem nova tentativa com mensagem no card, mantendo descoberta e curtidas anônimas (T15).
 - Conexão backend passa a usar `DB_URL`, `DB_USER` e `DB_PASSWORD` do ambiente ou do `.env` da raiz, com prioridade para o ambiente e erro se a configuração estiver incompleta. Removidos banco e credenciais fixos que direcionavam a aplicação ao banco antigo; configuração de testes permanece separada.

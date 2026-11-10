@@ -126,6 +126,33 @@ class MatchFacadeTest extends Specification {
         0 * matches._
     }
 
+    def 'estado de retribuicao valida contexto e retorna apenas IDs: #recrutador'() {
+        when:
+        def resultado = recrutador ? facade.buscarIdsCandidatosRetribuidosRecrutador(4L, 3L) :
+                facade.buscarIdsCandidatosRetribuidosEmpresa(1L, 3L)
+        then:
+        1 * consulta.buscarIdsCandidatosRetribuidos(conexao, 3L) >> [2L]
+        resultado == [2L]
+        0 * retribuicao.salvar(*_)
+        1 * conexao.commit()
+        where:
+        recrutador << [false, true]
+    }
+
+    def 'estado de retribuicao rejeita empresa alheia ou colega antes da consulta: #recrutador'() {
+        given:
+        vagaBloqueada = vaga(1L, 5L)
+        when:
+        if (recrutador) facade.buscarIdsCandidatosRetribuidosRecrutador(4L, 3L)
+        else facade.buscarIdsCandidatosRetribuidosEmpresa(9L, 3L)
+        then:
+        thrown(SecurityException)
+        0 * consulta._
+        1 * conexao.rollback()
+        where:
+        recrutador << [false, true]
+    }
+
     private static Vaga vaga(Long empresa, Long autor) {
         Vaga vaga = new Vaga(3L, 'Interna', 'Descrição', 'SP', empresa)
         vaga.idRecrutador = autor

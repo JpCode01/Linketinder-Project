@@ -26,13 +26,13 @@ export async function exibirCandidatosEmpresa(
 
     for (const vaga of vagas) {
         const candidatos = await curtidaVagaService.buscarCandidatosQueCurtiram(vaga.id)
+        const retribuidos = new Set(await curtidaCandidatoService.buscarIdsCandidatosRetribuidosEmpresa(vaga.id))
 
         for (const candidato of candidatos) {
-            // Não há consulta de estado de retribuição em T11. Repetir por vaga é idempotente.
             const card = criarCardCandidato(
                 candidato,
                 vaga,
-                false,
+                retribuidos.has(candidato.id),
                 () => curtirCandidato(
                     candidato.id,
                     vaga.id,
@@ -143,6 +143,7 @@ function criarRodapeCandidato(
     botao.className = "btn-like"
 
     if (candidatoJaCurtido) {
+        botao.classList.add("curtido")
         botao.textContent = "♥"
         botao.title = "Candidato curtido"
         botao.disabled = true
@@ -205,6 +206,7 @@ function atualizarCardCandidatoCurtido(
     }
 
     botao.textContent = "♥"
+    botao.classList.add("curtido")
     botao.title = "Candidato curtido"
     botao.disabled = true
 }

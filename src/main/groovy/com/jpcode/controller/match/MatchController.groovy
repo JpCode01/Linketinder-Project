@@ -31,6 +31,14 @@ class MatchController {
         return matchFacade.buscarInteressadosRecrutador(idRecrutadorOperante, idVaga)
     }
 
+    List<Long> buscarIdsCandidatosRetribuidosEmpresa(Long idEmpresaOperante, Long idVaga) {
+        return matchFacade.buscarIdsCandidatosRetribuidosEmpresa(idEmpresaOperante, idVaga)
+    }
+
+    List<Long> buscarIdsCandidatosRetribuidosRecrutador(Long idRecrutadorOperante, Long idVaga) {
+        return matchFacade.buscarIdsCandidatosRetribuidosRecrutador(idRecrutadorOperante, idVaga)
+    }
+
     void salvar(
             Long idCandidato,
             Long idEmpresa,

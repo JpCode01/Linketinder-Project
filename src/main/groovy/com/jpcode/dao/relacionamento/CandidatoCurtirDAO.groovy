@@ -130,6 +130,24 @@ class CandidatoCurtirDAO implements
         }
     }
 
+    List<Long> buscarIdsCandidatosRetribuidos(Connection conexao, Long idVaga) {
+        String sql = '''
+            SELECT r.id_candidato
+            FROM candidatos_curtidos_empresa r
+            JOIN candidatos c ON c.id = r.id_candidato
+            WHERE r.id_vaga = ? AND c.ativo = true
+            ORDER BY r.id_candidato
+        '''
+        try (def statement = conexao.prepareStatement(sql)) {
+            statement.setLong(1, idVaga)
+            try (def resultado = statement.executeQuery()) {
+                List<Long> ids = []
+                while (resultado.next()) ids.add(resultado.getLong('id_candidato'))
+                return ids
+            }
+        }
+    }
+
     List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Connection conexao, Long idVaga) {
         String sql = """
         SELECT
