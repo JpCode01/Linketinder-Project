@@ -1,19 +1,16 @@
-import { Candidato } from "../../models/Candidato"
-import { Vaga } from "../../models/Vaga"
 import { VagaService } from "../../services/VagaService"
-import { CandidatoService } from "../../services/CandidatoService"
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
 import { CurtidaCandidatoService } from "../../services/CurtidaCandidatoService"
-import { CandidatoJaCurtidoException } from "../../exceptions/candidato/CandidatoJaCurtidoException"
 import { VagaEmpresaResponseDTO } from "../../api/dto/vaga/VagaEmpresaResponseDTO";
 import { CandidatoAnonimoResponseDTO } from "../../api/dto/candidato/CandidatoAnonimoResponseDTO";
+import { tratarErroSessao } from "../login/SessaoNavegacao"
 
 export async function exibirCandidatosEmpresa(
     idEmpresa: number,
     vagaService: VagaService,
-    candidatoService: CandidatoService,
     curtidaVagaService: CurtidaVagaService,
-    curtidaCandidatoService: CurtidaCandidatoService
+    curtidaCandidatoService: CurtidaCandidatoService,
+    aoRetribuir?: () => Promise<void>
 ): Promise<void> {
     const grid = document.getElementById("candidate-grid")
 
@@ -29,24 +26,19 @@ export async function exibirCandidatosEmpresa(
 
     for (const vaga of vagas) {
         const candidatos = await curtidaVagaService.buscarCandidatosQueCurtiram(vaga.id)
+        const retribuidos = new Set(await curtidaCandidatoService.buscarIdsCandidatosRetribuidosEmpresa(vaga.id))
 
         for (const candidato of candidatos) {
-            const candidatoJaCurtido =
-                await curtidaCandidatoService.jaCurtiuCandidato(
-                    idEmpresa,
-                    candidato.id
-                )
-
             const card = criarCardCandidato(
                 candidato,
                 vaga,
-                candidatoJaCurtido,
+                retribuidos.has(candidato.id),
                 () => curtirCandidato(
-                    idEmpresa,
                     candidato.id,
                     vaga.id,
                     card,
-                    curtidaCandidatoService
+                    curtidaCandidatoService,
+                    aoRetribuir
                 )
             )
 
@@ -63,7 +55,7 @@ export async function exibirCandidatosEmpresa(
 }
 
 
-function criarCardCandidato(
+export function criarCardCandidato(
     candidato: CandidatoAnonimoResponseDTO,
     vaga: VagaEmpresaResponseDTO,
     candidatoJaCurtido: boolean,
@@ -73,6 +65,7 @@ function criarCardCandidato(
     article.className = "candidate-card"
 
     article.appendChild(criarTopoCandidato(candidato))
+    article.appendChild(criarCompetenciasCandidato(candidato))
     article.appendChild(criarSecaoVaga(vaga))
     article.appendChild(criarRodapeCandidato(candidatoJaCurtido, aoCurtir))
 
@@ -96,6 +89,29 @@ function criarTopoCandidato(
     topo.appendChild(descricao)
 
     return topo
+}
+
+function criarCompetenciasCandidato(
+    candidato: CandidatoAnonimoResponseDTO
+): HTMLElement {
+    const secao = document.createElement("div")
+    secao.className = "candidate-section"
+
+    const titulo = document.createElement("strong")
+    titulo.textContent = "Competências do candidato"
+
+    const tags = document.createElement("div")
+    tags.className = "job-tags"
+
+    for (const competencia of candidato.competencias) {
+        const tag = document.createElement("span")
+        tag.textContent = competencia.nome
+        tags.appendChild(tag)
+    }
+
+    secao.appendChild(titulo)
+    secao.appendChild(tags)
+    return secao
 }
 
 function criarSecaoVaga(
@@ -127,6 +143,7 @@ function criarRodapeCandidato(
     botao.className = "btn-like"
 
     if (candidatoJaCurtido) {
+        botao.classList.add("curtido")
         botao.textContent = "♥"
         botao.title = "Candidato curtido"
         botao.disabled = true
@@ -142,11 +159,11 @@ function criarRodapeCandidato(
 }
 
 async function curtirCandidato(
-    idEmpresa: number,
     idCandidato: number,
     idVaga: number,
     card: HTMLElement,
-    curtidaCandidatoService: CurtidaCandidatoService
+    curtidaCandidatoService: CurtidaCandidatoService,
+    aoRetribuir?: () => Promise<void>
 ): Promise<void> {
     const botao = card.querySelector(".btn-like") as HTMLButtonElement | null
 
@@ -157,8 +174,7 @@ async function curtirCandidato(
     botao.disabled = true
 
     try {
-        await curtidaCandidatoService.curtir(
-            idEmpresa,
+        await curtidaCandidatoService.retribuirInteresseEmpresa(
             idCandidato,
             idVaga
         )
@@ -166,13 +182,17 @@ async function curtirCandidato(
         atualizarCardCandidatoCurtido(card)
     } catch (erro: unknown) {
         botao.disabled = false
+        if (tratarErroSessao(erro)) return
         console.error("Erro ao curtir candidato:", erro)
         alert(
             erro instanceof Error
                 ? erro.message
                 : "Não foi possível registrar a curtida."
         )
+        return
     }
+
+    if (aoRetribuir != null) await aoRetribuir()
 }
 
 function atualizarCardCandidatoCurtido(
@@ -186,6 +206,7 @@ function atualizarCardCandidatoCurtido(
     }
 
     botao.textContent = "♥"
+    botao.classList.add("curtido")
     botao.title = "Candidato curtido"
     botao.disabled = true
 }

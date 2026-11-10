@@ -1,5 +1,4 @@
 import { CompetenciaApiClient } from "../api/clientes/CompetenciaApiClient";
-import { Competencia } from "../models/Competencia";
 
 export class CompetenciaService {
 
@@ -7,7 +6,7 @@ export class CompetenciaService {
         private competenciaApiClient: CompetenciaApiClient
     ) {}
 
-    async buscarTodas(): Promise<Competencia[]> {
+    async buscarTodas(): Promise<string[]> {
         return await this.competenciaApiClient.buscarTodas()
     } 
 }

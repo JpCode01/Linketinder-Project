@@ -1,8 +1,6 @@
 import { ServiceConfig } from "../../config/ServiceConfig";
-import { CandidatoService } from "../../services/CandidatoService";
 import { CurtidaCandidatoService } from "../../services/CurtidaCandidatoService";
 import { CurtidaVagaService } from "../../services/CurtidaVagaService";
-import { EmpresaService } from "../../services/EmpresaService";
 import { RelatorioCompetenciasService } from "../../services/RelatorioCompetenciasService";
 import { VagaService } from "../../services/VagaService";
 
@@ -12,16 +10,14 @@ import { MatchService } from "../../services/MatchService";
 import { exibirCandidatosEmpresa } from "./EmpresaCandidato";
 import { exibirMatchesEmpresa } from "./EmpresaMatch";
 import { exibirDadosEmpresa } from "./EmpresaPerfil";
+import { configurarCadastroRecrutadorEmpresa } from "./EmpresaRecrutador";
 import {
     carregarOpcoesCompetencias,
     configurarCriacaoVaga,
     exibirVagasEmpresa
 } from "./EmpresaVaga";
 
-interface Sessao {
-    id: number
-    tipo: string
-}
+import { obterSessaoDoPerfil, tratarErroSessao } from "../login/SessaoNavegacao"
 
 const serviceConfig: ServiceConfig = new ServiceConfig()
 const empresaApiClient: EmpresaApiClient = new EmpresaApiClient()
@@ -29,14 +25,8 @@ const empresaApiClient: EmpresaApiClient = new EmpresaApiClient()
 const matchService: MatchService =
     serviceConfig.criarMatchService()
 
-const empresaService: EmpresaService =
-    serviceConfig.criarEmpresaService()
-
 const vagaService: VagaService =
     serviceConfig.criarVagaService()
-
-const candidatoService: CandidatoService =
-    serviceConfig.criarCandidatoService()
 
 const curtidaVagaService: CurtidaVagaService =
     serviceConfig.criarCurtidaVagaService()
@@ -48,9 +38,9 @@ const relatorioCompetenciasService: RelatorioCompetenciasService =
     serviceConfig.criarRelatorioCompetenciasService()
 
 export async function exibirPageEmpresa(): Promise<void> {
-    const sessao = obterSessao()
+    const sessao = obterSessaoDoPerfil("empresa")
 
-    if (sessao == undefined || sessao.tipo !== "EMPRESA") {
+    if (sessao == undefined || sessao.tipo !== "empresa") {
         return
     }
 
@@ -59,6 +49,7 @@ export async function exibirPageEmpresa(): Promise<void> {
     try {
         empresa = await empresaApiClient.buscarPorId(sessao.id)
     } catch (erro: unknown) {
+        if (tratarErroSessao(erro)) return
         console.error("Erro ao carregar o perfil da empresa:", erro)
 
         const mensagem = document.getElementById("profile-name")
@@ -72,11 +63,12 @@ export async function exibirPageEmpresa(): Promise<void> {
 
     exibirDadosEmpresa(empresa)
 
+    await configurarCadastroRecrutadorEmpresa(empresa.id, serviceConfig.criarRecrutadorService())
+
     try {
         await carregarOpcoesCompetencias()
 
         configurarCriacaoVaga(
-            empresa.id,
             vagaService
         )
 
@@ -88,9 +80,9 @@ export async function exibirPageEmpresa(): Promise<void> {
         await exibirCandidatosEmpresa(
             empresa.id,
             vagaService,
-            candidatoService,
             curtidaVagaService,
-            curtidaCandidatoService
+            curtidaCandidatoService,
+            () => exibirMatchesEmpresa(empresa.id, matchService)
         )
 
         await exibirMatchesEmpresa(
@@ -103,16 +95,7 @@ export async function exibirPageEmpresa(): Promise<void> {
 
         criarGraficoCompetencias(contagem)
     } catch (erro: unknown) {
+        if (tratarErroSessao(erro)) return
         console.error("Erro ao carregar a página da empresa:", erro)
     }
-}
-
-function obterSessao(): Sessao | undefined {
-    const sessao = localStorage.getItem("sessao")
-
-    if (sessao == null) {
-        return undefined
-    }
-
-    return JSON.parse(sessao) as Sessao
 }

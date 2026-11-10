@@ -80,6 +80,7 @@ function criarBotaoCurtir(
     botao.textContent = vagaJaCurtida ? "♥" : "♡"
     botao.title = vagaJaCurtida ? "Vaga curtida" : "Curtir vaga"
     botao.disabled = vagaJaCurtida
+    if (vagaJaCurtida) botao.classList.add("curtido")
 
     if (!vagaJaCurtida) {
         botao.addEventListener("click", aoCurtir)
@@ -99,6 +100,7 @@ export function atualizarCardCurtido(
     }
 
     botao.textContent = "♥"
+    botao.classList.add("curtido")
     botao.title = "Vaga curtida"
     botao.disabled = true
 }

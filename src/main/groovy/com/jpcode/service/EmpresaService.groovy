@@ -1,10 +1,14 @@
 package com.jpcode.service
 
-import com.jpcode.dao.contratos.*
+import com.jpcode.exception.LoginException
+
+import com.jpcode.dao.contratos.CompetenciaRepository
+import com.jpcode.dao.contratos.RetribuicaoRepository
+import com.jpcode.dao.contratos.UsuarioRepository
+import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.dto.empresa.*
-import com.jpcode.exception.LoginException
 import com.jpcode.exception.empresa.EmpresaNaoEncontradaPorIdException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
@@ -14,18 +18,18 @@ import com.jpcode.model.referencia.Estado
 import com.jpcode.model.referencia.Pais
 
 class EmpresaService {
+    final SenhaService senhaService
     final ReferenciaRepository<Pais> paisRepository
     final ReferenciaRepository<Estado> estadoRepository
     final UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository
-    final CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository
-    final CurtidaRepository<CandidatoAnonimoDTO> empresaCurtirRepository
+    final RetribuicaoRepository empresaCurtirRepository
     final CompetenciaRepository competenciasVagaRepository
 
-    EmpresaService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository, CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository, CurtidaRepository<CandidatoAnonimoDTO> empresaCurtirRepository, CompetenciaRepository competenciasVagaRepository) {
+    EmpresaService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository, RetribuicaoRepository empresaCurtirRepository, CompetenciaRepository competenciasVagaRepository, SenhaService senhaService = new SenhaService()) {
+        this.senhaService = senhaService
         this.paisRepository = paisRepository
         this.estadoRepository = estadoRepository
         this.empresaRepository = empresaRepository
-        this.candidatoCurtidasConsultaRepository = candidatoCurtidasConsultaRepository
         this.empresaCurtirRepository = empresaCurtirRepository
         this.competenciasVagaRepository = competenciasVagaRepository
     }
@@ -44,7 +48,7 @@ class EmpresaService {
         Empresa empresa = new Empresa(
                 cadastrarEmpresaDTO.nome,
                 cadastrarEmpresaDTO.email,
-                cadastrarEmpresaDTO.senha,
+                senhaService.derivar(cadastrarEmpresaDTO.senha),
                 cadastrarEmpresaDTO.cnpj,
                 paisId,
                 estadoId,
@@ -73,18 +77,21 @@ class EmpresaService {
         )
     }
 
+    boolean estaAtivo(Long id) {
+        return empresaRepository.buscarPorId(id).map { it.ativo }.orElse(false)
+    }
+
     Empresa logar(String email, String senha) {
-        return empresaRepository.buscarPorEmailESenha(email, senha)
-        .orElseThrow(() ->
-        new LoginException())
+        Empresa empresa = empresaRepository.buscarAtivoPorEmail(email)
+                .orElseThrow(() -> new LoginException())
+        if (!empresa.ativo || !senhaService.verificar(senha, empresa.senha)) {
+            throw new LoginException()
+        }
+        return empresa
     }
     
     List<CandidatoAnonimoDTO> buscarCandidatosQueCurtiram(Long idVaga) {
-        return candidatoCurtidasConsultaRepository.buscarCandidatosQueCurtiram(idVaga)
-    }
-
-    void curtirCandidato(Long idEmpresa,Long idCandidato) {
-        empresaCurtirRepository.salvar(idEmpresa, idCandidato)
+        throw new UnsupportedOperationException('Consulta exige ator empresarial ou recrutador e escopo de vaga.')
     }
 
     List<CandidatoAnonimoDTO> buscarCandidatosCurtidos(Long idEmpresa) {
@@ -96,6 +103,11 @@ class EmpresaService {
     }
 
     void atualizarEmpresa(AtualizarEmpresaDTO atualizarEmpresaDTO) {
+        Empresa atual = empresaRepository.buscarPorId(atualizarEmpresaDTO.id)
+                .orElseThrow(() -> new EmpresaNaoEncontradaPorIdException(atualizarEmpresaDTO.id))
+        if (!atual.ativo) {
+            throw new IllegalStateException('Empresa inativa não pode ser atualizada.')
+        }
         Long paisId = paisRepository.buscarIdPorNome(atualizarEmpresaDTO.pais)
                 .orElseThrow(() ->
                         new PaisNaoEncontradoException(atualizarEmpresaDTO.pais)
@@ -110,13 +122,13 @@ class EmpresaService {
                         atualizarEmpresaDTO.id,
                         atualizarEmpresaDTO.nome,
                         atualizarEmpresaDTO.email,
-                        atualizarEmpresaDTO.senha,
+                        senhaService.derivar(atualizarEmpresaDTO.senha),
                         atualizarEmpresaDTO.cnpj,
                         paisId,
                         estadoId,
                         atualizarEmpresaDTO.cep,
                         atualizarEmpresaDTO.descricao,
-                        atualizarEmpresaDTO.ativo
+                        atual.ativo
                 )
         )
     }
@@ -143,9 +155,5 @@ class EmpresaService {
         }
 
         return competenciasConvertidas
-    }
-
-    boolean jaCurtiuCandidato(Long idEmpresa, Long idCandidato) {
-        return empresaCurtirRepository.jaCurtiu(idEmpresa, idCandidato)
     }
 }

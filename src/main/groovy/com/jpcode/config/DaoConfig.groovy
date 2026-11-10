@@ -1,5 +1,8 @@
 package com.jpcode.config
 
+import com.jpcode.dao.recrutador.RecrutadorDAO
+import com.jpcode.dao.referencia.AreaRecrutamentoDAO
+
 import com.jpcode.dao.candidato.CandidatoDAO
 import com.jpcode.dao.candidato.CompetenciasCandidatoDAO
 import com.jpcode.dao.empresa.EmpresaDAO
@@ -18,6 +21,9 @@ class DaoConfig {
 
     final ConnectionFactory connectionFactory =
             new PostgresConnectionFactory()
+
+    final RecrutadorDAO recrutadorDAO = new RecrutadorDAO(connectionFactory)
+    final AreaRecrutamentoDAO areaRecrutamentoDAO = new AreaRecrutamentoDAO(connectionFactory)
 
     final PaisDAO paisDAO =
             new PaisDAO(connectionFactory)
@@ -47,11 +53,12 @@ class DaoConfig {
             new CompetenciasCandidatoDAO(connectionFactory)
 
     final VagaDAO vagaDAO =
-            new VagaDAO(connectionFactory)
+            new VagaDAO(connectionFactory, competenciasVagaDAO)
 
     final MatchDAO matchDAO = new MatchDAO(
             connectionFactory,
             competenciasCandidatoDAO,
             competenciasVagaDAO
     )
+
 }

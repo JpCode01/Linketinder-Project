@@ -21,6 +21,10 @@ class EmpresaController {
         return empresaService.cadastrarEmpresa(cadastrarEmpresaDTO)
     }
 
+    boolean estaAtivo(Long id) {
+        return empresaService.estaAtivo(id)
+    }
+
     Empresa logar(String email, String senha) {
         return empresaService.logar(email, senha)
     }
@@ -61,9 +65,5 @@ class EmpresaController {
 
     List<EmpresaViewListDTO> buscarEmpresas() {
         return empresaService.buscarEmpresas()
-    }
-
-    boolean jaCurtiuCandidato(Long idEmpresa, Long idCandidato) {
-        return empresaService.jaCurtiuCandidato(idEmpresa, idCandidato)
     }
 }

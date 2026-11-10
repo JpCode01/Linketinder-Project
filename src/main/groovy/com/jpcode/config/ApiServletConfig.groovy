@@ -1,18 +1,12 @@
 package com.jpcode.config
 
-import com.jpcode.api.servlet.CompetenciaServlet
-import com.jpcode.api.servlet.CandidatoServlet
-import com.jpcode.api.servlet.CurtidaServlet
-import com.jpcode.api.servlet.LoginServlet
-import com.jpcode.api.servlet.MatchServlet
-import com.jpcode.api.servlet.ReferenciaServlet
-import com.jpcode.api.servlet.VagaServlet
-import com.jpcode.api.servlet.filter.CorsFilter
-import org.apache.catalina.Context
-import org.apache.catalina.startup.Tomcat
-import com.jpcode.api.servlet.EmpresaServlet
+import com.jpcode.api.servlet.*
+import com.jpcode.api.filter.CorsFilter
 import org.apache.tomcat.util.descriptor.web.FilterDef
 import org.apache.tomcat.util.descriptor.web.FilterMap
+import org.apache.catalina.Context
+import org.apache.catalina.startup.Tomcat
+import org.apache.tomcat.util.http.Rfc6265CookieProcessor
 
 class ApiServletConfig {
 
@@ -27,16 +21,30 @@ class ApiServletConfig {
     }
 
     void registrarServlets() {
-        registrarCorsFilter()
-
+        contexto.useHttpOnly = true
+        def cookieProcessor = new Rfc6265CookieProcessor()
+        cookieProcessor.setSameSiteCookies('lax')
+        contexto.cookieProcessor = cookieProcessor
+        tomcat.addServlet(contexto, 'loginServlet', new LoginServlet(
+                controllerConfig.candidatoController, controllerConfig.empresaController,
+                controllerConfig.recrutadorController, controllerConfig.sessaoHttp))
+        ['candidato', 'empresa', 'recrutador'].each { tipo ->
+            contexto.addServletMapping("/login/${tipo}".toString(), 'loginServlet')
+        }
+        def filtro = new FilterDef(filterName: 'corsFilter', filter: new CorsFilter())
+        contexto.addFilterDef(filtro)
+        def mapeamento = new FilterMap(filterName: 'corsFilter')
+        mapeamento.addURLPattern('/*')
+        contexto.addFilterMap(mapeamento)
+        registrar('recrutadorServlet', new RecrutadorServlet(controllerConfig.recrutadorController, controllerConfig.vagaController, controllerConfig.sessaoHttp), ['/recrutadores', '/recrutadores/*'])
+        registrar('areaRecrutamentoServlet', new AreaRecrutamentoServlet(controllerConfig.recrutadorController), ['/areas-recrutamento'])
+        registrar('referenciaServlet', new ReferenciaServlet(controllerConfig.referenciaController), ['/referencias/*'])
+        registrar('curtidaServlet', new CurtidaServlet(controllerConfig.vagaController, controllerConfig.matchController, controllerConfig.sessaoHttp), ['/curtidas/*'])
+        registrar('matchServlet', new MatchServlet(controllerConfig.matchController, controllerConfig.sessaoHttp), ['/matches/*'])
         registrarCompetenciaServlet()
         registrarCandidatoServlet()
         registrarEmpresaServlet()
         registrarVagaServlet()
-        registrarLoginServlet()
-        registrarReferenciaServlet()
-        registrarCurtidaServlet()
-        registrarMatchServlet()
     }
 
     private void registrarCompetenciaServlet() {
@@ -57,7 +65,7 @@ class ApiServletConfig {
                 contexto,
                 "candidatoServlet",
                 new CandidatoServlet(
-                        controllerConfig.candidatoController
+                        controllerConfig.candidatoController, controllerConfig.sessaoHttp
                 )
         )
 
@@ -77,7 +85,8 @@ class ApiServletConfig {
                 contexto,
                 "empresaServlet",
                 new EmpresaServlet(
-                        controllerConfig.empresaController
+                        controllerConfig.empresaController, controllerConfig.sessaoHttp,
+                        new RecrutadorServlet(controllerConfig.recrutadorController, controllerConfig.vagaController, controllerConfig.sessaoHttp)
                 )
         )
 
@@ -97,7 +106,7 @@ class ApiServletConfig {
                 contexto,
                 "vagaServlet",
                 new VagaServlet(
-                        controllerConfig.vagaController
+                        controllerConfig.vagaController, controllerConfig.sessaoHttp
                 )
         )
 
@@ -111,83 +120,8 @@ class ApiServletConfig {
                 "vagaServlet"
         )
     }
-
-    private void registrarLoginServlet() {
-        tomcat.addServlet(
-                contexto,
-                "loginServlet",
-                new LoginServlet(
-                        controllerConfig.candidatoController,
-                        controllerConfig.empresaController
-                )
-        )
-
-        contexto.addServletMapping(
-                "/login/*",
-                "loginServlet"
-        )
-    }
-    
-    private void registrarCorsFilter() {
-        FilterDef definicao = new FilterDef()
-        definicao.setFilterName("corsFilter")
-        definicao.setFilterClass(CorsFilter.name)
-        definicao.setFilter(new CorsFilter())
-
-        contexto.addFilterDef(definicao)
-
-        FilterMap mapeamento = new FilterMap()
-        mapeamento.setFilterName("corsFilter")
-        mapeamento.addURLPattern("/*")
-        mapeamento.setDispatcher("REQUEST")
-
-        contexto.addFilterMapBefore(mapeamento)
-    }
-
-    private void registrarReferenciaServlet() {
-        tomcat.addServlet(
-                contexto,
-                "referenciaServlet",
-                new ReferenciaServlet(
-                        controllerConfig.referenciaController
-                )
-        )
-
-        contexto.addServletMapping(
-                "/referencias/*",
-                "referenciaServlet"
-        )
-    }
-
-    private void registrarCurtidaServlet() {
-        tomcat.addServlet(
-                contexto,
-                "curtidaServlet",
-                new CurtidaServlet(
-                        controllerConfig.vagaController,
-                        controllerConfig.empresaController,
-                        controllerConfig.matchController
-                )
-        )
-
-        contexto.addServletMapping(
-                "/curtidas/*",
-                "curtidaServlet"
-        )
-    }
-
-    private void registrarMatchServlet() {
-        tomcat.addServlet(
-                contexto,
-                "matchServlet",
-                new MatchServlet(
-                        controllerConfig.matchController
-                )
-        )
-
-        contexto.addServletMapping(
-                "/matches/*",
-                "matchServlet"
-        )
+    private void registrar(String nome, jakarta.servlet.http.HttpServlet servlet, List<String> rotas) {
+        tomcat.addServlet(contexto, nome, servlet)
+        rotas.each { contexto.addServletMapping(it, nome) }
     }
 }

@@ -5,6 +5,7 @@ import com.jpcode.database.ConnectionFactory
 import com.jpcode.model.referencia.Competencia
 
 import java.sql.Statement
+import java.sql.Connection
 
 class CompetenciasVagaDAO implements CompetenciaRepository {
 
@@ -15,6 +16,12 @@ class CompetenciasVagaDAO implements CompetenciaRepository {
     }
 
     void salvar(Long idVaga, Long idCompetencia) {
+        try (def connection = connectionFactory.getConnection()) {
+            salvar(connection, idVaga, idCompetencia)
+        }
+    }
+
+    void salvar(Connection connection, Long idVaga, Long idCompetencia) {
         String sql = """
             INSERT INTO vagas_competencias 
                 (id_vaga, id_competencia)
@@ -23,7 +30,6 @@ class CompetenciasVagaDAO implements CompetenciaRepository {
         """
 
         try (
-                def connection = connectionFactory.getConnection()
                 def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
         ) {
             statement.setLong(1, idVaga)

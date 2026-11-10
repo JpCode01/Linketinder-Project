@@ -22,23 +22,7 @@ export class CurtidaVagaService {
         )
     }
 
-    async curtirViaApi(
-        idCandidato: number,
-        idVaga: number
-    ): Promise<void> {
-        await this.curtidaVagaApiClient.curtirVaga(
-            idCandidato,
-            idVaga
-        )
-    }
-    
-    async jaCurtiuVaga(
-        idCandidato: number,
-        idVaga: number
-    ): Promise<boolean> {
-        return await this.curtidaVagaApiClient.jaCurtiuVaga(
-            idCandidato,
-            idVaga
-        )
+    async curtirVaga(idVaga: number): Promise<void> {
+        await this.curtidaVagaApiClient.curtirVaga(idVaga)
     }
 }

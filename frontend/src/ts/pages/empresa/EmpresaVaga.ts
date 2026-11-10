@@ -1,7 +1,6 @@
+import { SeletorCompetencias } from "../../components/SeletorCompetencias"
 import { CompetenciaApiClient } from "../../api/clientes/CompetenciaApiClient";
 import { VagaEmpresaResponseDTO } from "../../api/dto/vaga/VagaEmpresaResponseDTO";
-import { Competencia } from "../../models/Competencia"
-import { Vaga } from "../../models/Vaga"
 import { VagaService } from "../../services/VagaService"
 
 interface DadosVagaFormulario {
@@ -9,42 +8,32 @@ interface DadosVagaFormulario {
     descricao: string
     tipo: string
     localizacao: string
-    competencias: Competencia[]
+    competencias: string[]
 }
 
+let seletorCompetencias: SeletorCompetencias | undefined
+
 export async function carregarOpcoesCompetencias(): Promise<void> {
+    seletorCompetencias = undefined
+    const botao = document.getElementById("criar-vaga") as HTMLButtonElement | null
+    if (botao != null) botao.disabled = true
     const container = document.getElementById("skills-options")
 
     if (container == null) {
         return
     }
 
+    container.textContent = "Carregando competências..."
     try {
         const competenciaApiClient = new CompetenciaApiClient()
         const competencias = await competenciaApiClient.buscarTodas()
-
-        container.innerHTML = ""
-
-        competencias.forEach((competencia) => {
-            const label = document.createElement("label")
-            const checkbox = document.createElement("input")
-
-            checkbox.type = "checkbox"
-            checkbox.value = String(competencia.id)
-            checkbox.dataset.nome = competencia.nome
-
-            label.appendChild(checkbox)
-            label.appendChild(
-                document.createTextNode(competencia.nome)
-            )
-
-            container.appendChild(label)
-        })
+        seletorCompetencias = new SeletorCompetencias(container, competencias)
+        if (botao != null) botao.disabled = false
     } catch (erro: unknown) {
+        container.textContent = "Não foi possível carregar as competências. Recarregue a página para tentar novamente."
         const mensagem = erro instanceof Error
             ? erro.message
             : "Não foi possível carregar as competências."
-
         window.alert(mensagem)
     }
 }
@@ -74,39 +63,14 @@ function capturarDadosVaga(): DadosVagaFormulario {
     }
 }
 
-function capturarCompetenciasSelecionadas(): Competencia[] {
-    const checkboxes =
-        document.querySelectorAll<HTMLInputElement>(
-            "#skills-options input[type='checkbox']:checked"
-        )
-
-    return Array.from(checkboxes).map(
-        (checkbox) => new Competencia(
-            Number(checkbox.value),
-            checkbox.dataset.nome ?? ""
-        )
-    )
-}
-
-function construirVaga(
-    dados: DadosVagaFormulario,
-    idEmpresa: number
-): Vaga {
-    const vaga = new Vaga(
-        dados.nome,
-        dados.descricao,
-        dados.tipo,
-        dados.localizacao,
-        idEmpresa
-    )
-
-    vaga.competencias = dados.competencias
-
-    return vaga
+function capturarCompetenciasSelecionadas(): string[] {
+    if (seletorCompetencias == undefined) {
+        throw new Error("Competências ainda não carregadas.")
+    }
+    return seletorCompetencias.obterSelecionadas()
 }
 
 export function configurarCriacaoVaga(
-    idEmpresa: number,
     vagaService: VagaService
 ): void {
     const botao = document.getElementById("criar-vaga")
@@ -118,9 +82,7 @@ export function configurarCriacaoVaga(
     botao.onclick = async (): Promise<void> => {
         try {
             const dados = capturarDadosVaga()
-            const vaga = construirVaga(dados, idEmpresa)
-
-            await vagaService.salvar(vaga)
+            await vagaService.criarVagaEmpresa(dados)
 
             limparFormularioVaga()
             window.alert("Vaga cadastrada com sucesso.")
@@ -155,7 +117,7 @@ export async function exibirVagasEmpresa(
     })
 }
 
-function criarCardVaga(vaga: VagaEmpresaResponseDTO): HTMLElement {
+export function criarCardVaga(vaga: VagaEmpresaResponseDTO): HTMLElement {
     const article = document.createElement("article")
     article.className = "company-job-card"
 
@@ -190,6 +152,12 @@ function criarCardVaga(vaga: VagaEmpresaResponseDTO): HTMLElement {
     article.appendChild(localizacao)
     article.appendChild(curtidas)
 
+    const autoria = document.createElement("p")
+    autoria.textContent = vaga.idRecrutador == null
+        ? "Criação direta pela empresa"
+        : `Recrutador autor: ${vaga.nomeRecrutador} — ${vaga.areaRecrutamento}`
+    article.appendChild(autoria)
+
     return article
 }
 
@@ -212,12 +180,5 @@ function limparFormularioVaga(): void {
     localizacao.value = ""
     descricao.value = ""
 
-    const checkboxes =
-        document.querySelectorAll(
-            "#skills-options input[type='checkbox']"
-        )
-
-    checkboxes.forEach((checkbox) => {
-        (checkbox as HTMLInputElement).checked = false
-    })
+    seletorCompetencias?.limpar()
 }

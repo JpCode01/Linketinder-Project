@@ -1,30 +1,21 @@
-import { CurtidaCandidatoApiClient } from "../api/clientes/CurtidaCandidatoApiClient";
+import { CurtidaCandidatoApiClient } from "../api/clientes/CurtidaCandidatoApiClient"
 
 export class CurtidaCandidatoService {
+    constructor(private curtidaCandidatoApiClient: CurtidaCandidatoApiClient) {}
 
-    constructor(
-        private curtidaCandidatoApiClient: CurtidaCandidatoApiClient
-    ) {}
-
-    async curtir(
-        idEmpresa: number,
-        idCandidato: number,
-        idVaga: number
-    ): Promise<void> {
-        await this.curtidaCandidatoApiClient.curtir(
-            idEmpresa,
-            idCandidato,
-            idVaga
-        )
+    async buscarIdsCandidatosRetribuidosEmpresa(idVaga: number): Promise<number[]> {
+        return await this.curtidaCandidatoApiClient.buscarIdsCandidatosRetribuidosEmpresa(idVaga)
     }
 
-    async jaCurtiuCandidato(
-        idEmpresa: number,
-        idCandidato: number
-    ): Promise<boolean> {
-        return await this.curtidaCandidatoApiClient.jaCurtiuCandidato(
-            idEmpresa,
-            idCandidato
-        )
+    async buscarIdsCandidatosRetribuidosRecrutador(idVaga: number): Promise<number[]> {
+        return await this.curtidaCandidatoApiClient.buscarIdsCandidatosRetribuidosRecrutador(idVaga)
+    }
+
+    async retribuirInteresseEmpresa(idCandidato: number, idVaga: number): Promise<void> {
+        await this.curtidaCandidatoApiClient.retribuirInteresseEmpresa(idCandidato, idVaga)
+    }
+
+    async retribuirInteresseRecrutador(idCandidato: number, idVaga: number): Promise<void> {
+        await this.curtidaCandidatoApiClient.retribuirInteresseRecrutador(idCandidato, idVaga)
     }
 }

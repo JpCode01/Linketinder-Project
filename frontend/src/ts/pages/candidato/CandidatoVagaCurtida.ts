@@ -1,4 +1,5 @@
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
+import { tratarErroSessao } from "../login/SessaoNavegacao"
 
 import {
     atualizarContador,
@@ -20,6 +21,7 @@ export async function exibirVagasCurtidas(
     }
 
     listaVagas.innerHTML = ""
+    if (contador != null) contador.textContent = "Carregando vagas curtidas..."
 
     try {
         const vagasCurtidas =
@@ -34,6 +36,12 @@ export async function exibirVagasCurtidas(
             plural: "vagas curtidas"
         })
 
+        if (vagasCurtidas.length === 0) {
+            const vazio = document.createElement("p")
+            vazio.textContent = "Você ainda não curtiu vagas."
+            listaVagas.appendChild(vazio)
+        }
+
         for (const vaga of vagasCurtidas) {
             const card = criarCardVaga(
                 vaga,
@@ -43,6 +51,7 @@ export async function exibirVagasCurtidas(
             listaVagas.appendChild(card)
         }
     } catch (erro: unknown) {
+        if (tratarErroSessao(erro)) return
         console.error(
             "Erro ao carregar vagas curtidas:",
             erro

@@ -1,9 +1,11 @@
 import { loginCandidato } from "./login/LoginCandidato"
 import { loginEmpresa } from "./login/LoginEmpresa"
+import { loginRecrutador } from "./login/LoginRecrutador"
 
 export function exibirLogin(): void {
     loginCandidato()
     loginEmpresa()
+    loginRecrutador()
     abrirCadastro()
 }
 

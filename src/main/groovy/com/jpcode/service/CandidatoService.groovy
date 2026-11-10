@@ -1,12 +1,13 @@
 package com.jpcode.service
 
+import com.jpcode.exception.LoginException
+
 import com.jpcode.dao.contratos.CompetenciaRepository
 import com.jpcode.dao.contratos.ReferenciaCompetenciaRepository
 import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.dao.contratos.UsuarioRepository
 import com.jpcode.dto.candidato.*
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
-import com.jpcode.exception.LoginException
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
@@ -17,6 +18,7 @@ import com.jpcode.model.referencia.Estado
 import com.jpcode.model.referencia.Pais
 
 class CandidatoService {
+    final SenhaService senhaService
     final ReferenciaRepository<Pais> paisRepository
     final ReferenciaRepository<Estado> estadoRepository
     final ReferenciaRepository<Competencia> competenciaRepository
@@ -24,7 +26,8 @@ class CandidatoService {
     final CompetenciaRepository competenciasCandidatoRepository
     final UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository
 
-    CandidatoService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, ReferenciaRepository<Competencia> competenciaRepository, ReferenciaCompetenciaRepository referenciaCompetenciaRepository, CompetenciaRepository competenciasCandidatoRepository, UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository) {
+    CandidatoService(ReferenciaRepository<Pais> paisRepository, ReferenciaRepository<Estado> estadoRepository, ReferenciaRepository<Competencia> competenciaRepository, ReferenciaCompetenciaRepository referenciaCompetenciaRepository, CompetenciaRepository competenciasCandidatoRepository, UsuarioRepository<Candidato, CandidatoComReferenciasDTO, CandidatoViewListDTO> candidatoRepository, SenhaService senhaService = new SenhaService()) {
+        this.senhaService = senhaService
         this.paisRepository = paisRepository
         this.estadoRepository = estadoRepository
         this.competenciaRepository = competenciaRepository
@@ -48,7 +51,7 @@ class CandidatoService {
                             cadastrarCandidatoDTO.nome,
                             cadastrarCandidatoDTO.sobrenome,
                             cadastrarCandidatoDTO.email,
-                            cadastrarCandidatoDTO.senha,
+                            senhaService.derivar(cadastrarCandidatoDTO.senha),
                             cadastrarCandidatoDTO.cpf,
                             cadastrarCandidatoDTO.dataNascimento,
                             paisId,
@@ -104,10 +107,17 @@ class CandidatoService {
         )
     }
     
+    boolean estaAtivo(Long id) {
+        return candidatoRepository.buscarPorId(id).map { it.ativo }.orElse(false)
+    }
+
     Candidato logar(String email, String senha) {
-        return candidatoRepository.buscarPorEmailESenha(email, senha)
-        .orElseThrow(() ->
-        new LoginException())
+        Candidato candidato = candidatoRepository.buscarAtivoPorEmail(email)
+                .orElseThrow(() -> new LoginException())
+        if (!candidato.ativo || !senhaService.verificar(senha, candidato.senha)) {
+            throw new LoginException()
+        }
+        return candidato
     }
 
     void desativarCandidato(Long idCandidato) {
@@ -115,6 +125,11 @@ class CandidatoService {
     }
     
     void atualizarCandidato(AtualizarCandidatoDTO atualizarCandidatoDTO) {
+        Candidato atual = candidatoRepository.buscarPorId(atualizarCandidatoDTO.id)
+                .orElseThrow(() -> new CandidatoNaoEncontradoPorIdException(atualizarCandidatoDTO.id))
+        if (!atual.ativo) {
+            throw new IllegalStateException('Candidato inativo não pode ser atualizado.')
+        }
         Long paisId = paisRepository.buscarIdPorNome(atualizarCandidatoDTO.pais)
                 .orElseThrow(() ->
                         new PaisNaoEncontradoException(atualizarCandidatoDTO.pais)
@@ -130,7 +145,7 @@ class CandidatoService {
                         atualizarCandidatoDTO.nome,
                         atualizarCandidatoDTO.sobrenome,
                         atualizarCandidatoDTO.email,
-                        atualizarCandidatoDTO.senha,
+                        senhaService.derivar(atualizarCandidatoDTO.senha),
                         atualizarCandidatoDTO.cpf,
                         atualizarCandidatoDTO.dataNascimento,
                         paisId,
@@ -138,7 +153,7 @@ class CandidatoService {
                         estadoId,
                         atualizarCandidatoDTO.cep,
                         atualizarCandidatoDTO.descricao,
-                        atualizarCandidatoDTO.ativo
+                        atual.ativo
                 ))
     }
     

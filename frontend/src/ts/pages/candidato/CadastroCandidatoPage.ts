@@ -1,9 +1,8 @@
+import { SeletorCompetencias } from "../../components/SeletorCompetencias"
 import { CadastrarCandidatoRequestDTO } from "../../api/dto/candidato/CadastrarCandidatoRequestDTO";
 import { ServiceConfig } from "../../config/ServiceConfig";
-import { Competencia } from "../../models/Competencia";
 import { Estado } from "../../models/Estado";
 import { Pais } from "../../models/Pais";
-import { LoginCandidatoStrategy } from "../../strategy/login/LoginCandidatoStrategy";
 
 const serviceConfig: ServiceConfig = new ServiceConfig()
 
@@ -16,7 +15,10 @@ const competenciaService = serviceConfig
 const referenciaService = serviceConfig
     .criarReferenciaService()
 
+let seletorCompetencias: SeletorCompetencias | undefined
+
 export function cadastrarCandidato(): void {
+    seletorCompetencias = undefined
     const formulario = document.getElementById(
         "candidate-registration-form"
     ) as HTMLFormElement | null
@@ -50,7 +52,13 @@ export function cadastrarCandidato(): void {
             )
         })
 
+    formulario.onsubmit = (evento: SubmitEvent): void => {
+        evento.preventDefault()
+        if (!botaoCadastro.disabled) botaoCadastro.click()
+    }
+
     botaoCadastro.onclick = async (): Promise<void> => {
+        if (botaoCadastro.disabled) return
         if (!formulario.reportValidity()) {
             return
         }
@@ -58,30 +66,14 @@ export function cadastrarCandidato(): void {
         limparErro()
         botaoCadastro.disabled = true
 
-        let cadastroConcluido = false
-
         try {
             const dados: CadastrarCandidatoRequestDTO =
                 capturarDadosCandidato()
 
             await candidatoService.cadastrar(dados)
-            cadastroConcluido = true
-
-            const login: LoginCandidatoStrategy =
-                new LoginCandidatoStrategy()
-
-            await login.login(dados.email, dados.senha)
+            window.location.href = "./index.html"
         } catch (erro: unknown) {
-            const mensagem: string = obterMensagemErro(erro)
-
-            if (cadastroConcluido) {
-                mostrarErro(
-                    "Cadastro realizado, mas não foi possível entrar automaticamente. " +
-                    "Acesse a tela de login. " + mensagem
-                )
-            } else {
-                mostrarErro(mensagem)
-            }
+            mostrarErro(obterMensagemErro(erro))
         } finally {
             botaoCadastro.disabled = false
         }
@@ -89,7 +81,7 @@ export function cadastrarCandidato(): void {
 }
 
 async function carregarOpcoesFormulario(): Promise<void> {
-    const competencias: Competencia[] =
+    const competencias: string[] =
         await competenciaService.buscarTodas()
 
     const paises: Pais[] =
@@ -103,34 +95,14 @@ async function carregarOpcoesFormulario(): Promise<void> {
     preencherEstados(estados)
 }
 
-function preencherCompetencias(competencias: Competencia[]): void {
+function preencherCompetencias(competencias: string[]): void {
     const containerCompetencias = document.getElementById("skills-options")
 
     if (containerCompetencias == null) {
         throw new Error("Container de competências não encontrado.")
     }
 
-    containerCompetencias.innerHTML = ""
-
-    for (const competencia of competencias) {
-        const opcaoCompetencia = document.createElement("div")
-        opcaoCompetencia.classList.add("skill-option")
-
-        const checkbox = document.createElement("input")
-        checkbox.type = "checkbox"
-        checkbox.name = "competencias"
-        checkbox.value = competencia.nome
-        checkbox.id = `competencia-${competencia.id}`
-
-        const label = document.createElement("label")
-        label.htmlFor = checkbox.id
-        label.textContent = competencia.nome
-
-        opcaoCompetencia.appendChild(checkbox)
-        opcaoCompetencia.appendChild(label)
-
-        containerCompetencias.appendChild(opcaoCompetencia)
-    }
+    seletorCompetencias = new SeletorCompetencias(containerCompetencias, competencias)
 }
 
 function preencherPaises(paises: Pais[]): void {
@@ -211,10 +183,6 @@ function calcularIdade(dataNascimento: string): number {
         idade--
     }
 
-    if (idade <= 0 || idade > 120) {
-        throw new Error("A idade informada deve estar entre 1 e 120 anos.")
-    }
-
     return idade
 }
 
@@ -241,10 +209,6 @@ function capturarDadosCandidato(): CadastrarCandidatoRequestDTO {
     }
 
     const competencias: string[] = capturarCompetenciasSelecionadas()
-
-    if (competencias.length === 0) {
-        throw new Error("Selecione pelo menos uma competência.")
-    }
 
     return {
         nome,
@@ -273,18 +237,14 @@ function obterValor(id: string): string {
         throw new Error(`Campo '${id}' não encontrado.`)
     }
 
-    return elemento.value.trim()
+    return id === "password" ? elemento.value : elemento.value.trim()
 }
 
 function capturarCompetenciasSelecionadas(): string[] {
-    const checkboxesSelecionados =
-        document.querySelectorAll<HTMLInputElement>(
-            '#skills-options input[name="competencias"]:checked'
-        )
-
-    return Array.from(checkboxesSelecionados).map(
-        (checkbox: HTMLInputElement): string => checkbox.value
-    )
+    if (seletorCompetencias == undefined) {
+        throw new Error("Competências ainda não carregadas.")
+    }
+    return seletorCompetencias.obterSelecionadas()
 }
 
 function mostrarErro(mensagem: string): void {

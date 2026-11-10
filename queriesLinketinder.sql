@@ -1,315 +1,10 @@
--- Todos os comandos Utilizados ao longo do projeto
-
-CREATE TABLE "pais" (
-                        "id" serial PRIMARY KEY,
-                        "nome" varchar NOT NULL
-);
-
-CREATE TABLE "instituicao_formacao" (
-                                        "id" serial PRIMARY KEY,
-                                        "nome_instituicao" varchar NOT NULL
-);
-
-CREATE TABLE "competencias" (
-                                "id" serial PRIMARY KEY,
-                                "nome_competencia" varchar NOT NULL
-);
-
-CREATE TABLE "candidatos" (
-                              "id" serial PRIMARY KEY,
-                              "nome" varchar NOT NULL,
-                              "sobrenome" varchar NOT NULL,
-                              "email" varchar UNIQUE NOT NULL,
-                              "senha" varchar NOT NULL,
-                              "data_nascimento" date NOT NULL,
-                              "cpf" varchar UNIQUE NOT NULL,
-                              "id_pais" int NOT NULL REFERENCES "pais" ("id"),
-                              "cep" varchar NOT NULL,
-                              "descricao" text,
-                              "ativo" boolean
-);
-
-CREATE TABLE "empresas" (
-                            "id" serial PRIMARY KEY,
-                            "nome" varchar NOT NULL,
-                            "cnpj" varchar UNIQUE NOT NULL,
-                            "email_corporativo" varchar UNIQUE NOT NULL,
-                            "descricao" text,
-                            "id_pais" int NOT NULL REFERENCES "pais" ("id"),
-                            "cep" varchar NOT NULL
-);
-
-CREATE TABLE "vagas" (
-                         "id" serial PRIMARY KEY,
-                         "nome" varchar NOT NULL,
-                         "descricao" varchar NOT NULL,
-                         "local" varchar NOT NULL,
-                         "id_empresa" int NOT NULL REFERENCES "empresas" ("id")
-);
-
-CREATE TABLE "formacao" (
-                            "id" serial PRIMARY KEY,
-                            "curso" varchar NOT NULL,
-                            "id_candidato" int NOT NULL REFERENCES "candidatos" ("id"),
-                            "id_instituicao" int NOT NULL REFERENCES "instituicao_formacao" ("id"),
-                            "inicio" date NOT NULL,
-                            "termino_ou_possivel" date NOT NULL
-);
-
-CREATE TABLE "candidato_formacoes" (
-                                       "id" serial PRIMARY KEY,
-                                       "id_formacao" int NOT NULL REFERENCES "formacao" ("id"),
-                                       "id_candidato" int NOT NULL REFERENCES "candidatos" ("id")
-);
-
-CREATE TABLE "candidatos_competencias" (
-                                           "id" serial PRIMARY KEY,
-                                           "id_candidato" int NOT NULL REFERENCES "candidatos" ("id"),
-                                           "id_competencia" int NOT NULL REFERENCES "competencias" ("id")
-);
-
-CREATE TABLE "vagas_competencias" (
-                                      "id" serial PRIMARY KEY,
-                                      "id_vaga" int NOT NULL REFERENCES "vagas" ("id"),
-                                      "id_competencia" int NOT NULL REFERENCES "competencias" ("id")
-);
-
-CREATE TABLE "vagas_curtidas_candidato" (
-                                            "id" serial PRIMARY KEY,
-                                            "id_candidato" int NOT NULL REFERENCES "candidatos" ("id"),
-                                            "id_vaga" int NOT NULL REFERENCES "vagas" ("id")
-);
-
-CREATE TABLE "candidatos_curtidos_empresa" (
-                                               "id" serial PRIMARY KEY,
-                                               "id_empresa" int NOT NULL REFERENCES "empresas" ("id"),
-                                               "id_candidato" int NOT NULL REFERENCES "candidatos" ("id")
-);
-
-CREATE TABLE "candidatos_que_curtiram_vaga" (
-                                                "id" serial PRIMARY KEY,
-                                                "id_candidato" int NOT NULL REFERENCES "candidatos" ("id"),
-                                                "id_vaga" int NOT NULL REFERENCES "vagas" ("id")
-);
-
-CREATE TABLE "match" (
-                         "id_candidato" int NOT NULL REFERENCES "candidatos" ("id"),
-                         "id_empresa" int NOT NULL REFERENCES "empresas" ("id"),
-                         "id_vaga" int NOT NULL REFERENCES "vagas" ("id")
-);
-
-INSERT INTO "pais" ("nome")
-VALUES
-    ('Brasil'),
-    ('Estados Unidos'),
-    ('Reino Unido');
-
-INSERT INTO "instituicao_formacao" ("nome_instituicao")
-VALUES
-    ('FATEC Bragança Paulista'),
-    ('Universidade de São Paulo'),
-    ('FIAP');
-
-INSERT INTO "competencias" ("nome_competencia")
-VALUES
-    ('Java'),
-    ('Python'),
-    ('JavaScript');
-
-INSERT INTO "candidatos"
-("nome", "sobrenome", "email", "senha", "data_nascimento", "cpf", "id_pais", "cep", "descricao", "ativo")
-VALUES
-    ('João', 'Silva', '[joao@email.com](mailto:joao@email.com)', '123456', '2005-03-15', '11111111111', 1, '12900000', 'Desenvolvedor Java', true),
-    ('Maria', 'Santos', '[maria@email.com](mailto:maria@email.com)', '123456', '2004-07-20', '22222222222', 1, '12900001', 'Desenvolvedora Python', true),
-    ('Pedro', 'Oliveira', '[pedro@email.com](mailto:pedro@email.com)', '123456', '2003-01-10', '33333333333', 2, '01000000', 'Desenvolvedor JavaScript', true);
-
-INSERT INTO "formacao"
-("curso", "id_candidato", "id_instituicao", "inicio", "termino_ou_possivel")
-VALUES
-    ('Análise e Desenvolvimento de Sistemas', 1, 1, '2025-01-01', '2027-12-31'),
-    ('Ciência da Computação', 2, 2, '2024-01-01', '2028-12-31'),
-    ('Engenharia de Software', 3, 3, '2025-01-01', '2029-12-31');
-
-INSERT INTO "candidato_formacoes"
-("id_formacao", "id_candidato")
-VALUES
-    (1, 1),
-    (2, 2),
-    (3, 3);
-
-INSERT INTO "candidatos_competencias"
-("id_candidato", "id_competencia")
-VALUES
-    (1, 1),
-    (2, 2),
-    (3, 3);
-
-INSERT INTO "empresas"
-("nome", "cnpj", "email_corporativo", "descricao", "id_pais", "cep")
-VALUES
-    ('Pastelsoft', '11111111000111', '[contato@pastelsoft.com](mailto:contato@pastelsoft.com)', 'Empresa de tecnologia', 1, '12900010'),
-    ('ZG Soluções', '22222222000122', '[contato@zgs.com](mailto:contato@zgs.com)', 'Soluções em tecnologia', 1, '12900011'),
-    ('Tech Corp', '33333333000133', '[contato@techcorp.com](mailto:contato@techcorp.com)', 'Desenvolvimento de software', 2, '01000001');
-
-INSERT INTO "vagas"
-("nome", "descricao", "local", "id_empresa")
-VALUES
-    ('Desenvolvedor Java Junior', 'Desenvolvimento de aplicações utilizando Java', 'Bragança Paulista', 1),
-    ('Desenvolvedor Python', 'Desenvolvimento de aplicações utilizando Python', 'São Paulo', 2),
-    ('Desenvolvedor JavaScript', 'Desenvolvimento de aplicações web utilizando JavaScript', 'Campinas', 3);
-
-INSERT INTO "vagas_competencias"
-("id_vaga", "id_competencia")
-VALUES
-    (1, 1),
-    (2, 2),
-    (3, 3);
-
-INSERT INTO "vagas_curtidas_candidato"
-("id_candidato", "id_vaga")
-VALUES
-    (1, 1),
-    (2, 2),
-    (3, 3);
-
-INSERT INTO "candidatos_curtidos_empresa"
-("id_empresa", "id_candidato")
-VALUES
-    (1, 1),
-    (2, 2),
-    (3, 3);
-
-INSERT INTO "candidatos_que_curtiram_vaga"
-("id_candidato", "id_vaga")
-VALUES
-    (1, 1),
-    (2, 2),
-    (3, 3);
-
-INSERT INTO "match"
-("id_candidato", "id_empresa", "id_vaga")
-VALUES
-    (1, 1, 1),
-    (2, 2, 2),
-    (3, 3, 3);
-
--- Alterações necessárias ao longo do desenvolvimento
-
-ALTER TABLE candidatos
-    ADD COLUMN idade int;
-
-CREATE TABLE "estados" (
-                           "id" serial PRIMARY KEY,
-                           "sigla" varchar(2) NOT NULL
-);
-
-ALTER TABLE "empresas"
-    ADD COLUMN "id_estado" int REFERENCES "estados" ("id");
-
-ALTER TABLE "candidatos"
-    ADD COLUMN "id_estado" int REFERENCES "estados" ("id");
-
-ALTER TABLE "empresas"
-    ADD COLUMN "senha" varchar;
-
-select * from match;
-
-INSERT INTO pais (nome) VALUES
-                            ('BRASIL'),
-                            ('ESTADOS UNIDOS'),
-                            ('CANADA'),
-                            ('REINO UNIDO'),
-                            ('ALEMANHA'),
-                            ('FRANCA'),
-                            ('JAPAO'),
-                            ('CHINA'),
-                            ('AUSTRALIA'),
-                            ('PORTUGAL');
-
-INSERT INTO estados (sigla) VALUES
-                                ('SP'),
-                                ('RJ'),
-                                ('MG'),
-                                ('PR'),
-                                ('SC'),
-                                ('RS'),
-                                ('BA'),
-                                ('PE'),
-                                ('GO'),
-                                ('DF');
-
-INSERT INTO competencias (nome_competencia) VALUES
-                                                ('JAVA'),
-                                                ('GROOVY'),
-                                                ('PYTHON'),
-                                                ('JAVASCRIPT'),
-                                                ('TYPESCRIPT'),
-                                                ('SPRING'),
-                                                ('SPRING BOOT'),
-                                                ('DJANGO'),
-                                                ('NODE.JS'),
-                                                ('REACT'),
-                                                ('ANGULAR'),
-                                                ('POSTGRESQL'),
-                                                ('DOCKER'),
-                                                ('GIT'),
-                                                ('AWS');
-
-ALTER TABLE empresas
-    ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT true;
-
-ALTER TABLE candidatos_competencias
-    ADD CONSTRAINT uk_candidato_competencia
-        UNIQUE (id_candidato, id_competencia);
-
-ALTER TABLE vagas_competencias
-    ADD CONSTRAINT uk_vaga_competencia
-        UNIQUE (id_vaga, id_competencia);
-
-ALTER TABLE vagas_curtidas_candidato
-    ADD CONSTRAINT uk_candidato_vaga
-        UNIQUE (id_candidato, id_vaga);
-
-ALTER TABLE candidatos_curtidos_empresa
-    ADD CONSTRAINT uk_empresa_candidato
-        UNIQUE (id_empresa, id_candidato);
-
-ALTER TABLE candidato_formacoes
-    ADD CONSTRAINT uk_candidato_formacao
-        UNIQUE (id_candidato, id_formacao);
-
-ALTER TABLE "match"
-    ADD CONSTRAINT uk_match
-        UNIQUE (id_candidato, id_empresa, id_vaga);
-
-ALTER TABLE vagas_competencias
-DROP CONSTRAINT vagas_competencias_id_vaga_fkey;
-
-ALTER TABLE vagas_competencias
-    ADD CONSTRAINT vagas_competencias_id_vaga_fkey
-        FOREIGN KEY (id_vaga)
-            REFERENCES vagas(id)
-            ON DELETE CASCADE;
-
-ALTER TABLE vagas_curtidas_candidato
-DROP CONSTRAINT vagas_curtidas_candidato_id_vaga_fkey;
-
-ALTER TABLE vagas_curtidas_candidato
-    ADD CONSTRAINT vagas_curtidas_candidato_id_vaga_fkey
-        FOREIGN KEY (id_vaga)
-            REFERENCES vagas(id)
-            ON DELETE CASCADE;
-
-ALTER TABLE "match"
-DROP CONSTRAINT match_id_vaga_fkey;
-
-ALTER TABLE "match"
-    ADD CONSTRAINT match_id_vaga_fkey
-        FOREIGN KEY (id_vaga)
-            REFERENCES vagas(id)
-            ON DELETE CASCADE;
-
 -- Versão Atualizada para Criação do projeto
+
+-- Instalação nova: executar somente o DDL desta seção, até -- Inserções.
+-- Não executar o arquivo inteiro nem os exemplos legados automaticamente.
+-- Após o DDL, cadastrar manualmente pais, estados, competencias e
+-- areas_recrutamento (id gerado, nome informado), antes das contas e vínculos.
+-- Áreas são referências próprias; não substituem competências.
 
 CREATE TABLE pais (
                       id SERIAL PRIMARY KEY,
@@ -321,11 +16,6 @@ CREATE TABLE estados (
                          sigla VARCHAR(2) NOT NULL
 );
 
-CREATE TABLE instituicao_formacao (
-                                      id SERIAL PRIMARY KEY,
-                                      nome_instituicao VARCHAR NOT NULL
-);
-
 CREATE TABLE competencias (
                               id SERIAL PRIMARY KEY,
                               nome_competencia VARCHAR NOT NULL
@@ -335,14 +25,14 @@ CREATE TABLE candidatos (
                             id SERIAL PRIMARY KEY,
                             nome VARCHAR NOT NULL,
                             sobrenome VARCHAR NOT NULL,
-                            email VARCHAR NOT NULL UNIQUE,
+                            email VARCHAR NOT NULL,
                             senha VARCHAR NOT NULL,
                             data_nascimento DATE NOT NULL,
-                            cpf VARCHAR NOT NULL UNIQUE,
+                            cpf VARCHAR NOT NULL,
                             id_pais INTEGER NOT NULL REFERENCES pais(id),
                             cep VARCHAR NOT NULL,
                             descricao TEXT,
-                            ativo BOOLEAN,
+                            ativo BOOLEAN NOT NULL DEFAULT TRUE,
                             idade INTEGER,
                             id_estado INTEGER REFERENCES estados(id)
 );
@@ -350,8 +40,8 @@ CREATE TABLE candidatos (
 CREATE TABLE empresas (
                           id SERIAL PRIMARY KEY,
                           nome VARCHAR NOT NULL,
-                          cnpj VARCHAR NOT NULL UNIQUE,
-                          email_corporativo VARCHAR NOT NULL UNIQUE,
+                          cnpj VARCHAR NOT NULL,
+                          email_corporativo VARCHAR NOT NULL,
                           descricao TEXT,
                           id_pais INTEGER NOT NULL REFERENCES pais(id),
                           cep VARCHAR NOT NULL,
@@ -360,21 +50,33 @@ CREATE TABLE empresas (
                           ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-CREATE TABLE formacao (
-                          id SERIAL PRIMARY KEY,
-                          curso VARCHAR NOT NULL,
-                          id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
-                          id_instituicao INTEGER NOT NULL REFERENCES instituicao_formacao(id),
-                          inicio DATE NOT NULL,
-                          termino_ou_possivel DATE NOT NULL
+CREATE TABLE areas_recrutamento (
+                                      id SERIAL PRIMARY KEY,
+                                      nome VARCHAR NOT NULL
 );
 
-CREATE TABLE candidato_formacoes (
-                                     id SERIAL PRIMARY KEY,
-                                     id_formacao INTEGER NOT NULL REFERENCES formacao(id),
-                                     id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
-                                     CONSTRAINT uk_candidato_formacao UNIQUE (id_candidato, id_formacao)
+CREATE TABLE recrutadores (
+                              id SERIAL PRIMARY KEY,
+                              nome VARCHAR NOT NULL,
+                              id_area_recrutamento INTEGER NOT NULL REFERENCES areas_recrutamento(id),
+                              descricao TEXT,
+                              email VARCHAR NOT NULL,
+                              cpf VARCHAR NOT NULL,
+                              data_nascimento DATE NOT NULL,
+                              senha VARCHAR NOT NULL,
+                              id_empresa INTEGER NOT NULL REFERENCES empresas(id),
+                              ativo BOOLEAN NOT NULL DEFAULT TRUE,
+                              CONSTRAINT uk_recrutador_empresa UNIQUE (id, id_empresa)
 );
+
+-- Unicidade por perfil somente entre contas ativas; reutilização não altera IDs/FKs.
+-- A garantia de e-mail entre os três perfis depende do protocolo transacional de T06.
+CREATE UNIQUE INDEX uk_candidato_cpf_ativo ON candidatos (cpf) WHERE ativo = true;
+CREATE UNIQUE INDEX uk_candidato_email_ativo ON candidatos (email) WHERE ativo = true;
+CREATE UNIQUE INDEX uk_empresa_cnpj_ativo ON empresas (cnpj) WHERE ativo = true;
+CREATE UNIQUE INDEX uk_empresa_email_ativo ON empresas (email_corporativo) WHERE ativo = true;
+CREATE UNIQUE INDEX uk_recrutador_cpf_ativo ON recrutadores (cpf) WHERE ativo = true;
+CREATE UNIQUE INDEX uk_recrutador_email_ativo ON recrutadores (email) WHERE ativo = true;
 
 CREATE TABLE candidatos_competencias (
                                          id SERIAL PRIMARY KEY,
@@ -388,7 +90,11 @@ CREATE TABLE vagas (
                        nome VARCHAR NOT NULL,
                        descricao VARCHAR NOT NULL,
                        local VARCHAR NOT NULL,
-                       id_empresa INTEGER NOT NULL REFERENCES empresas(id)
+                       id_empresa INTEGER NOT NULL REFERENCES empresas(id),
+                       id_recrutador INTEGER,
+                       CONSTRAINT uk_vaga_empresa UNIQUE (id, id_empresa),
+                       CONSTRAINT fk_vaga_recrutador_empresa FOREIGN KEY (id_recrutador, id_empresa)
+                           REFERENCES recrutadores(id, id_empresa)
 );
 
 CREATE TABLE vagas_competencias (
@@ -398,19 +104,6 @@ CREATE TABLE vagas_competencias (
                                     CONSTRAINT uk_vaga_competencia UNIQUE (id_vaga, id_competencia)
 );
 
-CREATE TABLE candidatos_curtidos_empresa (
-                                             id SERIAL PRIMARY KEY,
-                                             id_empresa INTEGER NOT NULL REFERENCES empresas(id),
-                                             id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
-                                             CONSTRAINT uk_empresa_candidato UNIQUE (id_empresa, id_candidato)
-);
-
-CREATE TABLE candidatos_que_curtiram_vaga (
-                                              id SERIAL PRIMARY KEY,
-                                              id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
-                                              id_vaga INTEGER NOT NULL REFERENCES vagas(id)
-);
-
 CREATE TABLE vagas_curtidas_candidato (
                                           id SERIAL PRIMARY KEY,
                                           id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
@@ -418,15 +111,40 @@ CREATE TABLE vagas_curtidas_candidato (
                                           CONSTRAINT uk_candidato_vaga UNIQUE (id_candidato, id_vaga)
 );
 
+-- Retribuição contextualizada; ator não se confunde com o autor da vaga.
+-- Atividade e autoria do ator serão validadas na transação de T09.
+CREATE TABLE candidatos_curtidos_empresa (
+                                             id SERIAL PRIMARY KEY,
+                                             id_empresa INTEGER NOT NULL REFERENCES empresas(id),
+                                             id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
+                                             id_vaga INTEGER NOT NULL,
+                                             id_recrutador_ator INTEGER,
+                                             CONSTRAINT uk_retribuicao_candidato_vaga UNIQUE (id_candidato, id_vaga),
+                                             CONSTRAINT uk_retribuicao_contexto UNIQUE (id_candidato, id_empresa, id_vaga),
+                                             CONSTRAINT fk_retribuicao_interesse FOREIGN KEY (id_candidato, id_vaga)
+                                                 REFERENCES vagas_curtidas_candidato(id_candidato, id_vaga),
+                                             CONSTRAINT fk_retribuicao_vaga_empresa FOREIGN KEY (id_vaga, id_empresa)
+                                                 REFERENCES vagas(id, id_empresa),
+                                             CONSTRAINT fk_retribuicao_recrutador_empresa FOREIGN KEY (id_recrutador_ator, id_empresa)
+                                                 REFERENCES recrutadores(id, id_empresa)
+);
+
 CREATE TABLE match (
                        id SERIAL PRIMARY KEY,
                        id_candidato INTEGER NOT NULL REFERENCES candidatos(id),
                        id_empresa INTEGER NOT NULL REFERENCES empresas(id),
                        id_vaga INTEGER NOT NULL REFERENCES vagas(id) ON DELETE CASCADE,
-                       CONSTRAINT uk_match UNIQUE (id_candidato, id_empresa, id_vaga)
+                       CONSTRAINT uk_match UNIQUE (id_candidato, id_vaga),
+                       CONSTRAINT fk_match_vaga_empresa FOREIGN KEY (id_vaga, id_empresa)
+                           REFERENCES vagas(id, id_empresa),
+                       CONSTRAINT fk_match_retribuicao FOREIGN KEY (id_candidato, id_empresa, id_vaga)
+                           REFERENCES candidatos_curtidos_empresa(id_candidato, id_empresa, id_vaga)
 );
 
 -- Inserções
+
+-- Exemplos legados abaixo: não integram a preparação de referências ou o DDL.
+-- Não executar automaticamente nem usar como fixtures dos testes de integração.
 
 INSERT INTO candidatos (
     nome, sobrenome, email, senha, data_nascimento,

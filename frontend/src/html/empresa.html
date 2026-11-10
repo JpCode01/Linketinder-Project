@@ -42,7 +42,6 @@
 
 <main class="page-container">
 
-<!-- PERFIL DA EMPRESA -->
 
 <section class="profile-header company-profile">
 
@@ -72,7 +71,6 @@
 <section class="dashboard-grid">
 
 
-    <!-- CRIAR VAGA -->
 
     <article class="dashboard-card create-job">
 
@@ -178,7 +176,6 @@
     </article>
 
 
-    <!-- GRÁFICO -->
 
     <article class="dashboard-card">
 
@@ -208,7 +205,46 @@
 </section>
 
 
-<!-- MINHAS VAGAS -->
+<section class="section" id="cadastro-recrutador">
+    <article class="dashboard-card">
+        <div class="card-header"><h2>Cadastrar recrutador</h2></div>
+        <form id="recruiter-form">
+            <div class="input-group">
+                <label for="recruiter-name">Nome</label>
+                <input id="recruiter-name" type="text" autocomplete="name" required>
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="recruiter-cpf">CPF</label>
+                    <input id="recruiter-cpf" type="text" required>
+                </div>
+                <div class="input-group">
+                    <label for="recruiter-birthdate">Data de nascimento</label>
+                    <input id="recruiter-birthdate" type="date" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="recruiter-email">E-mail corporativo</label>
+                <input id="recruiter-email" type="email" autocomplete="off" required>
+            </div>
+            <div class="input-group">
+                <label for="recruiter-password">Senha inicial</label>
+                <input id="recruiter-password" type="password" autocomplete="new-password" required>
+            </div>
+            <div class="input-group">
+                <label for="recruiter-area">Área de recrutamento</label>
+                <select id="recruiter-area" required><option value="">Carregando áreas...</option></select>
+            </div>
+            <div class="input-group">
+                <label for="recruiter-description">Descrição profissional</label>
+                <textarea id="recruiter-description" rows="4" required></textarea>
+            </div>
+            <p id="recruiter-status" role="status" aria-live="polite"></p>
+            <button id="cadastrar-recrutador" type="submit" class="btn btn-primary" disabled>Cadastrar recrutador</button>
+        </form>
+    </article>
+</section>
+
 
 <section class="section">
 
@@ -230,14 +266,12 @@
     <div class="job-list" id="job-list">
 
 
-        <!-- MODELO DE UMA VAGA -->
 
     </div>
 
 </section>
 
 
-<!-- CANDIDATOS -->
 
 <section class="section">
 
@@ -263,7 +297,6 @@
     <div class="candidate-grid" id="candidate-grid">
 
 
-        <!-- MODELO DE UM CANDIDATO -->
 
         <article class="candidate-card" id="candidate-card">
 
@@ -312,7 +345,6 @@
             </div>
 
 
-            <!-- VAGA À QUAL O CANDIDATO SE CANDIDATOU -->
 
             <div class="candidate-section">
 
@@ -343,7 +375,6 @@
 
 </section>
 
-<!-- CANDIDATOS CURTIDOS -->
 
 <section class="section">
 
@@ -368,7 +399,6 @@
 
     <div class="candidate-grid" id="liked-candidate-grid">
 
-        <!-- CANDIDATOS CURTIDOS SERÃO INSERIDOS AQUI -->
 
     </div>
 

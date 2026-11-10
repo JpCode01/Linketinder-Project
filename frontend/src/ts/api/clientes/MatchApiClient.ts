@@ -1,38 +1,18 @@
+import { ApiClient } from "./ApiClient"
 import { MatchResponseDTO } from "../dto/match/MatchResponseDTO"
 
 export class MatchApiClient {
+    constructor(private api = new ApiClient()) {}
 
-    private readonly baseUrl: string = "http://localhost:8080/matches"
-
-    async buscarPorEmpresa(
-        idEmpresa: number
-    ): Promise<MatchResponseDTO[]> {
-        const resposta = await fetch(
-            `${this.baseUrl}/empresa/${idEmpresa}`
-        )
-
-        if (!resposta.ok) {
-            throw new Error(
-                `Erro ao carregar matches da empresa: HTTP ${resposta.status}`
-            )
-        }
-
-        return await resposta.json() as MatchResponseDTO[]
+    buscarPorEmpresa(idEmpresa: number): Promise<MatchResponseDTO[]> {
+        return this.api.obter(`/matches/empresa/${idEmpresa}`)
     }
 
-    async buscarPorCandidato(
-        idCandidato: number
-    ): Promise<MatchResponseDTO[]> {
-        const resposta = await fetch(
-            `${this.baseUrl}/candidato/${idCandidato}`
-        )
+    buscarPorCandidato(idCandidato: number): Promise<MatchResponseDTO[]> {
+        return this.api.obter(`/matches/candidato/${idCandidato}`)
+    }
 
-        if (!resposta.ok) {
-            throw new Error(
-                `Erro ao carregar matches do candidato: HTTP ${resposta.status}`
-            )
-        }
-
-        return await resposta.json() as MatchResponseDTO[]
+    buscarPorRecrutador(idRecrutador: number): Promise<MatchResponseDTO[]> {
+        return this.api.obter(`/matches/recrutador/${idRecrutador}`)
     }
 }

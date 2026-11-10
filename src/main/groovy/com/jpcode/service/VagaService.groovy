@@ -17,41 +17,65 @@ class VagaService {
     final ReferenciaCompetenciaRepository referenciaCompetencia
     final CompetenciaRepository competenciaRepository
     final CurtidaRepository<VagaAnonimaDTO> curtidaRepository
+    final UsuarioRepository empresaRepository
+    final RecrutadorRepository recrutadorRepository
 
-    VagaService(VagaRepository vagaRepository, ReferenciaRepository<Competencia> referenciaRepository, ReferenciaCompetenciaRepository referenciaCompetencia, CompetenciaRepository competenciaRepository, CurtidaRepository<VagaAnonimaDTO> curtidaRepository) {
+    VagaService(VagaRepository vagaRepository, ReferenciaRepository<Competencia> referenciaRepository, ReferenciaCompetenciaRepository referenciaCompetencia, CompetenciaRepository competenciaRepository, CurtidaRepository<VagaAnonimaDTO> curtidaRepository, UsuarioRepository empresaRepository, RecrutadorRepository recrutadorRepository) {
         this.vagaRepository = vagaRepository
         this.referenciaRepository = referenciaRepository
         this.referenciaCompetencia = referenciaCompetencia
         this.competenciaRepository = competenciaRepository
         this.curtidaRepository = curtidaRepository
+        this.empresaRepository = empresaRepository
+        this.recrutadorRepository = recrutadorRepository
     }
 
     void criarVaga(CadastrarVagaDTO cadastrarVagaDTO) {
-        Vaga vagaSalva = vagaRepository.salvar(
-                new Vaga(
-                        cadastrarVagaDTO.nome,
-                        cadastrarVagaDTO.descricao,
-                        cadastrarVagaDTO.local,
-                        cadastrarVagaDTO.idEmpresa
-                )
-        )
-        salvarCompetencias(cadastrarVagaDTO.competencias, vagaSalva.id)
+        criarVagaEmpresa(cadastrarVagaDTO.idEmpresa, cadastrarVagaDTO)
     }
 
-    private salvarCompetencias(List<String> competencias, Long idVaga) {
-        competencias.each {
-            competencia ->
-                Long idCompetencia = referenciaRepository
-                        .buscarIdPorNome(competencia)
-                        .orElseThrow(() ->
-                                new CompetenciaNaoEncontradaException(competencia)
-                        )
+    void criarVagaEmpresa(Long idEmpresaOperante, CadastrarVagaDTO dados) {
+        validarEmpresa(idEmpresaOperante)
+        validarEmpresaInformada(dados, idEmpresaOperante)
+        gravarVaga(dados, idEmpresaOperante, null)
+    }
 
-                competenciaRepository.salvar(
-                        idVaga,
-                        idCompetencia
-                )
+    void criarVagaRecrutador(Long idRecrutadorOperante, CadastrarVagaDTO dados) {
+        def recrutador = validarRecrutador(idRecrutadorOperante)
+        validarEmpresa(recrutador.idEmpresa)
+        validarEmpresaInformada(dados, recrutador.idEmpresa)
+        gravarVaga(dados, recrutador.idEmpresa, recrutador.id)
+    }
+
+    private static void validarEmpresaInformada(CadastrarVagaDTO dados, Long idEmpresa) {
+        if (dados.idEmpresa != null && dados.idEmpresa != idEmpresa) {
+            throw new IllegalArgumentException('Empresa incompatível com o ator.')
         }
+    }
+
+    private void validarEmpresa(Long id) {
+        if (id == null || !empresaRepository.buscarPorId(id).map { it.ativo }.orElse(false)) {
+            throw new IllegalArgumentException('Empresa inexistente ou inativa.')
+        }
+    }
+
+    private def validarRecrutador(Long id) {
+        if (id == null) throw new IllegalArgumentException('Recrutador obrigatório.')
+        def recrutador = recrutadorRepository.buscarPorId(id)
+                .orElseThrow(() -> new IllegalArgumentException('Recrutador inexistente.'))
+        if (!recrutador.ativo) throw new IllegalStateException('Recrutador inativo.')
+        return recrutador
+    }
+
+    private void gravarVaga(CadastrarVagaDTO dados, Long idEmpresa, Long idRecrutador) {
+        if (dados.competencias == null) throw new IllegalArgumentException('Competências obrigatórias.')
+        List<Long> ids = dados.competencias.collect { nome ->
+            referenciaRepository.buscarIdPorNome(nome)
+                    .orElseThrow(() -> new CompetenciaNaoEncontradaException(nome))
+        }.unique()
+        Vaga vaga = new Vaga(dados.nome, dados.descricao, dados.local, idEmpresa)
+        vaga.idRecrutador = idRecrutador
+        vagaRepository.salvarComCompetencias(vaga, ids)
     }
 
     void curtir(Long idCandidato, Long idVaga) {
@@ -59,7 +83,24 @@ class VagaService {
     }
 
     List<VagaEmpresaDTO> listarVagas(Long idEmpresa) {
+        validarEmpresa(idEmpresa)
         return vagaRepository.buscarVagasEmpresa(idEmpresa)
+    }
+
+    List<VagaEmpresaDTO> listarVagasEmpresa(Long idEmpresaOperante, Long idEmpresa) {
+        if (idEmpresaOperante == null || idEmpresaOperante != idEmpresa) {
+            throw new IllegalArgumentException('Consulta restrita à própria empresa.')
+        }
+        return listarVagas(idEmpresaOperante)
+    }
+
+    List<VagaEmpresaDTO> listarVagasRecrutador(Long idRecrutadorOperante, Long idRecrutador) {
+        if (idRecrutadorOperante == null || idRecrutadorOperante != idRecrutador) {
+            throw new IllegalArgumentException('Consulta restrita ao próprio recrutador.')
+        }
+        def recrutador = validarRecrutador(idRecrutadorOperante)
+        validarEmpresa(recrutador.idEmpresa)
+        return vagaRepository.buscarVagasRecrutador(idRecrutadorOperante)
     }
 
     Vaga buscarVaga(Long idVaga) {
@@ -85,6 +126,11 @@ class VagaService {
     }
 
     void atualizarVaga(AtualizarVagaDTO atualizarVagaDTO) {
+        validarEmpresa(atualizarVagaDTO.idEmpresa)
+        Vaga persistida = buscarVaga(atualizarVagaDTO.id)
+        if (persistida.idEmpresa != atualizarVagaDTO.idEmpresa) {
+            throw new IllegalArgumentException('Vaga fora do escopo da empresa.')
+        }
         vagaRepository.atualizarDados(
                 new Vaga(
                         atualizarVagaDTO.id,
@@ -107,9 +153,5 @@ class VagaService {
                     referenciaCompetencia.buscarPorNome(competenciaString))
         }
         competenciaRepository.atualizar(idVaga, converterParaCompetencia)
-    }
-
-    boolean jaFoiCurtidaPorCandidato(Long idCandidato, Long idVaga) {
-        curtidaRepository.jaCurtiu(idCandidato, idVaga)
     }
 }

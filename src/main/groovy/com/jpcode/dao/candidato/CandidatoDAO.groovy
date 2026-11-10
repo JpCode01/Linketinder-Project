@@ -2,6 +2,7 @@ package com.jpcode.dao.candidato
 
 import com.jpcode.dao.contratos.UsuarioRepository
 import com.jpcode.database.ConnectionFactory
+import com.jpcode.dao.conta.ValidacaoContaDAO
 import com.jpcode.dto.candidato.CandidatoComReferenciasDTO
 import com.jpcode.dto.candidato.CandidatoViewListDTO
 import com.jpcode.model.core.Candidato
@@ -16,9 +17,11 @@ class CandidatoDAO implements
 {
 
     private final ConnectionFactory connectionFactory
+    private final ValidacaoContaDAO validacaoContaDAO
 
     CandidatoDAO(ConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory
+        this.validacaoContaDAO = new ValidacaoContaDAO(connectionFactory)
     }
 
     Candidato salvar(Candidato candidato) {
@@ -31,40 +34,42 @@ class CandidatoDAO implements
         """
 
         
-        try (
-            def connection = connectionFactory.getConnection()
-            def statement = connection.prepareStatement(
-                    sql,
-                    Statement.RETURN_GENERATED_KEYS
-            )
-        ) {
+        return validacaoContaDAO.executar('candidatos', null, candidato.email, candidato.cpf) { connection ->
+            try (
+                def statement = connection.prepareStatement(
+                        sql,
+                        Statement.RETURN_GENERATED_KEYS
+                )
+            ) {
 
-            statement.setString(1, candidato.nome)
-            statement.setString(2, candidato.sobrenome)
-            statement.setString(3, candidato.email)
-            statement.setDate(
-                    4,
-                    Date.valueOf(candidato.dataNascimento)
-            )
-            statement.setString(5, candidato.cpf)
-            statement.setLong(6, candidato.idPais)
-            statement.setString(7, candidato.cep)
-            statement.setString(8, candidato.descricao)
-            statement.setBoolean(9, candidato.ativo)
-            statement.setString(10, candidato.senha)
-            statement.setLong(11, candidato.idEstado)
-            statement.setLong(12, candidato.idade)
+                statement.setString(1, candidato.nome)
+                statement.setString(2, candidato.sobrenome)
+                statement.setString(3, candidato.email)
+                statement.setDate(
+                        4,
+                        Date.valueOf(candidato.dataNascimento)
+                )
+                statement.setString(5, candidato.cpf)
+                statement.setLong(6, candidato.idPais)
+                statement.setString(7, candidato.cep)
+                statement.setString(8, candidato.descricao)
+                statement.setBoolean(9, true)
+                statement.setString(10, candidato.senha)
+                statement.setLong(11, candidato.idEstado)
+                statement.setLong(12, candidato.idade)
 
-            
-            statement.executeUpdate()
 
-            def generatedKeys = statement.getGeneratedKeys()
+                statement.executeUpdate()
 
-            if (generatedKeys.next()) {
-                candidato.id = generatedKeys.getLong(1)
+                def generatedKeys = statement.getGeneratedKeys()
+
+                if (generatedKeys.next()) {
+                    candidato.id = generatedKeys.getLong(1)
+                }
+
+                candidato.ativo = true
+                return candidato
             }
-
-            return candidato
         }
     }
 
@@ -109,13 +114,13 @@ class CandidatoDAO implements
 
     }
 
-    Optional<Candidato> buscarPorEmailESenha(String email, String senha) {
+    Optional<Candidato> buscarAtivoPorEmail(String email) {
         String sql = """
             SELECT id, nome, sobrenome, email, data_nascimento, 
             idade, cpf, id_pais, cep, descricao, ativo, senha, id_estado
             FROM candidatos
             WHERE email = ?
-                AND senha = ?
+                AND ativo = true
         """
 
         try (
@@ -123,7 +128,6 @@ class CandidatoDAO implements
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, email)
-            statement.setString(2, senha)
 
             def resultSet = statement.executeQuery()
 
@@ -159,12 +163,13 @@ class CandidatoDAO implements
         WHERE id = ?
     """
 
-        try (
-                def connection = connectionFactory.getConnection()
-                def statement = connection.prepareStatement(sql)
-        ) {
-            statement.setLong(1, id)
-            statement.executeUpdate()
+        validacaoContaDAO.executar('candidatos', id, null, null) { connection ->
+            try (
+                    def statement = connection.prepareStatement(sql)
+            ) {
+                statement.setLong(1, id)
+                statement.executeUpdate()
+            }
         }
     }
 
@@ -181,29 +186,32 @@ class CandidatoDAO implements
             id_estado = ?,
             cep = ?,
             descricao = ?
-        WHERE id = ?
+        WHERE id = ? AND ativo = true
     """
 
-        try (
-                def connection = connectionFactory.getConnection()
-                def statement = connection.prepareStatement(sql)
-        ) {
-            statement.setString(1, candidato.nome)
-            statement.setString(2, candidato.sobrenome)
-            statement.setString(3, candidato.email)
-            statement.setString(4, candidato.senha)
-            statement.setString(5, candidato.cpf)
-            statement.setDate(6, Date.valueOf(candidato.dataNascimento))
-            statement.setLong(7, candidato.idPais)
-            statement.setLong(8, candidato.idEstado)
-            statement.setString(9, candidato.cep)
-            statement.setString(10, candidato.descricao)
-            statement.setLong(11, candidato.id)
+        return validacaoContaDAO.executar('candidatos', candidato.id, candidato.email, candidato.cpf) { connection ->
+            try (
+                    def statement = connection.prepareStatement(sql)
+            ) {
+                statement.setString(1, candidato.nome)
+                statement.setString(2, candidato.sobrenome)
+                statement.setString(3, candidato.email)
+                statement.setString(4, candidato.senha)
+                statement.setString(5, candidato.cpf)
+                statement.setDate(6, Date.valueOf(candidato.dataNascimento))
+                statement.setLong(7, candidato.idPais)
+                statement.setLong(8, candidato.idEstado)
+                statement.setString(9, candidato.cep)
+                statement.setString(10, candidato.descricao)
+                statement.setLong(11, candidato.id)
 
-            statement.executeUpdate()
+                if (statement.executeUpdate() == 0) {
+                    throw new IllegalStateException('Candidato inexistente ou inativo.')
+                }
+            }
+
+            return candidato
         }
-
-        return candidato
     }
 
 

@@ -1,6 +1,8 @@
 import { VagaAnonimaResponseDTO } from "../../api/dto/vaga/VagaAnonimaResponseDTO"
 import { VagaService } from "../../services/VagaService"
 import { CurtidaVagaService } from "../../services/CurtidaVagaService"
+import { tratarErroSessao } from "../login/SessaoNavegacao"
+import { exibirVagasCurtidas } from "./CandidatoVagaCurtida"
 
 import {
     atualizarContador,
@@ -24,26 +26,20 @@ export async function exibirVagas(
     }
 
     listaVagas.innerHTML = ""
+    if (contador != null) contador.textContent = "Carregando vagas..."
 
     try {
         const vagas =
             await vagaService.buscarTodasAsVagasAnonimas()
 
-        const estadosCurtidas = await Promise.all(
-            vagas.map(async (vaga) => ({
-                id: vaga.id,
-                jaCurtiu: await curtidaVagaService.jaCurtiuVaga(
-                    idCandidato,
-                    vaga.id
-                )
-            }))
-        )
+        const vagasCurtidas = await curtidaVagaService.buscarVagasCurtidas(idCandidato)
+        const idsVagasCurtidas = new Set(vagasCurtidas.map(vaga => vaga.id))
 
-        const idsVagasCurtidas = new Set<number>(
-            estadosCurtidas
-                .filter(estado => estado.jaCurtiu)
-                .map(estado => estado.id)
-        )
+        if (vagas.length === 0) {
+            const vazio = document.createElement("p")
+            vazio.textContent = "Nenhuma vaga disponível."
+            listaVagas.appendChild(vazio)
+        }
 
         atualizarContador({
             contador,
@@ -61,9 +57,9 @@ export async function exibirVagas(
                 vagaJaCurtida,
                 () => {
                     void curtirVaga(
-                        idCandidato,
                         vaga,
                         card,
+                        idCandidato,
                         curtidaVagaService
                     )
                 }
@@ -72,6 +68,7 @@ export async function exibirVagas(
             listaVagas.appendChild(card)
         }
     } catch (erro: unknown) {
+        if (tratarErroSessao(erro)) return
         console.error("Erro ao carregar vagas:", erro)
 
         if (contador != null) {
@@ -81,9 +78,9 @@ export async function exibirVagas(
 }
 
 async function curtirVaga(
-    idCandidato: number,
     vaga: VagaAnonimaResponseDTO,
     card: HTMLElement,
+    idCandidato: number,
     curtidaVagaService: CurtidaVagaService
 ): Promise<void> {
     const botao =
@@ -94,17 +91,24 @@ async function curtirVaga(
     }
 
     botao.disabled = true
+    card.querySelector(".like-error")?.remove()
 
     try {
-        await curtidaVagaService.curtirViaApi(
-            idCandidato,
+        await curtidaVagaService.curtirVaga(
             vaga.id
         )
 
         atualizarCardCurtido(card)
+        await exibirVagasCurtidas(idCandidato, curtidaVagaService)
     } catch (erro: unknown) {
+        if (tratarErroSessao(erro)) return
         console.error("Erro ao curtir vaga:", erro)
 
         botao.disabled = false
+        const mensagem = document.createElement("p")
+        mensagem.className = "like-error"
+        mensagem.setAttribute("role", "alert")
+        mensagem.textContent = "Não foi possível curtir a vaga. Tente novamente."
+        card.appendChild(mensagem)
     }
 }

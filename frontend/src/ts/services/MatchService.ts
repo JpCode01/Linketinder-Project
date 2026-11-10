@@ -7,6 +7,10 @@ export class MatchService {
         private matchApiClient: MatchApiClient
     ) {}
 
+    async buscarPorRecrutador(idRecrutador: number): Promise<MatchResponseDTO[]> {
+        return await this.matchApiClient.buscarPorRecrutador(idRecrutador)
+    }
+
     async buscarPorEmpresa(
         idEmpresa: number
     ): Promise<MatchResponseDTO[]> {

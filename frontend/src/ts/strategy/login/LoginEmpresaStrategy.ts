@@ -1,43 +1,19 @@
-import { LoginException } from "../../exceptions/LoginException";
+import { LoginException } from "../../exceptions/LoginException"
+import { ApiError } from "../../api/clientes/ApiClient"
+import { LoginApiClient } from "../../api/clientes/LoginApiClient"
 import { LoginStrategy } from "./LoginStrategy"
 
 export class LoginEmpresaStrategy implements LoginStrategy {
+    constructor(private loginApiClient = new LoginApiClient()) {}
 
     async login(email: string, senha: string): Promise<void> {
-
-        const resposta = await fetch(
-            "http://localhost:8080/login/empresa",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    email: email,
-                    senha: senha
-                })
-            }
-        )
-
-        if (resposta.status === 401) {
-            throw new LoginException()
+        try {
+            const sessao = await this.loginApiClient.loginEmpresa(email, senha)
+            localStorage.setItem("sessao", JSON.stringify(sessao))
+            window.location.href = "./empresa.html"
+        } catch (erro: unknown) {
+            if (erro instanceof ApiError && erro.status === 401) throw new LoginException()
+            throw erro
         }
-
-        if (!resposta.ok) {
-            throw new Error("ERRO_SERVIDOR")
-        }
-
-
-        const empresa = await resposta.json()
-
-        localStorage.setItem(
-            "sessao",
-            JSON.stringify({
-                id: empresa.id,
-                tipo: "EMPRESA"
-            })
-        )
-
-        window.location.href = "./empresa.html"
     }
 }

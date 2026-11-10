@@ -2,6 +2,7 @@ import { cadastrarCandidato } from "../pages/candidato/CadastroCandidatoPage"
 import { cadastrarEmpresa } from "../pages/empresa/CadastroEmpresaPage"
 import { exibirPageCandidato } from "../pages/candidato/CandidatoPage"
 import { exibirPageEmpresa } from "../pages/empresa/EmpresaPage"
+import { exibirPageRecrutador } from "../pages/recrutador/RecrutadorPage"
 import { exibirLogin } from "../pages/LoginPage"
 
 export class App {
@@ -29,6 +30,9 @@ export class App {
 
         if (paginaAtual.endsWith("/empresa.html")) {
             exibirPageEmpresa()
+        }
+        if (paginaAtual.endsWith("/recrutador.html")) {
+            exibirPageRecrutador()
         }
     }
 }

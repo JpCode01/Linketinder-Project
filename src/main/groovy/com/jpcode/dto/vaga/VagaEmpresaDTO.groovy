@@ -4,6 +4,9 @@ import com.jpcode.model.referencia.Competencia
 
 class VagaEmpresaDTO {
     Long id
+    Long idRecrutador
+    String nomeRecrutador
+    String areaRecrutamento
     String nome
     String descricao
     String local

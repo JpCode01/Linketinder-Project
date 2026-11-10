@@ -2,6 +2,7 @@ package com.jpcode.dao.empresa
 
 import com.jpcode.dao.contratos.UsuarioRepository
 import com.jpcode.database.ConnectionFactory
+import com.jpcode.dao.conta.ValidacaoContaDAO
 import com.jpcode.dto.empresa.EmpresaComReferenciasDTO
 import com.jpcode.dto.empresa.EmpresaViewListDTO
 import com.jpcode.model.core.Empresa
@@ -15,9 +16,11 @@ class EmpresaDAO implements
          {
 
     private final ConnectionFactory connectionFactory
+    private final ValidacaoContaDAO validacaoContaDAO
 
     EmpresaDAO(ConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory
+        this.validacaoContaDAO = new ValidacaoContaDAO(connectionFactory)
     }
 
     Empresa salvar(Empresa empresa) {
@@ -28,30 +31,32 @@ class EmpresaDAO implements
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
-        try (
-                def connection = connectionFactory.getConnection()
-                def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-        ) {
-            statement.setString(1, empresa.nome)
+        return validacaoContaDAO.executar('empresas', null, empresa.email, empresa.cnpj) { connection ->
+            try (
+                    def statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
+            ) {
+                statement.setString(1, empresa.nome)
 
-            statement.setString(2, empresa.cnpj)
-            statement.setString(3, empresa.email)
-            statement.setString(4, empresa.descricao)
-            statement.setLong(5, empresa.idPais)
-            statement.setString(6, empresa.cep)
-            statement.setLong(7, empresa.idEstado)
-            statement.setBoolean(8, empresa.ativo)
-            statement.setString(9, empresa.senha)
+                statement.setString(2, empresa.cnpj)
+                statement.setString(3, empresa.email)
+                statement.setString(4, empresa.descricao)
+                statement.setLong(5, empresa.idPais)
+                statement.setString(6, empresa.cep)
+                statement.setLong(7, empresa.idEstado)
+                statement.setBoolean(8, true)
+                statement.setString(9, empresa.senha)
 
-            statement.executeUpdate()
+                statement.executeUpdate()
 
-            def generatedKeys = statement.getGeneratedKeys()
+                def generatedKeys = statement.getGeneratedKeys()
 
-            if (generatedKeys.next()) {
-                empresa.id = generatedKeys.getLong(1)
+                if (generatedKeys.next()) {
+                    empresa.id = generatedKeys.getLong(1)
+                }
+
+                empresa.ativo = true
+                return empresa
             }
-
-            return empresa
         }
     }
 
@@ -94,13 +99,13 @@ class EmpresaDAO implements
         }
     }
 
-    Optional<Empresa> buscarPorEmailESenha(String emailCorporativo, String senha) {
+    Optional<Empresa> buscarAtivoPorEmail(String emailCorporativo) {
         String sql = """
             SELECT id, nome, cnpj, email_corporativo, descricao, 
             id_pais, cep, id_estado, ativo, senha
             FROM empresas
             WHERE email_corporativo = ?
-                AND senha = ?
+                AND ativo = true
         """
 
         try (
@@ -108,7 +113,6 @@ class EmpresaDAO implements
                 def statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, emailCorporativo)
-            statement.setString(2, senha)
 
             def resultSet = statement.executeQuery()
 
@@ -140,12 +144,13 @@ class EmpresaDAO implements
         WHERE id = ?
     """
 
-        try (
-                def connection = connectionFactory.getConnection()
-                def statement = connection.prepareStatement(sql)
-        ) {
-            statement.setLong(1, id)
-            statement.executeUpdate()
+        validacaoContaDAO.executar('empresas', id, null, null) { connection ->
+            try (
+                    def statement = connection.prepareStatement(sql)
+            ) {
+                statement.setLong(1, id)
+                statement.executeUpdate()
+            }
         }
     }
 
@@ -160,27 +165,30 @@ class EmpresaDAO implements
             id_estado = ?,
             cep = ?,
             descricao = ?
-        WHERE id = ?
+        WHERE id = ? AND ativo = true
     """
 
-        try (
-                def connection = connectionFactory.getConnection()
-                def statement = connection.prepareStatement(sql)
-        ) {
-            statement.setString(1, empresa.nome)
-            statement.setString(2, empresa.email)
-            statement.setString(3, empresa.senha)
-            statement.setString(4, empresa.cnpj)
-            statement.setLong(5, empresa.idPais)
-            statement.setLong(6, empresa.idEstado)
-            statement.setString(7, empresa.cep)
-            statement.setString(8, empresa.descricao)
-            statement.setLong(9, empresa.id)
+        return validacaoContaDAO.executar('empresas', empresa.id, empresa.email, empresa.cnpj) { connection ->
+            try (
+                    def statement = connection.prepareStatement(sql)
+            ) {
+                statement.setString(1, empresa.nome)
+                statement.setString(2, empresa.email)
+                statement.setString(3, empresa.senha)
+                statement.setString(4, empresa.cnpj)
+                statement.setLong(5, empresa.idPais)
+                statement.setLong(6, empresa.idEstado)
+                statement.setString(7, empresa.cep)
+                statement.setString(8, empresa.descricao)
+                statement.setLong(9, empresa.id)
 
-            statement.executeUpdate()
+                if (statement.executeUpdate() == 0) {
+                    throw new IllegalStateException('Empresa inexistente ou inativa.')
+                }
+            }
+
+            return empresa
         }
-
-        return empresa
     }
 
 

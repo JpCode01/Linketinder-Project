@@ -1,236 +1,60 @@
-
 package com.jpcode.api.servlet
 
-import com.jpcode.controller.empresa.EmpresaController
-import com.jpcode.controller.match.MatchController
+import com.jpcode.api.SessaoHttp
 import com.jpcode.controller.vaga.VagaController
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
-import jakarta.servlet.http.HttpServlet
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
+import com.jpcode.controller.match.MatchController
+import jakarta.servlet.http.*
 
-class CurtidaServlet extends HttpServlet {
-
-    private final VagaController vagaController
-    private final EmpresaController empresaController
-    private final MatchController matchController
-
-    CurtidaServlet(
-            VagaController vagaController,
-            EmpresaController empresaController,
-            MatchController matchController
-    ) {
-        this.vagaController = vagaController
-        this.empresaController = empresaController
-        this.matchController = matchController
+class CurtidaServlet extends JsonServlet {
+    private final VagaController vagas
+    private final MatchController matches
+    private final SessaoHttp sessao
+    CurtidaServlet(VagaController vagas, MatchController matches, SessaoHttp sessao) {
+        this.vagas = vagas; this.matches = matches; this.sessao = sessao
     }
+    protected List<String> metodosPermitidos() { ['GET', 'POST'] }
 
-    @Override
-    protected void doPost(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) {
-        response.setContentType("application/json")
-        response.setCharacterEncoding("UTF-8")
-
-        String pathInfo = request.pathInfo
-
-        try {
-            Map dados = new JsonSlurper().parse(request.inputStream) as Map
-
-            if (pathInfo == "/vagas") {
-                Long idCandidato = dados.idCandidato as Long
-                Long idVaga = dados.idVaga as Long
-
-                vagaController.curtir(idCandidato, idVaga)
-
-                response.status = HttpServletResponse.SC_CREATED
-                response.writer.write(
-                        JsonOutput.toJson([
-                                mensagem: "Vaga curtida com sucesso."
-                        ])
-                )
-                return
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        executar(response) {
+            String caminho = request.pathInfo
+            rota(caminho in ['/vagas', '/candidatos'])
+            if (caminho == '/vagas') {
+                def atual = ator(request, sessao, ['candidato'])
+                Map dados = lerJson(request, ['idVaga'])
+                Long destino = id(dados.idVaga)
+                vagas.buscarVaga(destino)
+                vagas.curtir(atual.id, destino)
+            } else {
+                def atual = ator(request, sessao, ['empresa', 'recrutador'])
+                Map dados = lerJson(request, ['idCandidato', 'idVaga'])
+                Long candidato = id(dados.idCandidato), vaga = id(dados.idVaga)
+                if (atual.tipo == 'empresa') matches.retribuirInteresseEmpresa(atual.id, candidato, vaga)
+                else matches.retribuirInteresseRecrutador(atual.id, candidato, vaga)
             }
-
-            if (pathInfo == "/candidatos") {
-                Long idEmpresa = dados.idEmpresa as Long
-                Long idCandidato = dados.idCandidato as Long
-                Long idVaga = dados.idVaga as Long
-
-                matchController.curtirCandidato(
-                        idEmpresa,
-                        idCandidato,
-                        idVaga
-                )
-
-                response.status = HttpServletResponse.SC_CREATED
-                response.writer.write(
-                        JsonOutput.toJson([
-                                mensagem: "Candidato curtido com sucesso."
-                        ])
-                )
-                return
-            }
-
-            response.status = HttpServletResponse.SC_NOT_FOUND
-            response.writer.write(
-                    JsonOutput.toJson([erro: "Rota de curtida não encontrada."])
-            )
-
-        } catch (Exception e) {
-            response.status = HttpServletResponse.SC_BAD_REQUEST
-            response.writer.write(
-                    JsonOutput.toJson([
-                            erro: "Não foi possível registrar a curtida."
-                    ])
-            )
+            response.status = 204
         }
     }
 
-
-    @Override
-    protected void doGet(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) {
-        response.setContentType("application/json")
-        response.setCharacterEncoding("UTF-8")
-
-        String pathInfo = request.pathInfo
-
-        try {
-            if (!pathInfo) {
-                response.status = HttpServletResponse.SC_BAD_REQUEST
-                response.writer.write(
-                        JsonOutput.toJson([
-                                erro: "Rota de consulta inválida."
-                        ])
-                )
-                return
-            }
-
-            List<String> partes = pathInfo.split("/") as List<String>
-            
-            if (partes.size() == 4 &&
-                    partes[1] == "vagas" &&
-                    partes[2] == "candidato" &&
-                    partes[3] ==~ /\d+/) {
-
-                Long idCandidato = partes[3].toLong()
-
-                response.status = HttpServletResponse.SC_OK
-                response.writer.write(
-                        JsonOutput.toJson(
-                                vagaController.listarVagasCurtidas(idCandidato)
-                        )
-                )
-                return
-            }
-
-            if (partes.size() == 4 &&
-                    partes[1] == "candidatos" &&
-                    partes[2] == "empresa" &&
-                    partes[3] ==~ /\d+/) {
-
-                Long idEmpresa = partes[3].toLong()
-
-                response.status = HttpServletResponse.SC_OK
-                response.writer.write(
-                        JsonOutput.toJson(
-                                empresaController.buscarCandidatosCurtidos(idEmpresa)
-                        )
-                )
-                return
-            }
-
-            if (partes.size() == 4 &&
-                    partes[1] == "candidatos" &&
-                    partes[2] == "vaga" &&
-                    partes[3] ==~ /\d+/) {
-
-                Long idVaga = partes[3].toLong()
-
-                response.status = HttpServletResponse.SC_OK
-                response.writer.write(
-                        JsonOutput.toJson(
-                                empresaController.buscarCandidatosQueCurtiram(idVaga)
-                        )
-                )
-                return
-            }
-
-            if (partes.size() == 3 &&
-                    partes[1] == "candidatos" &&
-                    partes[2] == "verificar") {
-
-                Long idEmpresa = request.getParameter("empresaId")?.toLong()
-                Long idCandidato = request.getParameter("candidatoId")?.toLong()
-
-                if (idEmpresa == null || idCandidato == null) {
-                    response.status = HttpServletResponse.SC_BAD_REQUEST
-                    response.writer.write(
-                            JsonOutput.toJson([erro: "Informe empresaId e candidatoId."])
-                    )
-                    return
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+        executar(response) {
+            def curtidas = request.pathInfo =~ /^\/vagas\/candidato\/([^\/]+)$/
+            def interessados = request.pathInfo =~ /^\/candidatos\/vaga\/([^\/]+)$/
+            def retribuidos = request.pathInfo =~ /^\/candidatos\/vaga\/([^\/]+)\/retribuidos$/
+            rota(curtidas.matches() || interessados.matches() || retribuidos.matches())
+            if (curtidas.matches()) {
+                def atual = ator(request, sessao, ['candidato'])
+                Long destino = id(curtidas.group(1))
+                titular(atual, destino)
+                json(response, vagas.listarVagasCurtidas(atual.id))
+            } else {
+                def atual = ator(request, sessao, ['empresa', 'recrutador'])
+                Long vaga = id(retribuidos.matches() ? retribuidos.group(1) : interessados.group(1))
+                if (retribuidos.matches()) {
+                    json(response, atual.tipo == 'empresa' ? matches.buscarIdsCandidatosRetribuidosEmpresa(atual.id, vaga) : matches.buscarIdsCandidatosRetribuidosRecrutador(atual.id, vaga))
+                } else {
+                    json(response, atual.tipo == 'empresa' ? matches.buscarInteressadosEmpresa(atual.id, vaga) : matches.buscarInteressadosRecrutador(atual.id, vaga))
                 }
-
-                boolean jaCurtiu = empresaController.jaCurtiuCandidato(
-                        idEmpresa,
-                        idCandidato
-                )
-
-                response.status = HttpServletResponse.SC_OK
-                response.writer.write(JsonOutput.toJson(jaCurtiu))
-                return
             }
-
-            if (partes.size() == 3 &&
-                    partes[1] == "vagas" &&
-                    partes[2] == "verificar") {
-
-                String candidatoIdParametro = request.getParameter("candidatoId")
-                String vagaIdParametro = request.getParameter("vagaId")
-
-                if (!(candidatoIdParametro ==~ /\d+/) ||
-                        !(vagaIdParametro ==~ /\d+/)) {
-                    response.status = HttpServletResponse.SC_BAD_REQUEST
-                    response.writer.write(
-                            JsonOutput.toJson([
-                                    erro: "Informe candidatoId e vagaId válidos."
-                            ])
-                    )
-                    return
-                }
-
-                Long idCandidato = candidatoIdParametro.toLong()
-                Long idVaga = vagaIdParametro.toLong()
-
-                boolean jaCurtiu = vagaController.jaFoiCurtidaPorCandidato(
-                        idCandidato,
-                        idVaga
-                )
-
-                response.status = HttpServletResponse.SC_OK
-                response.writer.write(JsonOutput.toJson(jaCurtiu))
-                return
-            }
-
-            response.status = HttpServletResponse.SC_NOT_FOUND
-            response.writer.write(
-                    JsonOutput.toJson([
-                            erro: "Rota de consulta não encontrada."
-                    ])
-            )
-
-        } catch (Exception e) {
-            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
-            response.writer.write(
-                    JsonOutput.toJson([
-                            erro: "Erro interno ao consultar curtidas."
-                    ])
-            )
         }
     }
 }

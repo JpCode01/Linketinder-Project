@@ -24,8 +24,10 @@ class MatchEncontradoDTO {
     String nome
     String descricao
     List<String> competencias
+    String nomeRecrutador
+    String areaRecrutamento
 
-    MatchEncontradoDTO(Long id, String nomeCandidato, String sobrenomeCandidato, String emailCandidato, String cpfCandidato, String descricaoCandidato, int idadeCandidato, String estadoCandidato, String paisCandidato, List<Competencia> competenciasCandidato, String nomeEmpresa, String cnpjEmpresa, String emailCorporativo, String descricaoEmpresa, String paisEmpresa, String estadoEmpresa, String nome, String descricao, List<String> competencias) {
+    MatchEncontradoDTO(Long id, String nomeCandidato, String sobrenomeCandidato, String emailCandidato, String cpfCandidato, String descricaoCandidato, int idadeCandidato, String estadoCandidato, String paisCandidato, List<Competencia> competenciasCandidato, String nomeEmpresa, String cnpjEmpresa, String emailCorporativo, String descricaoEmpresa, String paisEmpresa, String estadoEmpresa, String nome, String descricao, List<String> competencias, String nomeRecrutador = null, String areaRecrutamento = null) {
         this.id = id
         this.nomeCandidato = nomeCandidato
         this.sobrenomeCandidato = sobrenomeCandidato
@@ -47,6 +49,8 @@ class MatchEncontradoDTO {
         this.nome = nome
         this.descricao = descricao
         this.competencias = competencias
+        this.nomeRecrutador = nomeRecrutador
+        this.areaRecrutamento = areaRecrutamento
     }
 
 

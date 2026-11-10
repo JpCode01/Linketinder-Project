@@ -1,6 +1,7 @@
 package com.jpcode.controller.match
 
 import com.jpcode.dto.Match.MatchEncontradoDTO
+import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.facade.MatchFacade
 import com.jpcode.service.MatchService
 
@@ -14,16 +15,28 @@ class MatchController {
         this.matchFacade = matchFacade
     }
 
-    void salvar(
-            Long idCandidato,
-            Long idEmpresa,
-            Long idVaga
-    ) {
-        matchService.salvar(
-                idCandidato,
-                idEmpresa,
-                idVaga
-        )
+    void retribuirInteresseEmpresa(Long idEmpresaOperante, Long idCandidato, Long idVaga) {
+        matchFacade.retribuirInteresseEmpresa(idEmpresaOperante, idCandidato, idVaga)
+    }
+
+    void retribuirInteresseRecrutador(Long idRecrutadorOperante, Long idCandidato, Long idVaga) {
+        matchFacade.retribuirInteresseRecrutador(idRecrutadorOperante, idCandidato, idVaga)
+    }
+
+    List<CandidatoAnonimoDTO> buscarInteressadosEmpresa(Long idEmpresaOperante, Long idVaga) {
+        return matchFacade.buscarInteressadosEmpresa(idEmpresaOperante, idVaga)
+    }
+
+    List<CandidatoAnonimoDTO> buscarInteressadosRecrutador(Long idRecrutadorOperante, Long idVaga) {
+        return matchFacade.buscarInteressadosRecrutador(idRecrutadorOperante, idVaga)
+    }
+
+    List<Long> buscarIdsCandidatosRetribuidosEmpresa(Long idEmpresaOperante, Long idVaga) {
+        return matchFacade.buscarIdsCandidatosRetribuidosEmpresa(idEmpresaOperante, idVaga)
+    }
+
+    List<Long> buscarIdsCandidatosRetribuidosRecrutador(Long idRecrutadorOperante, Long idVaga) {
+        return matchFacade.buscarIdsCandidatosRetribuidosRecrutador(idRecrutadorOperante, idVaga)
     }
 
     List<MatchEncontradoDTO> verMatchesPorEmpresa(Long idEmpresa) {
@@ -32,6 +45,18 @@ class MatchController {
 
     List<MatchEncontradoDTO> verMatchesPorCandidato(Long idCandidato) {
         return matchService.verMatchesPorCandidato(idCandidato)
+    }
+
+    List<MatchEncontradoDTO> consultarMatchesEmpresa(Long idEmpresaOperante, Long idEmpresa) {
+        return matchService.consultarMatchesEmpresa(idEmpresaOperante, idEmpresa)
+    }
+
+    List<MatchEncontradoDTO> consultarMatchesCandidato(Long idCandidatoOperante, Long idCandidato) {
+        return matchService.consultarMatchesCandidato(idCandidatoOperante, idCandidato)
+    }
+
+    List<MatchEncontradoDTO> consultarMatchesRecrutador(Long idRecrutadorOperante, Long idRecrutador) {
+        return matchService.consultarMatchesRecrutador(idRecrutadorOperante, idRecrutador)
     }
 
     void curtirCandidato(

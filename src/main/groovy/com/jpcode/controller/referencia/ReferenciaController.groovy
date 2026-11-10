@@ -1,7 +1,7 @@
 package com.jpcode.controller.referencia
 
-import com.jpcode.model.referencia.Estado
 import com.jpcode.model.referencia.Pais
+import com.jpcode.model.referencia.Estado
 import com.jpcode.service.ReferenciaService
 
 class ReferenciaController {
@@ -19,12 +19,6 @@ class ReferenciaController {
     String converterIdEstadoParaString(Long idEstado) {
         return referenciaService.converterIdEstadoParaString(idEstado)
     }
-
-    List<Pais> listarPaises() {
-        return referenciaService.listarPaises()
-    }
-
-    List<Estado> listarEstados() {
-        return referenciaService.listarEstados()
-    }
+    List<Pais> listarPaises() { referenciaService.listarPaises() }
+    List<Estado> listarEstados() { referenciaService.listarEstados() }
 }

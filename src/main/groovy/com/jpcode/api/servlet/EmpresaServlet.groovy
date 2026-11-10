@@ -1,5 +1,6 @@
 package com.jpcode.api.servlet
 
+import com.jpcode.api.SessaoHttp
 import com.jpcode.controller.empresa.EmpresaController
 import com.jpcode.dto.empresa.AtualizarEmpresaDTO
 import com.jpcode.dto.empresa.CadastrarEmpresaDTO
@@ -7,51 +8,72 @@ import com.jpcode.dto.empresa.EmpresaViewDTO
 import com.jpcode.exception.empresa.EmpresaNaoEncontradaPorIdException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
-import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
-import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
-class EmpresaServlet extends HttpServlet {
+class EmpresaServlet extends JsonServlet {
 
+    private final SessaoHttp sessaoHttp
     private final EmpresaController empresaController
 
-    EmpresaServlet(EmpresaController empresaController) {
+    EmpresaServlet(EmpresaController empresaController, SessaoHttp sessaoHttp) {
         this.empresaController = empresaController
+        this.sessaoHttp = sessaoHttp
+    }
+
+    protected List<String> metodosPermitidos() { ['GET', 'POST', 'PUT'] }
+
+    private RecrutadorServlet recrutadorServlet
+
+    EmpresaServlet(EmpresaController controller, SessaoHttp sessao, RecrutadorServlet recrutadorServlet) {
+        this(controller, sessao)
+        this.recrutadorServlet = recrutadorServlet
     }
 
     @Override
     protected void doPost(
             HttpServletRequest request,
-            HttpServletResponse response
-    ) {
+            HttpServletResponse response) {
+        if (request.pathInfo && request.pathInfo != '/') {
+            if (request.pathInfo ==~ /\/[^\/]+\/recrutadores/ && recrutadorServlet != null) {
+                recrutadorServlet.doPost(request, response)
+                return
+            }
+            erro(response, 404, 'Rota inexistente.')
+            return
+        }
         response.setContentType("application/json")
         response.setCharacterEncoding("UTF-8")
 
         try {
-            CadastrarEmpresaDTO dto = criarCadastrarEmpresaDTO(request)
+            Map dados = lerJson(request, ['nome', 'email', 'senha', 'cnpj', 'pais', 'estado', 'cep', 'descricao'])
+            validarCampos(dados, true)
+
+            CadastrarEmpresaDTO dto = new CadastrarEmpresaDTO(
+                    dados.nome as String,
+                    dados.email as String,
+                    dados.senha as String,
+                    dados.cnpj as String,
+                    dados.pais as String,
+                    dados.estado as String,
+                    dados.cep as String,
+                    dados.descricao as String
+            )
 
             empresaController.cadastrarEmpresa(dto)
 
             response.status = HttpServletResponse.SC_CREATED
-
-        } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
-            responderErro(
-                    response,
-                    HttpServletResponse.SC_BAD_REQUEST,
-                    e.message
-            )
-
-        } catch (Exception e) {
-            responderErro(
-                    response,
-                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Erro interno ao cadastrar empresa."
-            )
+        } catch (com.jpcode.exception.conta.IdentificadorEmUsoException ignored) {
+            erro(response, 409, 'Identificador já utilizado por conta ativa.')
+        } catch (IllegalArgumentException | java.time.DateTimeException | groovy.json.JsonException | PaisNaoEncontradoException | EstadoNaoEncontradoException | com.jpcode.exception.referencia.CompetenciaNaoEncontradaException ignored) {
+            erro(response, 400, 'JSON, campos ou referências inválidos.')
+        } catch (Exception ignored) {
+            erro(response, 500, 'Erro interno ao processar requisição.')
         }
     }
-    
+
+
     @Override
     protected void doGet(
             HttpServletRequest request,
@@ -63,10 +85,12 @@ class EmpresaServlet extends HttpServlet {
         String idPath = request.pathInfo?.substring(1)
 
         if (!idPath) {
-            listarEmpresas(response)
+            response.status = HttpServletResponse.SC_FORBIDDEN
+            response.writer.write(JsonOutput.toJson([erro: "Listagem de perfis não permitida."]))
             return
         }
 
+        if (!autorizarPerfilProprio(idPath, request, response)) return
         buscarEmpresaPorId(idPath, response)
     }
 
@@ -89,6 +113,7 @@ class EmpresaServlet extends HttpServlet {
             return
         }
 
+        if (!autorizarPerfilProprio(idPath, request, response)) return
         atualizarEmpresa(idPath, request, response)
     }
 
@@ -98,7 +123,8 @@ class EmpresaServlet extends HttpServlet {
             HttpServletResponse response
     ) {
         try {
-            Map dados = new JsonSlurper().parse(request.inputStream) as Map
+            Map dados = lerJson(request, ['nome', 'email', 'senha', 'cnpj', 'pais', 'estado', 'cep', 'descricao'], ['ativo'])
+            validarCampos(dados, false)
 
             AtualizarEmpresaDTO dto = new AtualizarEmpresaDTO(
                     idPath.toLong(),
@@ -125,9 +151,13 @@ class EmpresaServlet extends HttpServlet {
         } catch (PaisNaoEncontradoException | EstadoNaoEncontradoException e) {
             response.status = HttpServletResponse.SC_BAD_REQUEST
             response.writer.write(
-                    JsonOutput.toJson([erro: e.message])
+                    JsonOutput.toJson([erro: "Referência inválida."])
             )
 
+        } catch (com.jpcode.exception.conta.IdentificadorEmUsoException ignored) {
+            erro(response, 409, 'Identificador já utilizado por conta ativa.')
+        } catch (IllegalArgumentException | groovy.json.JsonException ignored) {
+            erro(response, 400, 'JSON ou campos inválidos.')
         } catch (Exception e) {
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
             response.writer.write(
@@ -139,18 +169,31 @@ class EmpresaServlet extends HttpServlet {
     }
 
 
-    private void listarEmpresas(HttpServletResponse response) {
+    private boolean autorizarPerfilProprio(String idPath, HttpServletRequest request, HttpServletResponse response) {
         try {
-            response.status = HttpServletResponse.SC_OK
-            response.writer.write(
-                    JsonOutput.toJson(empresaController.buscarEmpresas())
-            )
-        } catch (Exception e) {
-            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
-            response.writer.write(
-                    JsonOutput.toJson([erro: "Erro interno ao listar empresas."])
-            )
+            Map ator = sessaoHttp.recuperarAtor(request)
+            if (!(idPath ==~ /[0-9]+/) || idPath.toLong() <= 0) {
+                response.status = 400
+                response.writer.write(JsonOutput.toJson([erro: 'ID inválido.']))
+                return false
+            }
+            if (ator.tipo != 'empresa' || ator.id != idPath.toLong()) {
+                response.status = 403
+                response.writer.write(JsonOutput.toJson([erro: 'Acesso restrito ao próprio perfil.']))
+                return false
+            }
+            return true
+        } catch (SecurityException ignored) {
+            response.status = 401
+            response.writer.write(JsonOutput.toJson([erro: 'Sessão ausente ou conta inativa.']))
+        } catch (NumberFormatException ignored) {
+            response.status = 400
+            response.writer.write(JsonOutput.toJson([erro: 'ID inválido.']))
+        } catch (Exception ignored) {
+            response.status = 500
+            response.writer.write(JsonOutput.toJson([erro: 'Erro interno ao validar acesso.']))
         }
+        return false
     }
 
     private void buscarEmpresaPorId(
@@ -185,32 +228,8 @@ class EmpresaServlet extends HttpServlet {
         }
     }
 
-    private CadastrarEmpresaDTO criarCadastrarEmpresaDTO(
-            HttpServletRequest request
-    ) {
-        Map dados = new JsonSlurper().parse(request.inputStream) as Map
-
-        return new CadastrarEmpresaDTO(
-                dados.nome as String,
-                dados.email as String,
-                dados.senha as String,
-                dados.cnpj as String,
-                dados.pais as String,
-                dados.estado as String,
-                dados.cep as String,
-                dados.descricao as String
-        )
+    private static void validarCampos(Map dados, boolean cadastro) {
+        ['nome', 'email', 'senha', 'cnpj', 'pais', 'estado', 'cep', 'descricao'].each { texto(dados, it) }
+        if (dados.containsKey('ativo') && !(dados.ativo instanceof Boolean)) throw new IllegalArgumentException()
     }
-
-    private void responderErro(
-            HttpServletResponse response,
-            int status,
-            String mensagem
-    ) {
-        response.status = status
-        response.writer.write(
-                JsonOutput.toJson([erro: mensagem])
-        )
-    }
-
 }
