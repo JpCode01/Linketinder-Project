@@ -157,4 +157,5 @@ class EmpresaCurtirDAO implements RetribuicaoRepository {
 
         }
     }
+
 }

@@ -62,7 +62,7 @@ class EstadoDAO implements ReferenciaRepository {
             return Optional.of(resultSet.getLong("id"))
         }
     }
-    List<Estado> buscar() {
+    List<Estado> listarTodos() {
         try (def conexao = connectionFactory.getConnection();
              def comando = conexao.prepareStatement('SELECT id, sigla FROM estados ORDER BY id');
              def resultado = comando.executeQuery()) {

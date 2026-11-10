@@ -31,6 +31,6 @@ class ReferenciaService {
                         new EstadoNaoEncontradoException(idEstado))
                 .sigla
     }
-    List<Pais> listarPaises() { paisRepository.buscar() }
-    List<Estado> listarEstados() { estadoRepository.buscar() }
+    List<Pais> listarPaises() { paisRepository.listarTodos() }
+    List<Estado> listarEstados() { estadoRepository.listarTodos() }
 }

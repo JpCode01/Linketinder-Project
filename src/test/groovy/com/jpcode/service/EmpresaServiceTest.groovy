@@ -7,7 +7,7 @@ import com.jpcode.dto.empresa.AtualizarEmpresaDTO
 import com.jpcode.dto.empresa.CadastrarEmpresaDTO
 import com.jpcode.dto.empresa.EmpresaComReferenciasDTO
 import com.jpcode.dto.empresa.EmpresaViewListDTO
-import com.jpcode.exception.empresa.EmpresaLoginException
+import com.jpcode.exception.LoginException
 import com.jpcode.exception.empresa.EmpresaNaoEncontradaPorIdException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
@@ -159,7 +159,7 @@ class EmpresaServiceTest extends Specification {
         service.logar("empresa@email.com", "123")
 
         then:
-        thrown(EmpresaLoginException)
+        thrown(LoginException)
     }
 
     def "consulta sem ator nao acessa interessados"() {
@@ -255,8 +255,8 @@ class EmpresaServiceTest extends Specification {
         service.logar(empresa.email, senha)
 
         then:
-        EmpresaLoginException erro = thrown()
-        erro.message == 'Credenciais inválidas para empresa.'
+        LoginException erro = thrown()
+        erro.message == 'Credenciais inválidas.'
 
         where:
         ativo | senha

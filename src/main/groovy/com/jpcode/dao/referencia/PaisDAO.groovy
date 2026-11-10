@@ -63,7 +63,7 @@ class PaisDAO implements ReferenciaRepository {
             return Optional.of(resultSet.getLong("id"))
         }
     }
-    List<Pais> buscar() {
+    List<Pais> listarTodos() {
         try (def conexao = connectionFactory.getConnection();
              def comando = conexao.prepareStatement('SELECT id, nome FROM pais ORDER BY id');
              def resultado = comando.executeQuery()) {

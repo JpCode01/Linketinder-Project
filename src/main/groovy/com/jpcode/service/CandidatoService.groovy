@@ -1,12 +1,13 @@
 package com.jpcode.service
 
+import com.jpcode.exception.LoginException
+
 import com.jpcode.dao.contratos.CompetenciaRepository
 import com.jpcode.dao.contratos.ReferenciaCompetenciaRepository
 import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.dao.contratos.UsuarioRepository
 import com.jpcode.dto.candidato.*
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
-import com.jpcode.exception.candidato.CandidatoLoginException
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
@@ -112,9 +113,9 @@ class CandidatoService {
 
     Candidato logar(String email, String senha) {
         Candidato candidato = candidatoRepository.buscarAtivoPorEmail(email)
-                .orElseThrow(() -> new CandidatoLoginException())
+                .orElseThrow(() -> new LoginException())
         if (!candidato.ativo || !senhaService.verificar(senha, candidato.senha)) {
-            throw new CandidatoLoginException()
+            throw new LoginException()
         }
         return candidato
     }

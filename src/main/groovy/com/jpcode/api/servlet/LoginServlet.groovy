@@ -4,8 +4,7 @@ import com.jpcode.api.SessaoHttp
 import com.jpcode.controller.candidato.CandidatoController
 import com.jpcode.controller.empresa.EmpresaController
 import com.jpcode.controller.recrutador.RecrutadorController
-import com.jpcode.exception.candidato.CandidatoLoginException
-import com.jpcode.exception.empresa.EmpresaLoginException
+import com.jpcode.exception.LoginException
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import jakarta.servlet.http.HttpServletRequest
@@ -68,7 +67,7 @@ class LoginServlet extends JsonServlet {
             sessaoHttp.iniciar(request, conta.id, tipo)
             response.status = 200
             response.writer.write(JsonOutput.toJson([id: conta.id, tipo: tipo]))
-        } catch (CandidatoLoginException | EmpresaLoginException | SecurityException ignored) {
+        } catch (LoginException | SecurityException ignored) {
             responderErro(response, 401, 'Credenciais inválidas.')
         } catch (Exception ignored) {
             sessaoHttp.invalidar(request)

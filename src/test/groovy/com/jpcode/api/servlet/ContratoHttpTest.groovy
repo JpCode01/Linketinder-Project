@@ -147,7 +147,7 @@ class ContratoHttpTest extends Specification {
         referencias.listarPaises() >> [new Pais(1L, 'BRASIL')]
         referencias.listarEstados() >> [new Estado(1L, 'SP')]
         recrutadores.buscarAreas() >> [new AreaRecrutamento(1L, 'RH')]
-        competencias.listarCompetencias() >> ['RH', 'Administração']
+        competencias.listarCompetenciasEmString() >> ['RH', 'Administração']
         when:
         def resposta = enviar('GET', rota)
         then:

@@ -11,7 +11,11 @@ class CompetenciaController {
         this.competenciaService = competenciaService
     }
 
-    List<String> listarCompetencias() {
+    List<String> listarCompetenciasEmString() {
+        return competenciaService.listarCompetenciasEmString()
+    }
+
+    List<Competencia> listarCompetencias() {
         return competenciaService.listarCompetencias()
     }
 

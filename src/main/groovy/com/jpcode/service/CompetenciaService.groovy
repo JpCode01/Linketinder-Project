@@ -6,16 +6,20 @@ import com.jpcode.exception.referencia.CompetenciaNaoEncontradaException
 import com.jpcode.model.referencia.Competencia
 
 class CompetenciaService {
-    final ReferenciaCompetenciaRepository referenciaCompetenciaRepository
     final ReferenciaRepository<Competencia> referenciaRepository
+    final ReferenciaCompetenciaRepository referenciaCompetenciaRepository
 
-    CompetenciaService(ReferenciaCompetenciaRepository referenciaCompetenciaRepository, ReferenciaRepository<Competencia> referenciaRepository) {
-        this.referenciaCompetenciaRepository = referenciaCompetenciaRepository
+    CompetenciaService(ReferenciaRepository<Competencia> referenciaRepository, ReferenciaCompetenciaRepository referenciaCompetenciaRepository) {
         this.referenciaRepository = referenciaRepository
+        this.referenciaCompetenciaRepository = referenciaCompetenciaRepository
     }
 
-    List<String> listarCompetencias() {
-        return referenciaCompetenciaRepository.listarTodasCompetencias()
+    List<String> listarCompetenciasEmString() {
+        return referenciaCompetenciaRepository.listarCompetenciasEmString()
+    }
+
+    List<Competencia> listarCompetencias() {
+        return referenciaRepository.listarTodos()
     }
 
     Competencia buscarCompetencia(Long idCompetencia) {

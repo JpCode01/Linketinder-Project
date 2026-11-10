@@ -1,4 +1,3 @@
-
 package com.jpcode.dto.candidato
 
 import com.jpcode.model.referencia.Competencia

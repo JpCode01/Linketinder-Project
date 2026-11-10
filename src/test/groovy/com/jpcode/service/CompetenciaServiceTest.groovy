@@ -15,18 +15,19 @@ class CompetenciaServiceTest extends Specification {
 
     def setup() {
         service = new CompetenciaService(
-                referenciaCompetenciaRepository,
-                referenciaRepository
+                referenciaRepository,
+                referenciaCompetenciaRepository
         )
     }
+
     def "deve listar todas as competencias"() {
         given:
         List<String> competencias = ["JAVA", "SPRING", "GROOVY"]
 
-        referenciaCompetenciaRepository.listarTodasCompetencias() >> competencias
+        referenciaCompetenciaRepository.listarCompetenciasEmString() >> competencias
 
         expect:
-        service.listarCompetencias() == competencias
+        service.listarCompetenciasEmString() == competencias
     }
 
     def "deve lançar exceção quando competencia não for encontrada pelo id"() {

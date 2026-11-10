@@ -4,8 +4,7 @@ import com.jpcode.api.SessaoHttp
 import com.jpcode.controller.candidato.CandidatoController
 import com.jpcode.controller.empresa.EmpresaController
 import com.jpcode.controller.recrutador.RecrutadorController
-import com.jpcode.exception.candidato.CandidatoLoginException
-import com.jpcode.exception.empresa.EmpresaLoginException
+import com.jpcode.exception.LoginException
 import com.jpcode.model.core.*
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
@@ -88,8 +87,8 @@ class LoginServletTest extends Specification {
 
         where:
         tipo         | erro
-        'candidato'  | new CandidatoLoginException()
-        'empresa'    | new EmpresaLoginException()
+        'candidato'  | new LoginException()
+        'empresa'    | new LoginException()
         'recrutador' | new SecurityException('detalhe privado')
     }
 

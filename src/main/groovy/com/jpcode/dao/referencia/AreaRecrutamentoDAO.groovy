@@ -31,6 +31,10 @@ class AreaRecrutamentoDAO implements AreaRecrutamentoRepository {
         }
     }
 
+    List<AreaRecrutamento> listarTodos() {
+        return buscar()
+    }
+
     List<AreaRecrutamento> buscar() {
         try (def conexao = connectionFactory.getConnection();
              def comando = conexao.prepareStatement('SELECT id, nome FROM areas_recrutamento ORDER BY id');

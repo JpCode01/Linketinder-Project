@@ -14,6 +14,6 @@ class CompetenciaServlet extends JsonServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        executar(response) { json(response, competenciaController.listarCompetencias()) }
+        executar(response) { json(response, competenciaController.listarCompetenciasEmString()) }
     }
 }

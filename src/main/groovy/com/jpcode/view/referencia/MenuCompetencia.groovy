@@ -32,7 +32,7 @@ class MenuCompetencia {
             String competenciaEscolhida = escolherCompetencia(competenciasDisponiveis)
 
             try {
-                tentarAdicionarCompetencia(competenciaEscolhida, competenciasAtuais ,competenciasDisponiveis)
+                tentarAdicionarCompetencia(competenciaEscolhida, competenciasAtuais, competenciasDisponiveis)
             } catch (CompetenciaNaoEncontradaException e) {
                 println(e.getMessage())
             }
@@ -68,7 +68,7 @@ class MenuCompetencia {
     }
 
     private List<String> competenciasDisponiveis(List<String> competenciasAtuais) {
-        return competenciaController.listarCompetencias() - competenciasAtuais
+        return competenciaController.listarCompetenciasEmString() - competenciasAtuais
     }
 
     private int capturarEscolha(String mensagem) {

@@ -1,5 +1,7 @@
 package com.jpcode.service
 
+import com.jpcode.exception.LoginException
+
 import com.jpcode.dao.contratos.CompetenciaRepository
 import com.jpcode.dao.contratos.RetribuicaoRepository
 import com.jpcode.dao.contratos.UsuarioRepository
@@ -7,7 +9,6 @@ import com.jpcode.dao.contratos.ReferenciaRepository
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import com.jpcode.dto.competencia.RemoverCompetenciaDTO
 import com.jpcode.dto.empresa.*
-import com.jpcode.exception.empresa.EmpresaLoginException
 import com.jpcode.exception.empresa.EmpresaNaoEncontradaPorIdException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
@@ -82,9 +83,9 @@ class EmpresaService {
 
     Empresa logar(String email, String senha) {
         Empresa empresa = empresaRepository.buscarAtivoPorEmail(email)
-                .orElseThrow(() -> new EmpresaLoginException())
+                .orElseThrow(() -> new LoginException())
         if (!empresa.ativo || !senhaService.verificar(senha, empresa.senha)) {
-            throw new EmpresaLoginException()
+            throw new LoginException()
         }
         return empresa
     }

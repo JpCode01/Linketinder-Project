@@ -10,7 +10,7 @@ import com.jpcode.dto.candidato.CadastrarCandidatoDTO
 import com.jpcode.dto.candidato.CandidatoComReferenciasDTO
 import com.jpcode.dto.candidato.CandidatoViewDTO
 import com.jpcode.dto.candidato.CandidatoViewListDTO
-import com.jpcode.exception.candidato.CandidatoLoginException
+import com.jpcode.exception.LoginException
 import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import com.jpcode.model.core.Candidato
 import com.jpcode.model.referencia.Competencia
@@ -125,7 +125,7 @@ class CandidatoServiceTest extends Specification {
         service.logar(email, senha)
 
         then:
-        thrown(CandidatoLoginException)
+        thrown(LoginException)
 
         where:
         email            | senha
@@ -261,8 +261,8 @@ class CandidatoServiceTest extends Specification {
         service.logar(candidato.email, senha)
 
         then:
-        CandidatoLoginException erro = thrown()
-        erro.message == 'Credenciais inválidas para candidato.'
+        LoginException erro = thrown()
+        erro.message == 'Credenciais inválidas.'
 
         where:
         ativo | senha
