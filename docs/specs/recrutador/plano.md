@@ -856,6 +856,7 @@ Exportadas somente as funções de renderização existentes de `EmpresaVaga.ts`
 
 ### T19 — Analisar e remover código obsoleto após o aceite
 
+- **Orientações adicionais:** realizar uma análise completa do projeto, abrangendo backend, frontend, testes, configurações e seus consumidores, antes de executar a limpeza. Remover todos os comentários do código. Todas as alterações realizadas nos códigos obsoletos, incluindo remoções e ajustes de dependências, devem preservar a estrutura e as funcionalidades atuais do projeto, sem quebrar contratos, composição, integrações ou fluxos existentes; comprovar essa preservação com as validações previstas nesta tarefa.
 - **Objetivo:** encerrar a transição para a nova versão removendo componentes substituídos e sem função vigente, sem regressão funcional, de segurança ou de integridade.
 - **Referência:** seção 9 da especificação, “Impact on Existing Functionality”; limites das seções 1 e 7 deste plano; autorização adicional do responsável para esta tarefa final. Não acrescenta regras de negócio nem altera os critérios de aceite aprovados.
 - **Camada:** Backend, frontend e composição, exclusivamente nos componentes comprovadamente obsoletos da feature.
