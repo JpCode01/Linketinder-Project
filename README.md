@@ -1,903 +1,248 @@
 # Linketinder - ZG-Hero Project
 
-Aplicação **full stack em desenvolvimento**, criada como parte do **Acelera ZG**, composta por um backend desenvolvido em **Groovy** e um frontend desenvolvido em **TypeScript**, que se comunicam por meio de uma **API REST**.
-
-O projeto consiste na implementação de uma plataforma de contratação inspirada no **LinkedIn** e no **Tinder**, aproximando empresas e candidatos com base em suas competências (*skills*) e interesses.
+Plataforma de recrutamento que aproxima candidatos e empresas por vagas, competências e interesses. A identificação entre as partes é liberada após um match válido. O projeto integra backend Groovy, frontend TypeScript e PostgreSQL.
 
 ## Sobre o projeto
 
-A plataforma permite que **empresas e candidatos demonstrem interesse uns nos outros através de curtidas**. Quando uma empresa e um candidato demonstram interesse mútuo, o sistema identifica um **match** entre os dois.
+Desenvolvido por **João Pedro Vaz** durante o **Acelera ZG**, com inspiração no LinkedIn e no Tinder. A evolução começou com um MVP no terminal, passou pela interface web e persistência JDBC e chegou à integração HTTP sem frameworks como Spring ou ORM.
 
-O desenvolvimento aconteceu em etapas:
+A aplicação possui três perfis:
 
-1. **MVP executado pelo terminal** (backend em Groovy), com foco em Programação Orientada a Objetos, estruturas de dados e regras de negócio;
-2. **Frontend em TypeScript**, com interfaces gráficas para cadastro, login, visualização de vagas, perfis de candidatos e empresas e visualização de dados;
-3. **Evolução arquitetural do backend**, incorporando banco de dados **PostgreSQL**, persistência através de **JDBC**, camada de **DAO**, DTOs para transferência de dados e testes unitários com **Spock**;
-4. **Integração entre frontend e backend**, com uma **API REST implementada sem framework** (Groovy, Jakarta Servlet e Tomcat embarcado), consumida pelo frontend através da `fetch` API.
+- **Candidato:** cadastra seu perfil e competências, consulta vagas anônimas, demonstra interesse e acompanha matches.
+- **Empresa:** cria vagas, consulta interessados, retribui interesses, acompanha matches e cadastra recrutadores vinculados a áreas de recrutamento.
+- **Recrutador:** pertence a uma empresa e a uma área; cria vagas e consulta interessados e matches somente nas vagas de sua autoria.
 
-> **Importante:** o frontend se comunica com a API em `http://127.0.0.1:8080`, usando cookies de sessão HTTP. Os dados de candidatos, empresas, recrutadores, vagas, curtidas e matches ficam no **PostgreSQL**. O LocalStorage guarda apenas `{ id, tipo }` para navegação; a autorização é validada no servidor.
+O dashboard empresarial inclui um gráfico de competências dos interessados. A contagem considera cada interesse: um candidato interessado em duas vagas da mesma empresa contribui duas vezes.
 
-O perfil **Recrutador** é cadastrado pela empresa, pertence a uma área de recrutamento e opera somente nas próprias vagas. A empresa permanece proprietária de todas as vagas e acompanha seus interessados e matches, inclusive após a inatividade do autor. O candidato recebe somente nome e área do recrutador após um match válido. Requisitos e evidências: [especificação](docs/specs/recrutador/spec.md), [plano](docs/specs/recrutador/plano.md) e [validação](docs/specs/recrutador/validacao.md).
+O menu de terminal continua disponível para candidatos e empresas. Suas operações incluem atualização de contas e competências, desativação e exclusão de vagas; a interface web não oferece necessariamente todas essas operações.
 
----
+O estado da extensão de recrutadores está documentado na [especificação](docs/specs/recrutador/spec.md), no [plano](docs/specs/recrutador/plano.md) e nas [evidências de validação](docs/specs/recrutador/validacao.md). O [changelog](CHANGELOG.md) registra as alterações do projeto.
 
-# Backend
+## Tecnologias
 
-## Tecnologias utilizadas
+As versões abaixo vêm de [build.gradle](build.gradle), [package.json](frontend/package.json) e do Gradle Wrapper. Os JARs em `lib/` não substituem essas declarações.
 
-* **Groovy**
-* Programação Orientada a Objetos
-* Estruturas de Dados
-* **PostgreSQL**
-* **JDBC** (puro, sem frameworks ORM como JPA ou Hibernate)
-* **Jakarta Servlet** + **Tomcat embarcado** (API REST sem framework)
-* **groovy-json** (`JsonSlurper` e `JsonOutput`)
-* **Spock**
-* **JaCoCo**
-* **PIT / Mutation Testing**
-* Git e GitHub
+| Parte | Tecnologias declaradas |
+| --- | --- |
+| Backend | Groovy e groovy-json 5.0.8; Jakarta Servlet API 6.1.0; Tomcat embarcado 11.0.26 |
+| Persistência | PostgreSQL via JDBC; driver 42.7.13; SQL e mapeamento nos DAOs |
+| Frontend | HTML, CSS, TypeScript `^5.9.3`, Chart.js `^4.5.1`, DOM e Fetch API |
+| Build frontend | Gulp `^4.0.2`, Webpack `^5.110.3` e ts-loader `^9.6.2` |
+| Build e testes backend | Gradle Wrapper 9.3.0, Spock 2.4-groovy-5.0, JUnit BOM 6.0.0 e JaCoCo 0.8.14 |
+| Testes frontend | Runner nativo `node:test`, com DOM e fetch controlados; aceite separado em Chrome/Chromium |
 
-## Arquitetura
+PIT Mutation Testing fez parte dos exercícios descritos no histórico do README; o Gradle atual não configura plugin ou tarefa de PIT.
 
-O backend utiliza separação de responsabilidades entre camadas. O fluxo de uma requisição HTTP é:
+## Arquitetura e estrutura de pastas
+
+O backend usa composição manual por construtores em `DaoConfig`, `ServiceConfig` e `ControllerConfig`. `ApiServletConfig` registra as rotas e `TomcatConfig` configura o servidor.
 
 ```text
-Servlet (api/servlet)
-   ↓
-Controller
-   ↓
-Service
-   ↓
-DAO
-   ↓
-ConnectionFactory
-   ↓
-PostgreSQL
+Frontend: Page → Service → ApiClient → fetch com cookies
+                                          ↓
+Backend: Servlet → Controller → Service → contrato de repositório → DAO → PostgreSQL
 ```
 
-O menu do terminal (`view`) também utiliza os mesmos Services e DAOs, o que permite reaproveitar as regras de negócio nos dois pontos de entrada.
+As estratégias de login delegam ao `LoginApiClient`. `ServiceConfig.ts` monta os serviços frontend. As páginas manipulam o DOM e os clientes HTTP centralizam JSON, cookies e falhas HTTP.
 
-* `model` — classes que representam candidatos, empresas, pessoas, vagas e referências (países, estados e competências);
-* `dto` — objetos utilizados para transferência e apresentação de dados;
-* `dao` — acesso e persistência dos dados no PostgreSQL, incluindo as interfaces em `dao/contratos`;
-* `service` — regras de negócio e orquestração da aplicação;
-* `controller` — recebem as chamadas das Servlets e as encaminham aos Services;
-* `facade` — `MatchFacade`, que coordena a curtida de um candidato por uma empresa e o registro do match;
-* `api` — `RestServer` (ponto de entrada da API) e as Servlets de cada recurso, além do `CorsFilter`;
-* `config` — criação e injeção manual das dependências (`DaoConfig`, `ServiceConfig`, `ControllerConfig`), configuração do Tomcat (`TomcatConfig`) e registro das Servlets (`ApiServletConfig`);
-* `database` — gerenciamento das conexões com o PostgreSQL;
-* `exception` — exceções específicas do domínio;
-* `factory` — criação dos menus;
-* `view` — interação com o usuário através do terminal;
-* `Main` — ponto de entrada da aplicação via terminal.
-
-A aplicação separa **regra de negócio e persistência**, o que permite testar os Services isoladamente através de mocks dos DAOs.
-
-## Estrutura de pacotes
+`MatchFacade` coordena a retribuição de interesse e a gravação de match na mesma transação. O terminal reutiliza controllers, serviços e persistência.
 
 ```text
-com.jpcode
-├── model
-│   ├── core
-│   │   ├── Candidato
-│   │   ├── Empresa
-│   │   ├── Pessoa
-│   │   └── Vaga
-│   │
-│   └── referencia
-│       ├── Pais
-│       ├── Estado
-│       └── Competencia
-│
-├── dto
-│   ├── candidato
-│   ├── empresa
-│   ├── vaga
-│   ├── Match
-│   └── competencia
-│
-├── dao
-│   ├── candidato
-│   ├── empresa
-│   ├── vaga
-│   ├── referencia
-│   ├── relacionamento
-│   ├── match
-│   └── contratos
-│
-├── api
-│   ├── RestServer
-│   ├── servlet
-│   └── filter
-│
-├── controller
-│   ├── candidato
-│   ├── empresa
-│   ├── vaga
-│   ├── competencia
-│   ├── referencia
-│   └── match
-│
-├── facade
-├── config
-├── service
-├── exception
-├── factory
-├── database
-├── view
-└── Main
+src/main/groovy/com/jpcode/  Backend: api, config, controller, service,
+                           facade, dao/contratos, dao, dto, model,
+                           database, exception, view e factory
+src/test/groovy/com/jpcode/ Serviços, fachada, configuração, HTTP e integração
+frontend/src/ts/            Páginas, componentes, serviços, clientes/DTOs HTTP,
+                           estratégias de login, modelos e gráficos
+frontend/src/html/          Páginas HTML
+frontend/src/css/           Estilos
+frontend/tests/            Testes Node e aceite de navegador
+frontend/dist/             Saída gerada pelo build; não editar
+queriesLinketinder.sql     DDL atual e exemplos SQL históricos
+docs/specs/recrutador/     Especificação, plano e evidências da extensão
 ```
-
-## Persistência com PostgreSQL
-
-Uma das principais evoluções do backend foi a substituição do armazenamento exclusivamente em memória por um banco de dados relacional, que armazena candidatos, empresas, vagas, competências, curtidas, matches, países e estados.
-
-A comunicação com o banco é feita via **JDBC**, utilizando `PreparedStatement`, `ResultSet`, transações e chaves geradas pelo banco.
-
-### ConnectionFactory
-
-`PostgresConnectionFactory` usa `DB_URL`, `DB_USER` e `DB_PASSWORD`. Variáveis de ambiente têm prioridade sobre as mesmas chaves no arquivo `.env`, lido em UTF-8 no diretório de execução. Inicie o backend na raiz do projeto para usar esse arquivo. A configuração deve estar completa; não há banco ou credenciais padrão. O arquivo aceita linhas `CHAVE=valor`, valores entre aspas simples/duplas e comentários em linhas iniciadas por `#`.
-
-Para o ambiente de recrutadores, configure `DB_URL=jdbc:postgresql://localhost:5432/linketinder-recrutador` no `.env` local e informe usuário/senha somente nesse arquivo ignorado pelo Git ou no ambiente. Reinicie o backend após alterações. As variáveis `LINKETINDER_TEST_*` continuam exclusivas dos testes de integração e não configuram a aplicação.
-
-As conexões são centralizadas na classe `database/ConnectionFactory`, que as fornece aos DAOs. A camada de serviço não executa consultas SQL diretamente:
-
-```text
-Service
-   ↓
-DAO
-   ↓
-ConnectionFactory
-   ↓
-PostgreSQL
-```
-
-### DAO
-
-A camada DAO concentra as operações de persistência. Entre os principais DAOs estão:
-
-* `CandidatoDAO`
-* `EmpresaDAO`
-* `VagaDAO`
-* `CompetenciaDAO`
-* `PaisDAO`
-* `EstadoDAO`
-* `CompetenciasCandidatoDAO`
-* `CompetenciasVagaDAO`
-* `CandidatoCurtirDAO`
-* `EmpresaCurtirDAO`
-* `MatchDAO`
-
-Eles executam `INSERT`, `SELECT`, `UPDATE` e `DELETE`, associações entre entidades, consultas envolvendo múltiplas tabelas e a conversão dos resultados do banco para objetos do domínio ou DTOs.
-
-### Services
-
-A camada de Service concentra a orquestração das operações da aplicação. Os Services recebem os DAOs necessários através do construtor.
-
-* `CandidatoService`
-* `EmpresaService`
-* `VagaService`
-* `CompetenciaService`
-* `ReferenciaService`
-* `MatchService`
-
-Exemplo — fluxo de cadastro de um candidato:
-
-```text
-CandidatoService
-       ↓
-PaisDAO / EstadoDAO
-       ↓
-CandidatoDAO
-       ↓
-CompetenciasCandidatoDAO
-       ↓
-PostgreSQL
-```
-
-### DTOs
-
-Os DTOs retornam somente as informações necessárias para cada operação e mantêm separadas as entidades de domínio das estruturas usadas em consulta e apresentação:
-
-* Candidato: `CadastrarCandidatoDTO`, `AtualizarCandidatoDTO`, `CandidatoViewDTO`, `CandidatoViewListDTO`, `CandidatoComReferenciasDTO`, `CandidatoAnonimoDTO`;
-* Empresa: `CadastrarEmpresaDTO`, `AtualizarEmpresaDTO`, `EmpresaViewDTO`, `EmpresaViewListDTO`, `EmpresaComReferenciasDTO`;
-* Vaga: `CadastrarVagaDTO`, `AtualizarVagaDTO`, `VagaEmpresaDTO`, `VagaAnonimaDTO`;
-* Match: `MatchEncontradoDTO`;
-* Competência: `RemoverCompetenciaDTO`.
-
-## Funcionalidades
-
-* Cadastro, listagem e busca por ID de candidatos e empresas, e cadastro, listagem e busca por ID de vagas;
-* Listagem de vagas por empresa e de todas as vagas;
-* Atualização de candidatos, empresas e vagas;
-* Login de candidatos e de empresas;
-* Desativação lógica de candidatos e empresas;
-* Exclusão de vagas;
-* Armazenamento, adição e remoção das competências de candidatos e vagas;
-* Curtidas entre candidatos e vagas e entre empresas e candidatos;
-* Identificação e armazenamento de *matches*;
-* Consultas de candidatos interessados em vagas, candidatos curtidos por empresas e vagas curtidas por candidatos;
-* Menu de interação pelo terminal;
-* API REST para consumo pelo frontend.
-
-O banco e as referências são preparados manualmente; os exemplos SQL legados não são executados automaticamente.
-
-### Menu do terminal
-
-O menu inicial permite escolher o perfil de acesso:
-
-```text
-1 - ENTRAR COMO EMPRESA
-2 - ENTRAR COMO CANDIDATO
-3 - SAIR
-```
-
-Em cada perfil é possível cadastrar-se ou fazer login. Após o login, o menu apresenta as operações disponíveis para cada tipo de usuário:
-
-**Candidato**
-
-```text
-1 - Ver vagas curtidas
-2 - Ver vagas disponiveis
-3 - Curtir Vaga
-4 - Desativar Conta
-5 - Atualizar competencias
-6 - Atualizar conta
-7 - Ver matches
-8 - Remover Competencia
-9 - Sair
-```
-
-**Empresa**
-
-```text
-1 - Ver Vagas
-2 - Curtir Candidatos em Vaga
-3 - Criar Vaga
-4 - Ver Candidatos Curtidos
-5 - Desativar Conta
-6 - Apagar vaga
-7 - Atualizar conta
-8 - Atualizar vaga
-9 - Adicionar competencias em Vaga
-10 - Ver Matches
-11 - Remover competencia
-12 - Sair
-```
-
-## Regras de negócio
-
-### Competências
-
-As competências são dados persistidos na tabela `competencias` (ID e nome) e representadas pela classe `Competencia`. Diferentemente da primeira versão, não dependem exclusivamente de um enum.
-
-As associações com candidatos e vagas são feitas pelas tabelas intermediárias `candidatos_competencias` e `vagas_competencias`. O sistema consulta o ID da competência no banco antes de criar a associação.
-
-### Cadastro de candidatos e empresas
-
-O cadastro é feito pelo `CandidatoService` e pelo `EmpresaService`. Primeiro, país e estado informados são convertidos em seus respectivos IDs através dos DAOs de referência. Depois, o registro é salvo: o banco gera o ID e o DAO o recupera com `RETURN_GENERATED_KEYS`, atribuindo-o ao objeto salvo.
-
-No caso do candidato, as competências informadas são associadas em seguida pela tabela de relacionamento.
-
-### Cadastro de vagas
-
-Uma vaga possui nome, descrição, local e empresa responsável. Após a criação, suas competências são associadas pela tabela `vagas_competencias`:
-
-```text
-VagaService
-     ↓
-VagaDAO.salvar()
-     ↓
-PostgreSQL gera o ID
-     ↓
-CompetenciasVagaDAO
-     ↓
-Associação das competências
-```
-
-### Curtidas
-
-* **Candidato → Vaga:** tabela `vagas_curtidas_candidato`, registra o interesse de um candidato em uma vaga;
-* **Empresa ou recrutador autor → Candidato na vaga:** tabela `candidatos_curtidos_empresa`, registra a retribuição contextualizada; o recrutador que executou a operação é distinto do autor histórico da vaga.
-
-### Matches
-
-O match é registrado na tabela `match`, com ID, ID do candidato, ID da empresa e ID da vaga.
-
-Quando a empresa proprietária ou o recrutador autor ativo retribui o interesse de um candidato em uma vaga, o `MatchFacade` valida ator, propriedade, autoria e interesse prévio no backend e grava retribuição e match na mesma transação. Há um único match por candidato e vaga, mesmo com repetição por ambos os atores.
-
-O `MatchDAO` possui consultas para visualizar matches por empresa e por candidato, e os resultados são convertidos para `MatchEncontradoDTO`, contendo informações do candidato, empresa, vaga e competências relacionadas.
-
-### Anonimato
-
-O backend utiliza DTOs específicos (`CandidatoAnonimoDTO` e `VagaAnonimaDTO`) para retornar somente as informações necessárias antes de um relacionamento que permita a identificação completa:
-
-* `CandidatoAnonimoDTO`: ID, descrição e competências do candidato;
-* `VagaAnonimaDTO`: ID, descrição e competências da vaga.
-
-### Exclusão e desativação
-
-Candidatos e empresas utilizam **exclusão lógica**: em vez de remover o registro, o campo `ativo` é alterado para `false`, preservando os dados históricos.
-
-As vagas podem ser removidas fisicamente. O DAO remove match e retribuição na mesma transação antes da vaga, preservando as chaves estrangeiras. Os cascades existentes também abrangem:
-
-* `vagas_competencias`;
-* `vagas_curtidas_candidato`;
-* `match`.
-
-A exclusão de uma empresa **não remove automaticamente suas vagas**.
-
-### Regras de unicidade
-
-As tabelas de relacionamento possuem restrições para impedir duplicações:
-
-```text
-candidatos_competencias
-    (id_candidato, id_competencia)
-
-vagas_competencias
-    (id_vaga, id_competencia)
-
-vagas_curtidas_candidato
-    (id_candidato, id_vaga)
-
-candidatos_curtidos_empresa
-    (id_candidato, id_vaga)
-
-match
-    (id_candidato, id_vaga)
-```
-
-As operações de associação também utilizam `ON CONFLICT DO NOTHING` quando apropriado, evitando erros ao tentar inserir uma relação já existente.
-
-## Testes
-
-O backend possui testes unitários com **Spock Framework**. Os testes dos Services verificam exclusivamente a lógica de negócio e a comunicação entre Service e DAO, e **não acessam o PostgreSQL**: os DAOs são substituídos por mocks.
-
-As suítes em `src/test/groovy/com/jpcode/integracao/` também exercitam JDBC, HTTP e navegador reais. Antes de executá-las com escrita, configure e confira o banco dedicado por `LINKETINDER_TEST_*`; cada conexão valida o banco e usa schema de teste isolado. O roteiro completo está em [validacao.md](docs/specs/recrutador/validacao.md).
-
-```groovy
-EmpresaDAO empresaDAO = Mock()
-```
-
-```text
-EmpresaService
-      ↓
-EmpresaDAO Mock
-```
-
-Essa separação ajuda a identificar se um problema está na regra de negócio ou na persistência.
-
-Services testados: `CandidatoService`, `EmpresaService`, `VagaService`, `CompetenciaService`, `ReferenciaService` e `MatchService`.
-
-Operações verificadas: cadastro, login, atualização, desativação, exclusão, busca, listagem, associação e remoção de competências, curtidas, busca de candidatos interessados, de vagas curtidas e de matches.
-
-Os mocks permitem verificar se as operações esperadas foram chamadas:
-
-```groovy
-1 * empresaDAO.desativar(1L)
-```
-
-Também são utilizados testes parametrizados com `@Unroll` quando uma mesma regra precisa ser validada com diferentes entradas — por exemplo, login inválido com e-mail vazio, senha vazia ou ambos vazios.
-
-## Qualidade e Mutation Testing
-
-O projeto utiliza **JaCoCo** para acompanhamento da cobertura dos testes e **PIT Mutation Testing** para verificar sua efetividade. O Mutation Testing modifica temporariamente partes do código para checar se os testes detectam as alterações. Durante o desenvolvimento foram realizados exercícios de eliminação de mutantes, buscando aumentar a quantidade de mutantes detectados.
-
----
-
-# API REST
-
-Para implementar a API REST sem utilizar frameworks como Spring Boot, utilizei Groovy, Jakarta Servlet e Tomcat embarcado. A ideia foi entender como funciona o processamento de requisições HTTP sem depender das abstrações de um framework.
-
-O ponto de entrada da API é a classe `com.jpcode.api.RestServer`, que monta as dependências (`DaoConfig` → `ServiceConfig` → `ControllerConfig`), inicia o Tomcat na porta **8080** e registra as Servlets e o filtro de CORS.
-
-## Como foi implementada
-
-### 1. Dependências
-
-No `build.gradle`, foram adicionadas as seguintes dependências:
-
-```groovy
-implementation 'org.apache.groovy:groovy-json:5.0.8'
-compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
-implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.26'
-```
-
-Utilizei o `groovy-json` para converter JSON em estruturas manipuláveis e gerar respostas JSON. O `jakarta.servlet-api` fornece as classes necessárias para trabalhar com requisições e respostas HTTP, enquanto o Tomcat embarcado permite executar o servidor dentro da própria aplicação.
-
-### 2. Organização do código
-
-As responsabilidades foram separadas em camadas: as Servlets recebem as requisições HTTP, os Controllers encaminham as operações, os Services executam as regras de negócio e os DAOs acessam o banco de dados.
-
-Essa organização evita concentrar toda a lógica em uma única classe e permite reutilizar a estrutura que já existia no projeto.
-
-### 3. Recebendo as requisições
-
-Utilizei a API Servlet para tratar os métodos HTTP. Por exemplo, `doGet()` processa consultas, `doPost()` recebe solicitações de cadastro e `doPut()` recebe atualizações.
-
-```groovy
-@Override
-protected void doGet(
-    HttpServletRequest request,
-    HttpServletResponse response
-) {
-    // Encaminha a consulta ao Controller.
-}
-```
-
-Os caminhos dos endpoints e o registro das Servlets no Tomcat são configurados em `ApiServletConfig`, que direciona cada requisição ao componente correspondente.
-
-### 4. Processando JSON e respondendo ao cliente
-
-Como não utilizei um framework que realizasse a conversão automaticamente, utilizei `JsonSlurper` para interpretar o JSON recebido e `JsonOutput` para gerar o JSON de resposta.
-
-```groovy
-def dados = new JsonSlurper().parse(request.inputStream)
-```
-
-Após encaminhar os dados ao Controller e executar a operação, configurei o status HTTP e o conteúdo da resposta:
-
-```groovy
-response.setContentType("application/json")
-response.setCharacterEncoding("UTF-8")
-response.setStatus(HttpServletResponse.SC_CREATED)
-response.writer.write(JsonOutput.toJson(resultado))
-```
-
-O código `201 Created`, por exemplo, indica que um recurso foi criado com sucesso. Para outras situações, são utilizados os status HTTP correspondentes ao resultado da operação, como `400 Bad Request`, `401 Unauthorized`, `404 Not Found` e `500 Internal Server Error`. As mensagens de erro são devolvidas em JSON no formato `{ "erro": "..." }`.
-
-### 5. CORS
-
-Como o frontend e a API são executados em origens diferentes, a API registra `api/filter/CorsFilter` em todas as rotas (`/*`). Ele permite a origem `http://127.0.0.1:5500`, credenciais, métodos `GET`, `POST` e `PUT` e o cabeçalho `Content-Type`. Preflight válido recebe `204`; mutações exigem essa origem e JSON. O cookie usa `HttpOnly` e `SameSite=Lax`.
-
-### 6. Testes
-
-Por fim, os endpoints foram testados com requisições HTTP, verificando os códigos de resposta, o conteúdo JSON e a persistência dos dados no banco.
-
-## Endpoints
-
-| Método | Rota | Descrição |
-| ------ | ---- | --------- |
-| `POST` | `/login/candidato`, `/login/empresa`, `/login/recrutador` | E-mail/senha com hash; inicia sessão HTTP; `401` para credenciais inválidas |
-| `GET` | `/candidatos` | Listagem identificável bloqueada (`403`) |
-| `GET` | `/candidatos/{id}` | Consulta restrita ao próprio candidato |
-| `POST` | `/candidatos` | Cadastra um candidato |
-| `PUT` | `/candidatos/{id}` | Atualiza um candidato |
-| `GET` | `/empresas` | Listagem identificável bloqueada (`403`) |
-| `GET` | `/empresas/{id}` | Consulta restrita à própria empresa |
-| `POST` | `/empresas` | Cadastra uma empresa |
-| `PUT` | `/empresas/{id}` | Atualiza uma empresa |
-| `GET` | `/vagas` | Candidato autenticado consulta vagas anônimas |
-| `GET` | `/vagas/{id}` | Candidato autenticado consulta uma vaga anônima |
-| `GET` | `/vagas/empresa/{idEmpresa}` | Empresa consulta suas vagas internas e autoria histórica |
-| `GET` | `/vagas/recrutador/{idRecrutador}` | Recrutador ativo consulta somente suas vagas |
-| `POST` | `/vagas` | Cadastra uma vaga |
-| `PUT` | `/vagas/{id}` | Atualiza uma vaga |
-| `GET` | `/competencias` | Catálogo de nomes (`string[]`) para o seletor pesquisável |
-| `GET` | `/referencias/paises` | Lista os países |
-| `GET` | `/referencias/estados` | Lista os estados |
-| `POST` | `/curtidas/vagas` | `{idVaga}`; candidato da sessão; `204` inclusive na repetição |
-| `POST` | `/curtidas/candidatos` | `{idCandidato, idVaga}`; empresa/autoria da sessão; match atômico e `204` |
-| `GET` | `/curtidas/vagas/candidato/{idCandidato}` | Vagas curtidas por um candidato |
-| `GET` | `/curtidas/candidatos/vaga/{idVaga}` | Candidatos (anônimos) que curtiram uma vaga |
-| `GET` | `/curtidas/candidatos/vaga/{idVaga}/retribuidos` | IDs já retribuídos; somente empresa proprietária ou autor ativo |
-| `GET` | `/matches/empresa/{idEmpresa}` | Matches de uma empresa |
-| `GET` | `/matches/candidato/{idCandidato}` | Matches de um candidato |
-| `GET` | `/matches/recrutador/{idRecrutador}` | Matches somente das vagas do autor ativo |
-| `POST` | `/empresas/{idEmpresa}/recrutadores` | Empresa ativa cadastra recrutador; `201` |
-| `GET` | `/recrutadores/{id}` | Perfil próprio ativo, sem credenciais |
-| `POST` | `/recrutadores/{id}/vagas` | Autor da sessão e empresa do vínculo persistido; `201` |
-| `GET` | `/areas-recrutamento` | Áreas persistidas (`id`, `nome`) |
-
-Consultas e atualizações de perfis exigem titularidade; vagas internas, interessados, retribuições e matches são restritos ao ator autorizado. As rotas antigas `/verificar` e a consulta empresarial global de curtidas foram substituídas por consultas por vaga e por matches autorizados.
-
----
-
-# Frontend
-
-Interface web para o Linketinder desenvolvida em **TypeScript**, que transforma as funcionalidades principais do MVP em uma interface gráfica, permitindo que candidatos e empresas interajam com a plataforma pelo navegador.
-
-O frontend **consome a API REST do backend** (`http://127.0.0.1:8080`) por um transporte `fetch` compartilhado com `credentials: "include"`. A arquitetura utiliza API Clients, DTOs, Models, Services e Pages, com composição manual em `ServiceConfig`.
-
-## Tecnologias utilizadas
-
-* **HTML5**
-* **CSS3**
-* **TypeScript 5.9.3**
-* **Webpack** + **Gulp** (compilação e organização dos arquivos TypeScript)
-* **ts-loader**
-* **Fetch API** (comunicação com o backend)
-* **LocalStorage** (apenas para a sessão do usuário)
-* **Chart.js** para visualização de dados
-
-## Estrutura
-
-### API Clients
-
-Classes em `api/clientes` responsáveis por toda a comunicação HTTP com o backend. Cada uma corresponde a um recurso da API e trata os códigos de resposta, convertendo erros em exceções com a mensagem devolvida pelo servidor (campo `erro`):
-
-* `CandidatoApiClient`
-* `EmpresaApiClient`
-* `VagaApiClient`
-* `CompetenciaApiClient`
-* `ReferenciaApiClient`
-* `CurtidaVagaApiClient`
-* `CurtidaCandidatoApiClient`
-* `MatchApiClient`
-
-### DTOs da API
-
-Interfaces em `api/dto` que descrevem os dados enviados e recebidos, como `CadastrarCandidatoRequestDTO`, `CadastrarEmpresaRequestDTO`, `CadastrarVagaRequestDTO`, `CandidatoViewDTO`, `EmpresaViewDTO`, `CandidatoAnonimoResponseDTO`, `VagaAnonimaResponseDTO`, `VagaEmpresaResponseDTO` e `MatchResponseDTO`.
-
-### Models
-
-Os modelos de referência incluem `Competencia`, `Pais` e `Estado`. Perfis próprios, vagas e matches utilizam DTOs específicos; os modelos e repositórios locais sem consumidores foram removidos em T19.
-
-### Services
-
-Orquestram as operações do frontend, utilizando os API Clients para acessar o backend:
-
-* `CandidatoService`
-* `EmpresaService`
-* `VagaService`
-* `CompetenciaService`
-* `ReferenciaService`
-* `CurtidaVagaService`
-* `CurtidaCandidatoService`
-* `MatchService`
-* `RelatorioCompetenciasService`
-
-### Configuração de dependências
-
-A classe `ServiceConfig` centraliza a criação dos serviços e a injeção manual dos API Clients através dos construtores.
-
-### Login
-
-O login utiliza Strategy por perfil: `LoginCandidatoStrategy`, `LoginEmpresaStrategy` e `LoginRecrutadorStrategy` delegam ao `LoginApiClient`, enviando e-mail/senha. O backend verifica o hash PBKDF2 e a atividade da conta e inicia a sessão HTTP. Cadastro confirmado de candidato/empresa volta ao login, sem autenticação automática.
-
-### Pages
-
-Lógica responsável por preencher e manipular as páginas HTML, organizada por perfil:
-
-* `LoginPage`
-* `pages/candidato`: `CadastroCandidatoPage`, `CandidatoPage` e seus componentes (perfil, vagas, vagas curtidas e matches);
-* `pages/empresa`: `CadastroEmpresaPage`, `EmpresaPage` e componentes de perfil, vagas, interessados, cadastro de recrutador e matches;
-* `pages/recrutador`: perfil próprio, criação de vagas, interessados e matches das próprias vagas.
-
-### Demais diretórios
-
-* `exceptions` — exceções específicas do frontend;
-* `charts` — visualizações gráficas com Chart.js;
-* `app` — inicialização e controle da aplicação;
-* `html` — páginas da aplicação;
-* `css` — estilos da interface.
-
-## Funcionalidades
-
-### Cadastro de candidatos
-
-Tela específica para cadastro de candidatos, com: nome, sobrenome, e-mail, senha, CPF, data de nascimento, país, estado, CEP, competências e descrição. A idade é calculada a partir da data de nascimento.
-
-As listas de **países, estados e competências** exibidas no formulário são carregadas da API. Os dados são enviados ao backend (`POST /candidatos`) e persistidos no PostgreSQL. Em caso de erro (por exemplo, dados inválidos), a mensagem retornada pela API é exibida no formulário.
-
-### Cadastro de empresas
-
-Tela específica para cadastro de empresas, com: nome, e-mail, senha, CNPJ, país, estado, CEP e descrição. Os dados são enviados ao backend (`POST /empresas`) e persistidos no PostgreSQL.
-
-### Login
-
-A tela inicial permite selecionar o tipo de usuário e informar e-mail e senha. As credenciais são validadas pelo backend e, em caso de sucesso, o identificador e o tipo do usuário são guardados na sessão e o usuário é direcionado ao seu perfil. Credenciais inválidas resultam em erro de login.
-
-### Perfil do candidato
-
-A página do candidato apresenta seus dados principais, carregados da API, e permite ao candidato:
-
-* Visualizar as vagas disponíveis, apresentadas de forma anônima, com descrição e competências associadas;
-* Curtir uma vaga;
-* Visualizar quais vagas já foram curtidas;
-* Visualizar seus matches, com os dados da empresa e da vaga.
-
-### Perfil da empresa
-
-A página da empresa funciona como um dashboard e apresenta:
-
-* Dados da empresa;
-* Formulário para criação de vagas;
-* Lista de vagas cadastradas pela empresa, com a quantidade de candidatos interessados em cada uma;
-* Lista de candidatos que demonstraram interesse em cada vaga, com suas competências;
-* Cadastro de recrutadores com seleção de área;
-* Matches da empresa, com os dados do candidato, da vaga e as competências de ambos;
-* Gráfico de competências dos candidatos interessados.
-
-### Cadastro de vagas
-
-Empresas e recrutadores cadastram vagas pelos respectivos dashboards, informando nome, localização, descrição e competências selecionadas do catálogo pesquisável. O frontend adapta `localizacao` para `local`; campos locais como `tipo` não são persistidos. A empresa é derivada do ator autenticado ou do vínculo do recrutador, cuja autoria permanece registrada.
-
-### Curtidas
-
-**Candidato:** ao curtir uma vaga (`POST /curtidas/vagas`),
-
-* a curtida é registrada no banco, associando candidato e vaga;
-* a vaga passa a contar o candidato entre os interessados;
-* o botão é alterado visualmente para indicar que a vaga já foi curtida, e o estado é verificado na API ao carregar a página.
-
-**Empresa:** a empresa demonstra interesse em um candidato **para uma vaga específica** (`POST /curtidas/candidatos`). Ao curtir,
-
-* a requisição envia somente os IDs do candidato e da vaga; o ator é validado pela sessão HTTP;
-* o botão é alterado visualmente para indicar que o candidato já foi curtido;
-* o match daquele candidato com a vaga é registrado.
-
-### Matches
-
-Os matches são **registrados pelo backend** e consultados pelo frontend (`GET /matches/empresa/{id}` e `GET /matches/candidato/{id}`). A empresa só pode curtir candidatos que já curtiram a vaga, o que garante que o match represente interesse mútuo por **vaga específica**.
-
-### Anonimato
-
-O frontend respeita a regra de anonimato definida no desafio: antes de existir um *match*, as informações de identificação permanecem restritas.
-
-* **Visão da empresa:** os candidatos que curtiram uma vaga são apresentados de forma anônima, com descrição, competências e a vaga de interesse;
-* **Visão do candidato:** as vagas são apresentadas sem identificação da empresa, com descrição e competências.
-
-### Gráfico de competências
-
-O projeto utiliza **Chart.js** para a visualização de dados. O gráfico de competências, exibido no dashboard da empresa, é um gráfico de barras com a quantidade de vezes que cada competência aparece entre os candidatos interessados nas vagas da empresa.
-
-As responsabilidades são separadas em dois arquivos:
-
-* `services/RelatorioCompetenciasService.ts` — busca as vagas da empresa, recupera os candidatos que curtiram cada vaga pela API e contabiliza suas competências;
-* `charts/CompetenciaChart.ts` — recebe as quantidades calculadas e renderiza o gráfico de barras.
-
-A contagem mantém o comportamento legado: as competências de um candidato são contabilizadas novamente quando ele curte outra vaga da mesma empresa.
-
-## Sessão no LocalStorage
-
-Os dados da aplicação ficam no backend. O **LocalStorage** do navegador é utilizado apenas para guardar a sessão, na chave:
-
-* `sessao` — contém o identificador e o tipo (`candidato`, `empresa` ou `recrutador`) para navegação.
-
-As páginas leem essa chave para navegação; ela não autentica requisições. O servidor revalida o ator e sua atividade. Respostas `401`/`403` descartam a navegação local e encaminham ao login.
-
-## Fluxo de comunicação
-
-```text
-Page
-  ↓
-Service
-  ↓
-ApiClient
-  ↓
-fetch (JSON via HTTP)
-  ↓
-Servlet → Controller → Service → DAO
-  ↓
-PostgreSQL
-```
-
-## Conceitos utilizados
-
-Além dos conceitos do backend, o frontend utiliza:
-
-* TypeScript e tipagem estática;
-* Classes, interfaces, herança e encapsulamento;
-* Generics;
-* Programação assíncrona (`async`/`await` e `Promise`);
-* Comunicação HTTP com a `fetch` API e tratamento de erros;
-* Padrão Strategy (login);
-* Manipulação do DOM e eventos;
-* Arrow Functions;
-* Array methods, como `map`, `find` e `some`;
-* JSON;
-* Modularização através de `import` e `export`;
-* Separação de responsabilidades;
-* Compilação de TypeScript para JavaScript.
-
----
-
-# Banco de Dados
-
-O projeto utiliza **PostgreSQL** via **JDBC** para candidatos, empresas, recrutadores, áreas, vagas, competências, interesses e matches. A referência é somente a seção de `queriesLinketinder.sql` iniciada por `-- Versão Atualizada para Criação do projeto`, até `-- Inserções`. Não execute o arquivo inteiro.
-
-> Formação e seus relacionamentos, descritos abaixo, pertencem ao histórico do modelo. Não integram o DDL atual nem os fluxos implementados. O diagrama histórico também não representa a extensão de recrutadores; consulte o SQL atual.
-
-## Tabelas
-
-### Candidatos
-
-Dados pessoais e de cadastro:
-
-* Nome;
-* Sobrenome;
-* E-mail;
-* Senha;
-* Data de nascimento;
-* CPF;
-* País;
-* Estado;
-* CEP;
-* Descrição pessoal;
-* Status de atividade.
-
-Um candidato possui competências e interesses em vagas. O frontend calcula a idade a partir do nascimento no cadastro e envia o campo persistido `idade`; `data_nascimento` também é armazenado.
-
-### Competências
-
-Competências disponíveis no sistema, compartilhadas entre candidatos e vagas (por exemplo: Java, Python, Groovy, Angular, Spring), o que permite identificar as habilidades que um candidato possui e as exigidas por uma vaga.
-
-### Candidatos_Competencias
-
-Relacionamento **N:N** entre candidatos e competências.
-
-### Formação
-
-Formações acadêmicas ou técnicas dos candidatos:
-
-* Curso;
-* Candidato;
-* Instituição;
-* Data de início;
-* Data de término ou previsão de término.
-
-### Candidato_Formacoes
-
-Relaciona os candidatos às suas formações.
-
-### Instituicao_Formacao
-
-Instituições de ensino relacionadas às formações.
-
-### País e Estados
-
-Países e estados disponíveis para associação a candidatos e empresas.
-
-### Empresas
-
-Dados das empresas cadastradas:
-
-* Nome;
-* CNPJ;
-* E-mail corporativo;
-* Senha;
-* Descrição;
-* País;
-* Estado;
-* CEP;
-* Status de atividade.
-
-Uma empresa pode cadastrar diversas vagas e curtir candidatos.
-
-### Vagas
-
-Vagas com nome, descrição, local, empresa proprietária obrigatória e recrutador autor opcional. A FK composta exige que autor e proprietária pertençam à mesma empresa; a inatividade do autor não apaga esse vínculo.
-
-### Recrutadores e áreas de recrutamento
-
-Cada recrutador pertence a uma empresa e a uma área persistida. A empresa cadastra recrutadores; eles autenticam com senha protegida e operam somente nas próprias vagas. CPF é único por perfil ativo, CNPJ por empresa ativa e e-mail entre contas ativas dos três perfis. O protocolo transacional de contas garante essa exclusividade entre tabelas.
-
-### Vagas_Competencias
-
-Relacionamento **N:N** entre vagas e competências.
-
-### Vagas_Curtidas_Candidato
-
-Vagas curtidas pelos candidatos. Cada registro representa o interesse de um candidato em uma vaga.
-
-### Candidatos_Curtidos_Empresa
-
-Retribuição única por candidato e vaga, com empresa proprietária e recrutador ator opcional. FKs exigem interesse inicial e propriedade corretos.
-
-### Candidatos_Que_Curtiram_Vaga
-
-Nome histórico; a única fonte de interesse utilizada no DDL atual e na API é `vagas_curtidas_candidato`.
-
-### Match
-
-Matches entre candidato, empresa e vaga. Um match ocorre quando há interesse de ambas as partes na mesma oportunidade.
-
-## Lógica aplicada
-
-Um candidato é cadastrado e pode adicionar competências. As empresas também são cadastradas e criam vagas, cada uma com suas competências exigidas. A partir daí:
-
-1. O candidato visualiza as vagas disponíveis;
-2. O candidato pode curtir uma vaga de seu interesse;
-3. A empresa visualiza os candidatos que curtiram suas vagas e pode demonstrar interesse em um candidato para aquela vaga;
-4. As interações são armazenadas nas respectivas tabelas de curtidas;
-5. Quando a empresa curte um candidato que já curtiu a vaga, é registrado um **match**;
-6. O match relaciona o candidato, a empresa e a vaga correspondente.
-
-Essa estrutura mantém separadas as informações de candidatos, empresas, vagas, competências e interações, evitando armazenar essas relações dentro das entidades principais.
-
-## Relacionamentos principais
-
-* **País → Candidatos:** 1:N;
-* **País → Empresas:** 1:N;
-* **Estado → Candidatos:** 1:N;
-* **Estado → Empresas:** 1:N;
-* **Empresa → Recrutadores:** 1:N;
-* **Área → Recrutadores:** 1:N;
-* **Recrutador autor → Vagas:** 1:N, com autoria opcional na vaga;
-* **Candidatos ↔ Competências:** N:N;
-* **Empresa → Vagas:** 1:N;
-* **Vagas ↔ Competências:** N:N;
-* **Candidatos ↔ Vagas:** através das curtidas;
-* **Empresas ↔ Candidatos:** retribuição no contexto de uma vaga;
-* **Candidato + Empresa + Vaga → Match:** representa o interesse mútuo.
-
-As tabelas `candidatos_competencias` e `vagas_competencias` são as intermediárias dos relacionamentos muitos-para-muitos.
-
-## Integridade e restrições
-
-O banco utiliza chaves primárias, chaves estrangeiras, restrições `UNIQUE`, `NOT NULL`, valores padrão e `ON DELETE CASCADE` em relacionamentos dependentes de vagas. Os IDs das entidades principais são gerados pelo PostgreSQL. Os detalhes das restrições de unicidade estão na seção [Regras de unicidade](#regras-de-unicidade).
-
-## MER / DER
-
-O modelo entidade-relacionamento foi desenvolvido no **dbdiagram.io**.
-
-**Modelo Entidade-Relacionamento (MER/DER)**
-
-<img width="1148" height="1263" alt="linketinder_bd" src="https://github.com/user-attachments/assets/51feb32e-5ac6-4395-8134-0a08f6282f30" />
-
-## SQL
-
-O script SQL do projeto (`queriesLinketinder.sql`), desenvolvido para **PostgreSQL**, contém:
-
-* Criação das tabelas;
-* Chaves primárias e estrangeiras;
-* Restrições de unicidade;
-* Valores padrão;
-* Regras de `ON DELETE CASCADE`;
-* Exemplos legados após `-- Inserções`, que não devem ser executados automaticamente nem usados como fixtures da suíte atual.
-
-Para uma instalação nova, aplique apenas o DDL atual e prepare manualmente países, estados, competências e áreas antes das contas que os referenciam. Não há inicialização automática nem migração dos dados antigos.
-
----
-
-# Execução
 
 ## Pré-requisitos
 
-* **PostgreSQL** em execução, com banco e referências preparados conforme o DDL atual;
-* **JDK** compatível com Gradle 9.3/Tomcat 11 (o projeto inclui o Gradle Wrapper);
-* **Node.js** e **npm** para o frontend.
+- JDK compatível com Gradle 9.3, Groovy 5 e Tomcat 11. O build não fixa uma toolchain Java; o ambiente registrado na validação usa Java 25.0.3.
+- Node.js e npm. O manifesto não declara versão mínima de Node; o aceite documentado usa Node.js 24.18.0.
+- PostgreSQL com banco, usuário e dados de referência preparados manualmente. O projeto não fixa a versão do servidor PostgreSQL.
+- Servidor de arquivos estáticos para o frontend, na origem `http://127.0.0.1:5500`.
+- Chrome/Chromium para o aceite de navegador, quando executado.
 
-Configure `DB_URL`, `DB_USER` e `DB_PASSWORD` no ambiente ou no `.env` da raiz, conforme a seção ConnectionFactory. Não altere o código para armazenar credenciais.
+## Instalação e configuração
 
-## Backend
+### Prepara??o do banco
 
-O backend possui dois pontos de entrada:
+1. Crie manualmente o banco PostgreSQL e o usuário com as permissões necessárias.
+2. Em [queriesLinketinder.sql](queriesLinketinder.sql), aplique **somente os CREATE TABLE e índices da seção iniciada por `-- Versão Atualizada para Criação do projeto`, até antes de `-- Inserções`**, na ordem apresentada. Não execute o arquivo inteiro.
+3. Cadastre países, estados, competências e áreas de recrutamento antes dos registros que os referenciam. Não há inicialização automática, migração ou seed configurado.
+4. Não use os INSERTs legados como preparação da instalação: eles não representam as fixtures atuais nem o fluxo de criação de contas com senha protegida.
 
-* **API REST** (utilizada pelo frontend): execute a classe `com.jpcode.api.RestServer`. O servidor é iniciado em `http://127.0.0.1:8080`;
-* **Terminal:** execute a classe `com.jpcode.Main` para utilizar o menu interativo.
+### Conexão do backend
 
-Ambos utilizam o mesmo banco de dados PostgreSQL.
+`PostgresConnectionFactory` exige as três chaves abaixo. Variáveis de ambiente têm prioridade; o arquivo `.env` complementa as chaves ausentes e é lido em UTF-8 no diretório de execução. Execute o backend a partir da raiz para usar o `.env` local.
 
-## Frontend
+| Variável | Conteúdo |
+| --- | --- |
+| `DB_URL` | URL JDBC do banco PostgreSQL escolhido |
+| `DB_USER` | Usuário do banco |
+| `DB_PASSWORD` | Senha desse usuário |
 
-Entre no diretório do frontend:
+Não há banco ou credenciais padrão. Informe os valores reais apenas no ambiente ou no `.env` local ignorado pelo Git. Reinicie o backend após alterações. O arquivo aceita `CHAVE=valor`, aspas simples/duplas e comentários em linhas iniciadas por `#`.
 
-```bash
+As variáveis `LINKETINDER_TEST_*` são exclusivas dos testes e não configuram a aplicação.
+
+### Dependências e compilação
+
+Na raiz, em **PowerShell**, compile o backend sem executar os testes:
+
+```powershell
+.\gradlew.bat assemble
+```
+
+No frontend:
+
+```powershell
 cd frontend
-```
-
-Instale as dependências:
-
-```bash
 npm ci
-```
-
-Compile o projeto com a tarefa configurada com Webpack/Gulp:
-
-```bash
 npx tsc --noEmit
 npx gulp build
 ```
 
-O resultado é gerado no diretório `dist` (`dist/html`, `dist/css` e `dist/js`), que deve ser servido por HTTP. Não edite os arquivos gerados. `npm test` é um placeholder; os comandos das suítes frontend e do aceite estão em `docs/specs/recrutador/validacao.md`.
+No Linux/macOS, use `./gradlew` em lugar de `.\gradlew.bat`. Os comandos npm e npx são os mesmos. No Windows, `npm.cmd` e `npx.cmd` podem ser usados quando a política do PowerShell bloquear os respectivos scripts `.ps1`.
 
-> O frontend **depende do backend** em `http://127.0.0.1:8080`. Sirva `frontend/dist/` em `http://127.0.0.1:5500` e abra `/html/index.html`, mantendo o mesmo host para os cookies. Não misture `localhost` e `127.0.0.1` no navegador.
+## Como executar
 
----
+### Iniciar o backend
 
-# Autor
+Importe o projeto Gradle na IDE e execute uma das classes com o **classpath de runtime do projeto** e a raiz como diretório de trabalho:
+
+| Entrada | Classe | Uso |
+| --- | --- | --- |
+| API HTTP | `com.jpcode.api.RestServer` | Inicia o Tomcat na porta 8080 para o frontend |
+| Terminal | `com.jpcode.Main` | Abre o menu interativo de candidatos e empresas |
+
+O Gradle não aplica o plugin `application` e não declara tarefa `run`. O JAR gerado não é configurado como aplicação autônoma com todas as dependências.
+
+### Frontend
+
+Após o build, sirva `frontend/dist/` por HTTP em `http://127.0.0.1:5500` e abra:
+
+```text
+http://127.0.0.1:5500/html/index.html
+```
+
+O `ApiClient` usa `http://127.0.0.1:8080` com `credentials: "include"`. Mantenha esse host no navegador e a origem frontend indicada; misturar `localhost` com `127.0.0.1` afeta os cookies e a política de origem. O build gera `dist/html`, `dist/css` e `dist/js` e não inicia servidor estático.
+
+O login dos três perfis usa e-mail e senha, valida hash PBKDF2 no backend e cria sessão HTTP com cookie `HttpOnly` e `SameSite=Lax`. O LocalStorage guarda apenas `{ id, tipo }` na chave `sessao` para navegação. A autorização e a atividade da conta são revalidadas no servidor. Respostas `401`/`403` fazem a interface voltar ao login. Cadastro de candidato ou empresa não autentica automaticamente.
+
+## Testes
+
+### Verifica??es do backend
+
+Na raiz, em PowerShell:
+
+```powershell
+.\gradlew.bat test
+```
+
+Para compilar, empacotar e executar as verificações do build:
+
+```powershell
+.\gradlew.bat build
+```
+
+Os testes usam JUnit Platform, Spock e mocks de persistência nos serviços. Há também testes de fachada, conexão, servlets e contratos HTTP em Tomcat, além das suítes com PostgreSQL real.
+
+- Relatório de testes: `build/reports/tests/test/index.html`.
+- Cobertura JaCoCo: `build/reports/jacoco/test/html/index.html`; XML também habilitado. A tarefa `test` aciona o relatório.
+
+As integrações exigem `LINKETINDER_TEST_JDBC_URL`, `LINKETINDER_TEST_DB_USER` e `LINKETINDER_TEST_DB_PASSWORD` no **ambiente do processo**; o suporte de testes não lê `.env` automaticamente. O banco deve ser dedicado, chamado `linketinder_test` ou `linketinder_test_<sufixo>` aceito pelo suporte. A URL é validada sem parâmetros e cada conexão confere `current_database()` antes de usar schemas isolados. Não aponte testes para o banco de desenvolvimento.
+
+Sem configuração de integração, os cenários dependentes do banco são ignorados por condição; testes de proteção do suporte podem executar sem banco. O aceite de navegador também exige `LINKETINDER_TEST_BROWSER`, com caminho para Chrome/Chromium instalado, e o frontend compilado. Consulte o [roteiro de validação](docs/specs/recrutador/validacao.md) para preparar e executar esse ambiente. Os resultados ali registrados são evidências históricas, não garantem uma nova execução local.
+
+### Verifica??es do frontend
+
+`npm test` continua sendo um placeholder que termina com erro. Existem suítes independentes em `frontend/tests/`; execute no diretório `frontend`:
+
+```powershell
+node --test tests/transporte-t12.test.cjs tests/entrada-t13.test.cjs tests/seletor-t14.test.cjs tests/candidato-t15.test.cjs tests/empresa-t16.test.cjs tests/recrutador-t17.test.cjs
+```
+
+Essas suítes exercitam transporte, login, seletor e jornadas com DOM/fetch controlados. Não substituem o aceite integrado de navegador, Tomcat e PostgreSQL descrito no roteiro.
+
+## API / Uso
+
+A API recebe e retorna JSON com `JsonSlurper` e `JsonOutput`. Erros usam o formato `{ "erro": "..." }`. As rotas são registradas em [ApiServletConfig](src/main/groovy/com/jpcode/config/ApiServletConfig.groovy), com regras de método, sessão e corpo nas servlets correspondentes.
+
+O CORS permite `http://127.0.0.1:5500`, credenciais, métodos `GET`, `POST`, `PUT` e o cabeçalho `Content-Type`. Preflight válido recebe `204`. Mutações exigem essa origem e `application/json`, inclusive quando chamadas fora do navegador.
+
+| Método | Rota | Uso e autorização |
+| --- | --- | --- |
+| `POST` | `/login/candidato`, `/login/empresa`, `/login/recrutador` | Autentica e inicia sessão HTTP; credenciais inválidas recebem `401` |
+| `POST` | `/candidatos`, `/empresas` | Cadastro público dos dois perfis |
+| `GET`, `PUT` | `/candidatos/{id}`, `/empresas/{id}` | Consulta/atualização do próprio perfil |
+| `GET` | `/candidatos`, `/empresas` | Listagens identificáveis bloqueadas com `403` |
+| `GET` | `/vagas`, `/vagas/{id}` | Descoberta anônima para candidato autenticado |
+| `GET` | `/vagas/empresa/{idEmpresa}` | Vagas internas da própria empresa e autoria histórica |
+| `GET` | `/vagas/recrutador/{idRecrutador}` | Vagas do próprio recrutador ativo |
+| `POST` | `/vagas` | Empresa autenticada cria vaga; `201` |
+| `PUT` | `/vagas/{id}` | Empresa proprietária atualiza vaga |
+| `GET` | `/competencias` | Catálogo de nomes (`string[]`) para seleção |
+| `GET` | `/referencias/paises`, `/referencias/estados` | Referências dos cadastros |
+| `GET` | `/areas-recrutamento` | Áreas persistidas, com `id` e `nome` |
+| `POST` | `/empresas/{idEmpresa}/recrutadores` | Própria empresa ativa cadastra recrutador; `201` |
+| `GET` | `/recrutadores/{id}` | Perfil do próprio recrutador ativo, sem credenciais |
+| `POST` | `/recrutadores/{id}/vagas` | Autor autenticado cria vaga vinculada à sua empresa; `201` |
+| `POST` | `/curtidas/vagas` | Corpo `{idVaga}`; candidato definido pela sessão; `204` inclusive na repetição |
+| `POST` | `/curtidas/candidatos` | Corpo `{idCandidato, idVaga}`; retribuição pela empresa ou autor ativo; match atômico; `204` |
+| `GET` | `/curtidas/vagas/candidato/{idCandidato}` | Vagas anônimas curtidas pelo próprio candidato |
+| `GET` | `/curtidas/candidatos/vaga/{idVaga}` | Interessados anônimos; empresa proprietária ou autor ativo |
+| `GET` | `/curtidas/candidatos/vaga/{idVaga}/retribuidos` | IDs retribuídos; mesmo escopo de empresa/autoria |
+| `GET` | `/matches/candidato/{idCandidato}` | Matches do próprio candidato |
+| `GET` | `/matches/empresa/{idEmpresa}` | Matches da própria empresa |
+| `GET` | `/matches/recrutador/{idRecrutador}` | Matches das vagas do próprio autor ativo |
+
+Os IDs dos caminhos não concedem autorização: a sessão determina o ator. As consultas antigas `/verificar` e a listagem empresarial global de curtidas não integram o contrato atual.
+
+## Banco de dados
+
+O schema atual em [queriesLinketinder.sql](queriesLinketinder.sql) contém:
+
+| Grupo | Tabelas e relações |
+| --- | --- |
+| Referências | `pais`, `estados`, `competencias`, `areas_recrutamento` |
+| Contas | `candidatos`, `empresas`, `recrutadores`; recrutador vinculado a empresa e área |
+| Vagas | `vagas`, com empresa obrigatória e recrutador autor opcional |
+| Competências N:N | `candidatos_competencias`, `vagas_competencias` |
+| Interesse inicial | `vagas_curtidas_candidato`, por candidato e vaga |
+| Retribuição | `candidatos_curtidos_empresa`, por candidato e vaga, com empresa e recrutador ator opcional |
+| Match | `match`, relacionando candidato, empresa e vaga |
+
+A FK composta da vaga exige que seu autor pertença à empresa proprietária. As restrições de retribuição e match vinculam interesse inicial, vaga e empresa corretos. Competências, curtidas e matches usam restrições de unicidade; os INSERTs pertinentes tratam repetição com `ON CONFLICT DO NOTHING`.
+
+O MER/DER foi desenvolvido no **dbdiagram.io**. A imagem abaixo é **histórica**: inclui formação e seus relacionamentos, ausentes do DDL atual, e não representa a extensão de recrutadores. O SQL atual é a referência de instalação.
+
+<img width="1148" height="1263" alt="MER/DER histórico do Linketinder, anterior à extensão de recrutadores" src="https://github.com/user-attachments/assets/51feb32e-5ac6-4395-8134-0a08f6282f30" />
+
+## Regras de negócio
+
+1. O candidato descobre vagas somente por `id`, `descricao` e `competencias`, conforme `VagaAnonimaDTO`.
+2. Curtir uma vaga registra o interesse inicial e a inclui entre as vagas curtidas. Essa operação não gera match.
+3. A empresa proprietária ou o recrutador autor ativo consulta interessados por vaga. `CandidatoAnonimoDTO` expõe somente `id`, `descricao` e `competencias`.
+4. A retribuição exige interesse prévio naquela vaga. `MatchFacade` valida ator, propriedade, autoria e atividade e grava retribuição e match na mesma transação, com rollback em caso de falha.
+5. Existe um único match por candidato e vaga, mesmo com repetições por empresa e recrutador. Competências não geram cálculo automático de compatibilidade ou match.
+6. Somente após match válido os contratos específicos de match liberam identificação e contato, documentos, descrições, localização, idade, competências e dados da vaga. O candidato recebe nome e área do recrutador autor quando houver; senhas não fazem parte da resposta.
+
+A empresa mantém acesso às próprias vagas, interessados e matches após a inatividade do autor. Autoria histórica da vaga e recrutador que executou a retribuição são informações distintas.
+
+Candidatos e empresas usam desativação lógica. Vagas podem ser excluídas fisicamente pelo fluxo backend/terminal: o DAO remove match e retribuição na mesma transação antes de excluir a vaga, respeitando FKs e cascades. A desativação de empresa não apaga suas vagas.
+
+CPF é único por perfil ativo; CNPJ, por empresa ativa. E-mail é exclusivo entre contas ativas dos três perfis, com validação transacional no backend e índices de unicidade por tabela.
+
+Os cadastros reutilizam referências persistidas. O seletor frontend envia competências selecionadas do catálogo; texto livre não selecionado não é enviado. No cadastro de vagas, o frontend adapta `localizacao` para `local`; campos locais como `tipo` não são persistidos. A idade do candidato é calculada pelo frontend no cadastro a partir da data de nascimento e enviada como `idade`; `data_nascimento` também é armazenada.
+
+## Autor
 
 Desenvolvido por **João Pedro Vaz** durante o **Acelera ZG**.
