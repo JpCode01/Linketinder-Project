@@ -21,7 +21,6 @@ class CompetenciasVagaDAO implements CompetenciaRepository {
         }
     }
 
-    // Conexão emprestada: o chamador controla commit, rollback e fechamento.
     void salvar(Connection connection, Long idVaga, Long idCompetencia) {
         String sql = """
             INSERT INTO vagas_competencias 

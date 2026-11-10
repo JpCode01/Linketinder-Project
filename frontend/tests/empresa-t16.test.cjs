@@ -1,4 +1,3 @@
-// Páginas, serviços e clientes reais; DOM/fetch controlados, sem navegador ou banco.
 const { test, after } = require("node:test")
 const assert = require("node:assert/strict")
 const fs = require("node:fs")

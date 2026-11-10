@@ -1,6 +1,5 @@
 package com.jpcode.integracao
 
-/** T11: contrato HTTP existente, agora com suporte compartilhado com T18. */
 class ContratoHttpPostgresTest extends SuporteHttpPostgres {
     def 'jornada HTTP preserva persistencia escopos anonimato reciprocidade e autoria historica'() {
         given:

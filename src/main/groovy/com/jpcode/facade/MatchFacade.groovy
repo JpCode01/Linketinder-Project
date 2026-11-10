@@ -96,9 +96,6 @@ class MatchFacade {
         Long proprietaria = retribuicaoRepository.buscarEmpresaDaVaga(conexao, idVaga)
         if (proprietaria == null) throw new VagaNaoEncontradaException(idVaga)
         if (empresa != null && empresa != proprietaria) throw new SecurityException('Vaga fora do escopo da empresa.')
-        // Ordem comum: empresa, recrutador operante, candidato, vaga, interesse.
-        // SHARE protege atividade/vínculo; UPDATE da vaga serializa retribuições
-        // e exclusão. Revalidar a leitura preliminar depois de obter o lock.
         if (!retribuicaoRepository.bloquearEmpresaAtiva(conexao, proprietaria)) {
             throw new IllegalStateException('Empresa inexistente ou inativa.')
         }

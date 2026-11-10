@@ -32,7 +32,6 @@ class CandidatoCurtirDAO implements
             conexao.transactionIsolation = Connection.TRANSACTION_READ_COMMITTED
             conexao.autoCommit = false
             try {
-                // Mesma ordem da retribuição: empresa, candidato, vaga; sem match nesta operação.
                 Long empresa = consultarId(conexao, 'SELECT id_empresa FROM vagas WHERE id = ?', [idVaga])
                 if (empresa == null || consultarId(conexao, 'SELECT id FROM empresas WHERE id = ? AND ativo = true FOR SHARE', [empresa]) == null ||
                         consultarId(conexao, 'SELECT id FROM candidatos WHERE id = ? AND ativo = true FOR SHARE', [idCandidato]) == null ||

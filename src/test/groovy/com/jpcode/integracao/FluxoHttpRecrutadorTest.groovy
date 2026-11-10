@@ -5,7 +5,6 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
-/** T18: navegador real, composição HTTP de T11 e JDBC dedicado, sem alterar produção. */
 class FluxoHttpRecrutadorTest extends SuporteHttpPostgres {
     @Override
     protected int portaHttp() { 8080 }
@@ -13,7 +12,6 @@ class FluxoHttpRecrutadorTest extends SuporteHttpPostgres {
     def 'cadastro candidato preserva vinculos com catalogo padronizado em maiusculas'() {
         given:
         try (def conexao = banco.factory.getConnection(); def comando = conexao.createStatement()) {
-            // Padronização em maiúsculas confirmada pelo responsável durante T18.
             comando.execute("INSERT INTO competencias (nome_competencia) VALUES ('ADMINISTRAÇÃO')")
         }
         def candidato = cliente()
@@ -51,7 +49,6 @@ class FluxoHttpRecrutadorTest extends SuporteHttpPostgres {
         Path log = Path.of('build', 'navegador-t18.log')
         def builder = new ProcessBuilder('node', 'frontend/tests/aceite-t18.cjs', navegador)
                 .redirectErrorStream(true).redirectOutput(log.toFile())
-        // O navegador não recebe credenciais JDBC nem configuração da aplicação.
         builder.environment().keySet().removeIf { it.startsWith('DB_') || it.startsWith('LINKETINDER_TEST_') }
         Process processo = builder.start()
 
@@ -99,7 +96,6 @@ class FluxoHttpRecrutadorTest extends SuporteHttpPostgres {
 
     private boolean verificarPersistenciaContas() {
         try (def conexao = banco.factory.getConnection(); def comando = conexao.createStatement()) {
-            // Retorna somente contagens e booleanos, nunca hashes/salts para relatório/assertion.
             comando.executeQuery('''
                 WITH contas AS (
                     SELECT senha, ativo FROM candidatos UNION ALL

@@ -18,7 +18,6 @@ class RecrutadorDAO implements RecrutadorRepository {
 
     Recrutador salvar(Recrutador recrutador) {
         return validacaoContaDAO.executar('recrutadores', null, recrutador.email, recrutador.cpf) { conexao ->
-            // Revalidar depois dos locks: desativação concorrente da empresa não pode passar.
             try (def referencia = conexao.prepareStatement('SELECT 1 FROM empresas WHERE id = ? AND ativo = true')) {
                 referencia.setLong(1, recrutador.idEmpresa)
                 try (def resultado = referencia.executeQuery()) {

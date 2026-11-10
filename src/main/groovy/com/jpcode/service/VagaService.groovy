@@ -34,7 +34,6 @@ class VagaService {
         criarVagaEmpresa(cadastrarVagaDTO.idEmpresa, cadastrarVagaDTO)
     }
 
-    // O contexto HTTP fornecerá o ator separadamente do corpo da requisição.
     void criarVagaEmpresa(Long idEmpresaOperante, CadastrarVagaDTO dados) {
         validarEmpresa(idEmpresaOperante)
         validarEmpresaInformada(dados, idEmpresaOperante)

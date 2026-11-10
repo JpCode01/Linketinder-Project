@@ -4,7 +4,6 @@ import com.jpcode.model.core.Vaga
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
 import java.sql.Connection
 
-/** Operações participantes da transação da fachada; não fecham a conexão recebida. */
 interface RetribuicaoRepository {
     Long buscarEmpresaDaVaga(Connection conexao, Long idVaga)
     boolean bloquearEmpresaAtiva(Connection conexao, Long idEmpresa)

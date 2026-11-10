@@ -1,5 +1,3 @@
-// T18: Chrome/Chromium real via CDP nativo, sem mock de DOM/fetch e sem dependências novas.
-// Executado por FluxoHttpRecrutadorTest, que inicia Tomcat em 8080 com JDBC isolado.
 const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const path = require('node:path')
@@ -11,7 +9,7 @@ const { setTimeout: pausa } = require('node:timers/promises')
 const origem = 'http://127.0.0.1:5500'
 const raiz = path.resolve(__dirname, '../dist')
 const artefatos = fs.mkdtempSync(path.resolve('build/chrome-t18-'))
-const senha = 'senha-t11' // Somente fixture sintética; todos os perfis usam a mesma para conferir salts.
+const senha = 'senha-t11'
 const anonimo = ['competencias', 'descricao', 'id']
 const camposMatch = ['id', 'nomeCandidato', 'sobrenomeCandidato', 'emailCandidato', 'cpfCandidato',
     'descricaoCandidato', 'idadeCandidato', 'estadoCandidato', 'paisCandidato', 'competenciasCandidato',
@@ -40,7 +38,6 @@ function cdp(method, params = {}, sessionId) {
 
 async function avaliar(aba, expression) {
     const resultado = await cdp('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true }, aba.sessao)
-    // Nunca registrar expressão/objeto de exceção: formulários podem conter senha de fixture.
     if (resultado.exceptionDetails) throw Error('Falha ao executar ação no navegador')
     return resultado.result.value
 }
@@ -118,10 +115,10 @@ async function selecionar(aba) {
     assert.deepEqual(await avaliar(aba, 'Array.from(document.querySelectorAll(".competencias-sugestoes button"), b => b.textContent)'), ['ADMINISTRAÇÃO'])
     await clicar(aba, '.competencias-sugestoes button')
     assert.equal(await avaliar(aba, 'document.querySelectorAll(".competencias-selecionadas button").length'), 1)
-    await clicar(aba, '.competencias-sugestoes button') // RH, outra profissão persistida.
+    await clicar(aba, '.competencias-sugestoes button')
     assert.equal(await avaliar(aba, 'document.querySelectorAll(".competencias-selecionadas button").length'), 2)
     assert.equal(await avaliar(aba, 'document.querySelectorAll(".competencias-sugestoes button").length'), 0)
-    await clicar(aba, '.competencias-selecionadas button') // Remove Administração e torna-a selecionável.
+    await clicar(aba, '.competencias-selecionadas button')
     await clicar(aba, '.competencias-sugestoes button')
     await avaliar(aba, `(() => { const input = document.querySelector('#skills-options input');
         input.value = 'Texto livre sem seleção'; input.dispatchEvent(new Event('input')); })()`)
@@ -152,7 +149,7 @@ async function criarVaga(aba, nome, perfil) {
     await selecionar(aba)
     await clicar(aba, '#criar-vaga')
     await esperar(aba, 'document.getElementById("job-title").value === ""', 'publicação confirmada')
-    if (perfil === 'empresa') await abrir(aba, 'empresa') // A tela empresarial atualiza a lista ao carregar.
+    if (perfil === 'empresa') await abrir(aba, 'empresa')
     await esperar(aba, `document.getElementById('job-list').textContent.includes(${JSON.stringify(nome)})`, 'vaga persistida na lista')
 }
 
@@ -262,7 +259,7 @@ async function main() {
 
     await abrir(empresa, 'empresa')
     await esperar(empresa, 'document.querySelectorAll("#candidate-grid .candidate-card").length === 3', 'interessados empresariais')
-    await clicar(empresa, '#candidate-grid .candidate-card:nth-child(2) .btn-like') // Empresa retribui na vaga do autor.
+    await clicar(empresa, '#candidate-grid .candidate-card:nth-child(2) .btn-like')
     await esperar(empresa, 'document.querySelectorAll("#liked-candidate-grid .candidate-card").length === 1', 'match empresarial')
     assert.equal((await consultar(candidato, '/matches/candidato/1')).length, 1)
     assert.deepEqual(await consultar(colega, '/matches/recrutador/2'), [])
@@ -276,7 +273,7 @@ async function main() {
     await esperar(colega, 'document.querySelectorAll("#candidate-grid .candidate-card").length === 1', 'interessado do colega')
     await clicar(colega, '#candidate-grid .btn-like')
     await esperar(colega, 'document.querySelectorAll("#liked-candidate-grid .candidate-card").length === 1', 'match pelo autor')
-    await clicar(empresa, '#candidate-grid .candidate-card:nth-child(1) .btn-like') // Vaga direta.
+    await clicar(empresa, '#candidate-grid .candidate-card:nth-child(1) .btn-like')
     await esperar(empresa, 'document.querySelectorAll("#liked-candidate-grid .candidate-card").length === 3', 'matches totais da empresa')
     assert.equal((await requisitar(autor, 'POST', '/curtidas/candidatos', { idCandidato: 1, idVaga: 2 })).status, 204)
     const matches = await consultar(candidato, '/matches/candidato/1')
@@ -294,7 +291,6 @@ async function main() {
     for (const vaga of await consultar(candidato, '/curtidas/vagas/candidato/1')) assert.deepEqual(Object.keys(vaga).sort(), anonimo)
     console.log('CA-09/12/14/15/16: três matches únicos, contrato completo, autor histórico e descoberta preservada.')
 
-    // Regressão do bug encontrado na conclusão de T18: estado persistido após nova navegação.
     for (const [aba, perfil, seletor, quantidade] of [
         [empresa, 'empresa', '#candidate-grid', 3],
         [autor, 'recrutador', '#candidate-grid', 1],
@@ -315,7 +311,6 @@ async function main() {
     }
     console.log('T18 regressão: candidato, empresa e autores restauram cor vermelha, coração preenchido e bloqueio após recarga.')
 
-    // DOM pós-match também deve apresentar todos os campos aprovados, com dois autores e vaga direta.
     await abrir(candidato, 'candidato')
     await esperar(candidato, 'document.querySelectorAll("#match-grid .candidate-card").length === 3', 'matches do candidato')
     for (const [aba, seletor, esperados] of [[candidato, '#match-grid', matches], [empresa, '#liked-candidate-grid', matches],
@@ -331,9 +326,7 @@ async function main() {
             }
         }
     }
-    // Estado de navegação adulterado não troca o ator da sessão HTTP.
     await avaliar(colega, 'localStorage.setItem("sessao", JSON.stringify({ id: 1, tipo: "recrutador" }))')
-    // Não aguardar a página protegida intermediária: o 403 pode redirecionar antes do load.
     await cdp('Page.navigate', { url: origem + '/html/recrutador.html' }, colega.sessao)
     await esperar(colega, 'location.pathname.endsWith("/index.html")', 'rejeição de ID local adulterado')
     assert.equal(await avaliar(colega, 'localStorage.getItem("sessao")'), null)

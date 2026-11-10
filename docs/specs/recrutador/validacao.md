@@ -2,7 +2,7 @@
 
 Data: 09/11/2026. Branch: `feature/recruiter`.
 
-Status: **T18 concluída e validada**, com evidências reproduzíveis para CA-01 a CA-25 no catálogo padronizado em maiúsculas confirmado pelo responsável. CA-26 não aplicável. T19 não iniciada.
+Status: **T18 concluída e validada**, com evidências reproduzíveis para CA-01 a CA-25 no catálogo padronizado em maiúsculas confirmado pelo responsável. CA-26 não aplicável. A limpeza e revalidação de T19 estão registradas ao final; as evidências anteriores permanecem como histórico.
 
 ## Ambiente e segurança do banco
 
@@ -137,3 +137,181 @@ Após a conclusão inicial, o responsável encontrou e autorizou corrigir a perd
 - `node --check frontend/tests/aceite-t18.cjs` e `git diff --check`: passaram. A execução inicial de Gradle no sandbox foi bloqueada pelo cache; repetida com permissão fora do sandbox. `postman status` não é suportado pelo CLI instalado; a verificação HTTP foi executada pelas suítes existentes de Tomcat/JDBC e Chrome, sem inicializar workspace ou adicionar dependências.
 
 Este complemento registra a alteração pontual de backend autorizada para o bug após as evidências originais de T18, que permanecem acima como histórico. T19 não iniciada; alterações preexistentes preservadas; nenhum staging, commit ou push executado.
+
+## T19 — Inventário e revalidação da limpeza final (09/11/2026)
+
+**Estado: T19 concluída e validada.** Branch conferida: `feature/recruiter`; checkout inicialmente limpo. Escopo autorizado: somente T19. Aplicada `skills/feature-com-spec/SKILL.md`, prevalecendo a proibição expressa de staging/commit/push. A especificação não foi modificada. As referências T01–T18 acima descrevem a situação anterior à limpeza.
+
+### Inventário, consumidores e decisões
+
+Convenções: `B = src/main/groovy/com/jpcode`, `T = src/test/groovy/com/jpcode`, `F = frontend/src/ts`. As expansões entre chaves representam arquivos ou métodos individuais.
+
+| Localização / comportamento anterior | Substituto vigente e consumidores rastreados | Decisão T19 |
+| --- | --- | --- |
+| `F/repository/CadastroRepository.ts`; `candidato/{CandidatoRepository,CurtidaVagaRepository}.ts` e `contrato/{CandidatoConsultaRepository,CurtidaVagaConsultaRepository}.ts`; `empresa/{EmpresaRepository,CurtidaCandidatoRepository}.ts` e `contrato/{EmpresaConsultaRepository,CurtidaCandidatoConsultaRepository}.ts`; `vaga/VagaRepository.ts` e `contrato/VagaConsultaRepository.ts` (todos sob `repository/`). Gravação e consulta de negócio em Storage, IDs locais. | `main.ts → App → páginas → ServiceConfig → serviços → ApiClients`. Cadastros, perfis, vagas e interesses usam HTTP; logins usam Strategies HTTP. Imports antigos se restringem ao próprio conjunto local; nenhuma factory de repositório é composta, registrada ou selecionada por página, rota, teste ou configuração atual. Webpack parte de `main.ts`; testes carregam os módulos reais explicitamente. | Removidos os 11 arquivos; não substituídos por outra implementação local. |
+| `F/factory/storage/{StorageFactory,LocalStorageFactory}.ts`. Factory de Storage para os repositórios antigos. | Únicos consumidores são os cinco repositórios removidos; nenhum consumidor em sessão, Strategy, ServiceConfig ou teste. | Removidos ambos. `localStorage` de navegação permanece nas Strategies e em `SessaoNavegacao`. |
+| `F/models/{Candidato,Empresa,Pessoa,Vaga,CurtidaCandidato,CurtidaVaga}.ts`. Modelos usados pelo armazenamento local. | Referenciados somente pelos repositórios removidos, seus contratos e entre si. Fluxos atuais usam DTOs HTTP específicos de entrada, perfil, descoberta, vaga interna e match. | Removidos os seis arquivos. Mantidos `Competencia`, `Pais` e `Estado`, referências usadas nos contratos/páginas atuais. |
+| `F/exceptions/{CnpjJaCadastradoException,CpfJaCadastradoException,EmailJaCadastradoException}.ts`, `candidato/{CandidatoJaCurtidoException,CandidatoNaoEncontradoException}.ts`, `empresa/EmpresaNaoEncontradaException.ts`, `vaga/{VagaJaCurtidaException,VagaNaoEncontradaException}.ts` (subdiretórios sob `exceptions/`). Validações/exceções do antigo fluxo local. | Nenhum import, instanciação ou carregamento dinâmico atual. Transporte usa `ApiError`; os três logins ainda usam `LoginException`. Conflitos e repetição são tratados pelos contratos HTTP/backend. | Removidos os oito arquivos; `LoginException` mantida. |
+| `F/pages/empresa/EmpresaCandidatoCurtido.ts`. Alias de `exibirMatchesEmpresa`, mantido na transição T12. | `App → EmpresaPage → EmpresaMatch.exibirMatchesEmpresa`; nenhum consumidor da reexportação na aplicação. A única referência era uma asserção de igualdade de funções em `transporte-t12.test.cjs`. | Arquivo e somente essa asserção removidos. Testes públicos de apresentação/consulta de matches em T15–T18 preservados. |
+| `F/pages/empresa/EmpresaPage.ts`: import e instância de `EmpresaService` sem leitura. | Perfil usa `EmpresaApiClient`; cadastro usa `CadastroEmpresaPage → ServiceConfig.criarEmpresaService`. | Removidas somente importação/instanciação sem uso; serviço e factory de cadastro mantidos. |
+| `F/pages/empresa/EmpresaVaga.configurarCriacaoVaga`: parâmetro `idEmpresa` não lido após T12. | Empresa operante vem da sessão backend; `EmpresaPage`, teste de transporte e teste do seletor eram os três chamadores. A checagem adicional `tsc --noUnusedLocals --noUnusedParameters` identificou o parâmetro. | Removidos parâmetro e argumentos dos três consumidores, sem mudar payload, chamada HTTP ou autorização. Repetidos build e testes frontend após o ajuste; revalidação real registrada abaixo. |
+| `B/service/EmpresaService.curtirCandidato(Long,Long)`. Assinatura global que apenas lançava exceção. | Nenhum consumidor de produção; teste exclusivo verificava o bloqueio. `CurtidaServlet → MatchController.retribuirInteresse{Empresa,Recrutador} → MatchFacade`, com ator/candidato/vaga e transação, é o fluxo vigente. Terminal usa outro método, de três IDs, no controller. | Método e teste exclusivo removidos; nenhum caminho global reativado. |
+| `B/service/EmpresaService`: campo, import, parâmetro e atribuição de `CandidatoCurtidasConsultaRepository`. | Campo não era lido após bloqueio da consulta sem ator. Serviço composto em `ServiceConfig`, `EmpresaServiceTest` e `SenhaPersistenciaTest`; consultas autorizadas usam o repositório em `MatchFacade`. | Injeção removida e os três construtores consumidores ajustados. Contrato/DAO continuam ativos na fachada. |
+| `B/controller/match/MatchController.salvar` e `B/service/MatchService.salvar(Long,Long,Long)`. Entrada direta bloqueada desde T09. | Controller não tem consumidor em servlets, terminal ou composição; serviço só era chamado pelo controller e teste exclusivo. Não há rota de gravação direta. Fachada usa `salvarNaTransacao → MatchRepository.salvar(Connection,...)`. | Duas assinaturas e teste exclusivo removidos. Escrita transacional, FKs, validações, rollback e conflitos idempotentes preservados. |
+| `B/dao/contratos/VagaRepository.salvar(Vaga)` e `B/dao/vaga/VagaDAO.salvar(Vaga)`. Alias para persistir com lista vazia. | `VagaService.gravarVaga → salvarComCompetencias`, inclusive quando a seleção é vazia; nenhum consumidor do alias em serviços, controllers, terminal, composição ou testes. | Declaração e alias removidos; criação transacional com competências preservada. |
+| `B/exception/{candidato/CandidatoLoginException,empresa/EmpresaLoginException}`: construtores `(String email,String senha)` que apenas delegavam ao construtor vazio. | Serviços e fixtures HTTP instanciam o construtor vazio; terminal apenas captura os tipos. Únicos usos com argumentos eram duas asserções por serviço. | Removidos os construtores e essas quatro asserções. Testes de login público incorreto/inativo e mensagem genérica exata permanecem. |
+| Imports em `B/api/servlet/{CandidatoServlet,EmpresaServlet}` (`JsonSlurper`, `HttpServlet`), `CompetenciaServlet` (`JsonOutput`, `HttpServlet`), `LoginServlet` (`HttpServlet`) e `T/api/servlet/ContratoHttpTest` (`RecrutadorViewDTO`, `IdentificadorEmUsoException`). | Parsing/JSON e herança comuns estão em `JsonServlet`; nenhum uso restante desses imports nos arquivos. | Removidos nove imports; nenhuma alteração dos handlers, códigos HTTP ou contratos. |
+| Comentários em Groovy de produção/testes, TS, CJS, HTML e CSS. | Inspeção dos delimitadores antes da edição; preservados strings, regex, URLs, padrões de rotas, conteúdo renderizado, seletores, asserções e fixtures. | Removidos todos os comentários desses fontes, conforme orientação adicional de T19. Trinta e nove arquivos modificados contêm exclusivamente essa remoção; outros seis também tinham comentários e ajustes inventariados acima. SQL/documentação e scripts fornecidos pelo Gradle permanecem fora da limpeza: o plano proíbe alterar schema, e os marcadores SQL delimitam o DDL usado pelo suporte. |
+
+Componentes expressamente mantidos:
+
+| Componente | Consumidor atual e necessidade |
+| --- | --- |
+| `EmpresaController/EmpresaService.buscarCandidatosQueCurtiram(Long)` | `MenuCurtirCandidato` ainda chama essa assinatura sem ator. Mantida a rejeição por exceção, sem acessar interessados. Não é código sem consumidor; removê-la exigiria adaptar o terminal, fora do escopo. O teste do bloqueio foi mantido e verifica ausência de acesso à retribuição. |
+| `MatchController/MatchFacade.curtirCandidato(Long,Long,Long)` | `MenuCurtirCandidato` chama o controller; delegação empresarial segura/contextualizada na fachada. Alias necessário à compatibilidade do terminal. |
+| `MatchController/MatchService.verMatchesPor{Empresa,Candidato}` | `MenuEmpresaCrud` e `MenuCandidatoCrud`; delegam à consulta vigente com validação de atividade. |
+| `EmpresaController/EmpresaService.buscarCandidatosCurtidos`, `RetribuicaoRepository.buscarCurtidas` e implementação em `EmpresaCurtirDAO` | `MenuCurtirCandidato.verCandidatosCurtidos`; consulta anônima ainda usada, sem nova rota HTTP. Factory/injeção de retribuição continuam necessárias. |
+| `VagaController/VagaService.criarVaga`, `listarVagas`, CRUD e referências/competências | Consumidores dos menus de vaga/candidato/empresa e serviços ativos. Não retirar por serem anteriores à feature. |
+| `ReferenciaRepository.buscar()` padrão; construtor de `MatchService` com repositórios opcionais; construtor padrão de `VagaDAO` | Contrato compartilhado de referências e consumidores reais das fachadas/testes JDBC. Construtor de match só para escrita não libera consulta sem os validadores. Não substituir contratos ativos como efeito da limpeza. |
+| `ServiceConfig` frontend, incluindo factories de empresa/login; Strategies e sessão de navegação | Cadastro empresarial e testes de transporte atuais; `LoginException` e `localStorage` de `sessao` continuam necessários. Nenhum `RepositoryConfig` existe ou foi criado. |
+| `DaoConfig`, `ControllerConfig`, `MenuFactory`, configurações e menus do terminal, `Main`, `RestServer`, registros HTTP e seleção de páginas | Composição manual e entradas vigentes. `RestServer` é entrada externa pela IDE/classpath mesmo sem uma chamada textual a partir de outra classe. Nenhum menu alterado. |
+| DAOs de contas, autoria, referências, retribuição e match; DTOs; schema e dependências declaradas | Consumidores vigentes e garantias de persistência/visibilidade. Sem atualização de bibliotecas, remoção de JARs históricos, mudança de schema/dados, arquitetura ou negócio. |
+
+O rastreamento incluiu os caminhos dinâmicos Groovy `consultarMatches${tipo}`, `buscarMatchesPor${tipo}` e invocação dos métodos HTTP pelos testes; todos continuam apontando a métodos mantidos. Não há carregador reflexivo da aplicação que selecione os componentes removidos. A decisão combina leitura de produtores/consumidores, composição, entradas externas, rotas, bundle e testes; não decorre apenas de busca textual/compilação. Nenhum candidato inventariado fica sem decisão, e nenhuma remoção depende de adaptar um consumidor válido.
+
+### Segurança e execução após as remoções
+
+Reauditados setup, cleanup e todas as origens de conexão dos testes. `SuportePostgres` permanece a única abertura JDBC real da integração e verifica configuração explícita, URL sem parâmetros, nome dedicado permitido e `current_database()` em cada conexão. `SuporteContasPostgres` usa schema aleatório validado e `search_path` sem `public`; cleanup apenas desse schema. Casos de schema de conexão única usam rollback. `SuporteHttpPostgres` injeta todos os DAOs/getters usados pela composição com essa factory; sem fallback. O teste de configuração da factory usa driver controlado, e testes unitários/HTTP de contrato usam mocks sem conexão real.
+
+O carregador temporário `build/validar-t19.ps1` lê somente as três variáveis de teste do `.env` para o processo, preserva a precedência do ambiente e não imprime valores. Antes do Gradle, valida novamente o formato da URL e consulta `current_database()` e schemas residuais usando `psql -X -w` com host/porta/banco/usuário explícitos. A consulta não escreve dados. Exige banco correto e zero schemas aleatórios residuais. `DB_*` da aplicação não é usado. Chrome usa perfil/contextos próprios e não recebe configuração JDBC. Nenhum dado/schema de desenvolvimento foi alterado.
+
+Primeira regressão após as remoções iniciais: `.\build\validar-t19.ps1`, executando `.\gradlew.bat build --rerun-tasks --no-daemon`, passou com **437 testes em 23 suítes, zero falhas/erros/ignorados**, incluindo 175 no pacote de integração e `ACEITE_NAVEGADOR_T18_OK`. A contagem anterior ao T19 era 439; retirados somente os dois casos exclusivos das assinaturas bloqueadas removidas. Essa rodada precede os últimos ajustes de imports, construtores legados de exceção e alias `VagaDAO.salvar`; a execução final é registrada abaixo.
+
+### Resultado final e critérios de conclusão
+
+| Comando/verificação efetivamente executado | Resultado e alcance |
+| --- | --- |
+| `.\build\validar-t19.ps1`, que executa `.\gradlew.bat build --rerun-tasks --no-daemon` com configuração dedicada e Chrome | Execução final, após o último ajuste frontend: **BUILD SUCCESSFUL em 4m13s; 437 testes em 23 suítes; zero falhas, erros ou ignorados**, conferidos nos XMLs. Todas as cinco tarefas efetivamente executadas; compilação Groovy/testes, JAR e JaCoCo gerados. Uma rodada intermediária após os últimos ajustes backend também passou; a última rodada repetiu tudo com o bundle frontend final. |
+| `npx.cmd tsc --noEmit`, em `frontend` | Passou após a limpeza inicial. |
+| `npx.cmd tsc --noEmit --noUnusedLocals --noUnusedParameters`, em `frontend` | Checagem adicional inicialmente identificou somente `idEmpresa` não lido em `configurarCriacaoVaga`; após remover parâmetro/argumentos, **passou** no código final. Nenhuma opção do projeto foi alterada. |
+| `npx.cmd gulp build`, em `frontend` | **Passou**, inclusive após o último ajuste; Webpack 5.110.3 compilou. Somente aviso não impeditivo `DEP0180` de `fs.Stats`. `dist/` gerado pelo build. |
+| `node --test tests/transporte-t12.test.cjs tests/entrada-t13.test.cjs tests/seletor-t14.test.cjs tests/candidato-t15.test.cjs tests/empresa-t16.test.cjs tests/recrutador-t17.test.cjs`, em `frontend` | **57 testes passaram**, zero falhas/cancelados/ignorados. Repetição final com os mesmos arquivos e `--test-reporter=dot` passou após ajustar o parâmetro. DOM/fetch controlados; mensagens de erro esperadas nos cenários negativos. |
+| `node --check frontend/tests/aceite-t18.cjs` | Passou, código zero. |
+| `java -cp <conteúdo de build/runtime-t01.txt> groovy.ui.GroovyMain build/composicao-t19.groovy` | **COMPOSICAO_T19_OK**: instancia composição real e `MenuFactory`, cria os dois menus e confere wiring e ausência das assinaturas removidas. Abertura de conexão substituída por erro/contador; **zero conexões**. Valida composição e compatibilidade do terminal, sem alegar jornada interativa ou adaptar menus. |
+| `.\build\validar-t19.ps1 -SomenteAuditoria`, antes e após as execuções | **AUDITORIA_T19_OK**: `current_database()` corresponde ao banco dedicado permitido; **zero schemas temporários residuais**, inclusive após o último build. Nenhuma escrita nessas consultas. |
+| Revisão integral de `git diff`, `git diff --check`, buscas de referências/comentários e comparação com HEAD dos arquivos protegidos | Sem erros de whitespace ou referências ativas aos arquivos removidos; zero comentários nos fontes da aplicação/testes. Especificação, SQL, AGENTS, dependências, rotas/composição não afetada e menus preservados. Índice Git vazio; nenhum staging/commit/push. |
+
+O script PowerShell local foi inicialmente bloqueado pela política do sandbox. Auditoria e Gradle foram executados com a permissão solicitada fora dele, sem alterar políticas permanentes. O build emite o aviso de acesso nativo do Java já existente, sem falha. Nenhum teste foi apresentado como aprovado quando bloqueado ou não executado.
+
+Os 175 casos no pacote de integração incluem sete checagens de segurança do suporte sem banco, 65 de schema, 44 de unicidade/concorrência de contas, 30 de retribuição/transação, 11 de autoria, nove de consultas de match, seis de senha persistida e três HTTP/JDBC (dois em `FluxoHttpRecrutadorTest`, um em `ContratoHttpPostgresTest`). As demais suítes cobrem serviços, fachada, configuração e HTTP/Tomcat de contratos com controllers mockados. A jornada Chrome/Tomcat/JDBC real terminou em `ACEITE_NAVEGADOR_T18_OK` no log final `build/navegador-t18.log`.
+
+| Critério/invariante de T19 | Evidência final |
+| --- | --- |
+| Inventário completo e remoções justificadas, incluindo dependências e chamadas dinâmicas | Tabela de decisões acima, leitura de produtores/consumidores/composição/rotas/entradas e diff integral. Cada componente removido tem substituto vigente; componentes atuais explicitamente mantidos. |
+| Preservação de contratos e anonimato | `ConsultaMatchTest`, `ContratoHttpPostgresTest` e Chrome comparam chaves exatas de descoberta/curtidas/interessados e todos os campos permitidos dos matches; A não identifica candidato em B. Nenhum DTO anônimo foi ampliado. |
+| Autorização, atividade e autoria histórica | Suítes de serviço, JDBC, HTTP e Chrome rejeitam colega, outra empresa, titular/ID adulterado e sessão inválida; inativação rejeita login/sessão e empresa continua formando match com autor histórico. |
+| Integridade, concorrência, rollback e idempotência | `RetribuicaoMatchTest` (30), `UnicidadeContaTest` (44) e schema repetidos em PostgreSQL dedicado, incluindo falha entre INSERTs, exclusão transacional, locks, disputa entre conexões e nenhuma duplicação. |
+| Jornadas atuais e regressão do bug de curtidas | Chrome final exercita cadastros/logins, vaga direta/autoral, seletor nos três formulários, N:N, interessados e matches; recarga mantém coração preenchido/vermelho/desabilitado para candidato, empresa e autor. SQL confere quatro vagas/oito vínculos, dois vínculos candidatos, quatro interesses/três matches, com quarto match empresarial após inatividade. |
+| Terminal e composição mantidos | Compilação completa e smoke real de composição dos menus sem banco; nenhuma mudança nos menus/factory/entrada. Consulta sem ator continua bloqueada. |
+| Segurança do banco e encerramento | Configuração e cada conexão auditadas antes das escritas; schemas exclusivos, sem fallback; consulta pós-execução confirma zero resíduos. Nenhum schema/dado de desenvolvimento alterado. |
+| Documentação, escopo e parada | T19 marcada somente após as verificações finais; changelog acrescenta somente remoções reais. Spec e histórico T01–T18 preservados, sem tarefa posterior ou operação Git de escrita. |
+
+Sem bloqueio ou validação obrigatória pendente de T19. Mantido o limite anterior do catálogo canônico em maiúsculas, sem alterar busca, migrar dados ou reabrir a decisão do responsável. Não houve inspeção visual humana ou validação com Tutor; o aceite executado é automatizado em Chrome real. Consumo de tokens sem medição confiável disponível.
+
+### Arquivos da entrega T19
+
+Nenhum fonte versionado novo. Relação integral dos arquivos removidos/modificados; os grupos e motivos estão no inventário acima. Scripts auxiliares de auditoria/composição permanecem somente em `build/`, ignorado pelo Git.
+
+| Estado | Arquivo (relativo à raiz) |
+| --- | --- |
+| Modificado | `CHANGELOG.md` |
+| Modificado | `docs/specs/recrutador/validacao.md` |
+| Modificado | `frontend/src/css/style.css` |
+| Modificado | `frontend/src/html/candidato.html` |
+| Modificado | `frontend/src/html/empresa.html` |
+| Modificado | `frontend/src/ts/api/clientes/ApiClient.ts` |
+| Modificado | `frontend/src/ts/api/dto/candidato/CandidatoViewDTO.ts` |
+| Modificado | `frontend/src/ts/components/SeletorCompetencias.ts` |
+| Removido | `frontend/src/ts/exceptions/CnpjJaCadastradoException.ts` |
+| Removido | `frontend/src/ts/exceptions/CpfJaCadastradoException.ts` |
+| Removido | `frontend/src/ts/exceptions/EmailJaCadastradoException.ts` |
+| Removido | `frontend/src/ts/exceptions/candidato/CandidatoJaCurtidoException.ts` |
+| Removido | `frontend/src/ts/exceptions/candidato/CandidatoNaoEncontradoException.ts` |
+| Removido | `frontend/src/ts/exceptions/empresa/EmpresaNaoEncontradaException.ts` |
+| Removido | `frontend/src/ts/exceptions/vaga/VagaJaCurtidaException.ts` |
+| Removido | `frontend/src/ts/exceptions/vaga/VagaNaoEncontradaException.ts` |
+| Removido | `frontend/src/ts/factory/storage/LocalStorageFactory.ts` |
+| Removido | `frontend/src/ts/factory/storage/StorageFactory.ts` |
+| Removido | `frontend/src/ts/models/Candidato.ts` |
+| Removido | `frontend/src/ts/models/CurtidaCandidato.ts` |
+| Removido | `frontend/src/ts/models/CurtidaVaga.ts` |
+| Removido | `frontend/src/ts/models/Empresa.ts` |
+| Removido | `frontend/src/ts/models/Pessoa.ts` |
+| Removido | `frontend/src/ts/models/Vaga.ts` |
+| Removido | `frontend/src/ts/pages/empresa/EmpresaCandidatoCurtido.ts` |
+| Modificado | `frontend/src/ts/pages/empresa/EmpresaPage.ts` |
+| Modificado | `frontend/src/ts/pages/empresa/EmpresaVaga.ts` |
+| Modificado | `frontend/src/ts/pages/login/FormularioLogin.ts` |
+| Modificado | `frontend/src/ts/pages/login/SessaoNavegacao.ts` |
+| Removido | `frontend/src/ts/repository/CadastroRepository.ts` |
+| Removido | `frontend/src/ts/repository/candidato/CandidatoRepository.ts` |
+| Removido | `frontend/src/ts/repository/candidato/CurtidaVagaRepository.ts` |
+| Removido | `frontend/src/ts/repository/candidato/contrato/CandidatoConsultaRepository.ts` |
+| Removido | `frontend/src/ts/repository/candidato/contrato/CurtidaVagaConsultaRepository.ts` |
+| Removido | `frontend/src/ts/repository/empresa/CurtidaCandidatoRepository.ts` |
+| Removido | `frontend/src/ts/repository/empresa/EmpresaRepository.ts` |
+| Removido | `frontend/src/ts/repository/empresa/contrato/CurtidaCandidatoConsultaRepository.ts` |
+| Removido | `frontend/src/ts/repository/empresa/contrato/EmpresaConsultaRepository.ts` |
+| Removido | `frontend/src/ts/repository/vaga/VagaRepository.ts` |
+| Removido | `frontend/src/ts/repository/vaga/contrato/VagaConsultaRepository.ts` |
+| Modificado | `frontend/tests/aceite-t18.cjs` |
+| Modificado | `frontend/tests/candidato-t15.test.cjs` |
+| Modificado | `frontend/tests/empresa-t16.test.cjs` |
+| Modificado | `frontend/tests/entrada-t13.test.cjs` |
+| Modificado | `frontend/tests/recrutador-t17.test.cjs` |
+| Modificado | `frontend/tests/seletor-t14.test.cjs` |
+| Modificado | `frontend/tests/transporte-t12.test.cjs` |
+| Modificado | `src/main/groovy/com/jpcode/api/SessaoHttp.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/api/servlet/CandidatoServlet.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/api/servlet/CompetenciaServlet.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/api/servlet/EmpresaServlet.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/api/servlet/JsonServlet.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/api/servlet/LoginServlet.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/api/servlet/RecrutadorServlet.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/config/ServiceConfig.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/controller/match/MatchController.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/dao/conta/ValidacaoContaDAO.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/dao/contratos/RetribuicaoRepository.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/dao/contratos/VagaRepository.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/dao/match/MatchDAO.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/dao/recrutador/RecrutadorDAO.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/dao/relacionamento/CandidatoCurtirDAO.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/dao/vaga/CompetenciasVagaDAO.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/dao/vaga/VagaDAO.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/database/PostgresConnectionFactory.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/dto/recrutador/RecrutadorViewDTO.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/exception/candidato/CandidatoLoginException.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/exception/empresa/EmpresaLoginException.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/facade/MatchFacade.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/service/EmpresaService.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/service/MatchService.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/service/RecrutadorService.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/service/SenhaService.groovy` |
+| Modificado | `src/main/groovy/com/jpcode/service/VagaService.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/api/servlet/ContratoHttpTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/api/servlet/VisibilidadeServletTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/integracao/ConsultaMatchTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/integracao/ContratoHttpPostgresTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/integracao/FluxoHttpRecrutadorTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/integracao/RetribuicaoMatchTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/integracao/SchemaRecrutadorTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/integracao/SenhaPersistenciaTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/integracao/SuporteContasPostgres.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/integracao/SuporteHttpPostgres.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/integracao/SuportePostgres.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/integracao/UnicidadeContaTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/integracao/VagaAutoriaTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/service/CandidatoServiceTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/service/EmpresaServiceTest.groovy` |
+| Modificado | `src/test/groovy/com/jpcode/service/MatchServiceTest.groovy` |
+| Modificado | `docs/specs/recrutador/plano.md` |

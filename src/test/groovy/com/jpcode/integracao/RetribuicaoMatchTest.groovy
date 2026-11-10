@@ -15,7 +15,6 @@ import java.sql.SQLException
 import java.util.concurrent.*
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
-/** T09: somente banco dedicado, transações reais e schema próprio por caso. */
 class RetribuicaoMatchTest extends Specification {
     SuporteContasPostgres banco
     CandidatoCurtirDAO interesses
@@ -209,7 +208,6 @@ class RetribuicaoMatchTest extends Specification {
         MatchRepository falho = new MatchDAO(banco.factory, null, null) {
             @Override
             void salvar(Connection conexao, Long candidato, Long empresa, Long vaga) {
-                // Falha SQL real depois do primeiro INSERT, na MESMA conexão.
                 super.salvar(conexao, candidato, empresa, 999L)
             }
         }

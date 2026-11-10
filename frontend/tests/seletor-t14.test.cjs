@@ -1,4 +1,3 @@
-// Executa páginas/estratégias reais com DOM e fetch controlados; sem navegador ou banco.
 const { test, after } = require("node:test")
 const assert = require("node:assert/strict")
 const fs = require("node:fs")
@@ -132,7 +131,7 @@ async function formularioEmpresa(responder) {
     window.alert = () => {}
     const pagina = carregar("pages/empresa/EmpresaVaga")
     await pagina.carregarOpcoesCompetencias()
-    pagina.configurarCriacaoVaga(8, new (carregar("config/ServiceConfig").ServiceConfig)().criarVagaService())
+    pagina.configurarCriacaoVaga(new (carregar("config/ServiceConfig").ServiceConfig)().criarVagaService())
     return pagina
 }
 

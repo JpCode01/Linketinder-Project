@@ -20,7 +20,6 @@ import java.time.LocalDate
 import java.util.concurrent.*
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
-/** T06: escritores reais e commits em conexões independentes, somente no banco dedicado. */
 class UnicidadeContaTest extends Specification {
     SuporteContasPostgres banco
     Long empresa
@@ -138,7 +137,6 @@ class UnicidadeContaTest extends Specification {
             executar("INSERT INTO vagas_curtidas_candidato (id_candidato, id_vaga) VALUES (${antiga.id}, 1)".toString())
         }
         if (perfil == 'recrutador') {
-            // Não cria operação de gestão de recrutador; fixture de inatividade no banco de testes.
             executar('UPDATE recrutadores SET ativo = false WHERE id = ' + antiga.id)
         } else {
             dao(perfil).desativar(antiga.id)
@@ -312,7 +310,6 @@ class UnicidadeContaTest extends Specification {
 
         when:
         assert iniciou.await(5, TimeUnit.SECONDS)
-        // pg_locks comprova espera real; não depende de apenas um sleep ou da ordem de escalonamento.
         long limite = System.nanoTime() + TimeUnit.SECONDS.toNanos(4)
         boolean esperando = false
         while (!esperando && System.nanoTime() < limite) {

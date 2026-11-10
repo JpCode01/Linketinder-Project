@@ -5,7 +5,6 @@ import com.jpcode.dto.vaga.VagaEmpresaDTO
 import com.jpcode.model.core.Vaga
 
 interface VagaRepository {
-    Vaga salvar(Vaga vaga)
     Vaga salvarComCompetencias(Vaga vaga, List<Long> idsCompetencias)
 
     Optional<Vaga> buscarPorId(Long id)

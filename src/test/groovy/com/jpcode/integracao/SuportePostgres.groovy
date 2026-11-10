@@ -6,7 +6,6 @@ import java.nio.file.Path
 import java.sql.Connection
 import java.sql.DriverManager
 
-/** Banco dedicado e schema descartável; nunca usa PostgresConnectionFactory. */
 class SuportePostgres {
 
     static final String URL = 'LINKETINDER_TEST_JDBC_URL'
@@ -14,7 +13,6 @@ class SuportePostgres {
     static final String SENHA = 'LINKETINDER_TEST_DB_PASSWORD'
 
     static boolean configurado(Map<String, String> ambiente = System.getenv()) {
-        // Ausência total permite indicar teste não executado; configuração parcial é erro.
         ambiente.containsKey(URL) || ambiente.containsKey(USUARIO) || ambiente.containsKey(SENHA)
     }
 
@@ -22,7 +20,6 @@ class SuportePostgres {
         if ([URL, USUARIO, SENHA].any { !ambiente[it]?.trim() }) {
             throw new IllegalArgumentException('Configure URL, usuário e senha do banco de testes explicitamente.')
         }
-        // Sem parâmetros JDBC que possam redirecionar banco/schema ou registrar credenciais.
         def endereco = ambiente[URL] =~ /^jdbc:postgresql:\/\/[a-zA-Z0-9.\-]+(?::[0-9]+)?\/(linketinder_test(?:_[a-z0-9]+)*)$/
         if (!endereco.matches()) {
             throw new IllegalArgumentException('Use URL JDBC sem parâmetros e banco dedicado linketinder_test (ou linketinder_test_<sufixo>); banco de desenvolvimento proibido.')
@@ -60,7 +57,6 @@ class SuportePostgres {
             String schema = 'linketinder_test_' + UUID.randomUUID().toString().replace('-', '')
             conexao.createStatement().withCloseable { comando ->
                 comando.execute("CREATE SCHEMA ${schema}".toString())
-                // Sem public no search_path: DDL e fixtures não atingem tabelas preexistentes.
                 comando.execute("SET LOCAL search_path TO ${schema}".toString())
             }
             return conexao
@@ -87,7 +83,7 @@ class SuportePostgres {
         if (conexao != null) {
             try {
                 if (!conexao.autoCommit) {
-                    conexao.rollback() // Desfaz somente schema e fixtures desta conexão.
+                    conexao.rollback()
                 }
             } finally {
                 conexao.close()

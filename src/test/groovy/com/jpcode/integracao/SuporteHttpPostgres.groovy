@@ -18,7 +18,6 @@ import java.nio.file.Path
 import java.time.Duration
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
-/** HTTP/Tomcat, serviços e JDBC reais. Toda conexão usa o suporte dedicado validado. */
 abstract class SuporteHttpPostgres extends Specification {
     SuporteContasPostgres banco
     Tomcat tomcat
@@ -42,8 +41,6 @@ abstract class SuporteHttpPostgres extends Specification {
         def interesses = new CandidatoCurtirDAO(factory)
         def retribuicoes = new EmpresaCurtirDAO(factory)
         def matches = new MatchDAO(factory, competenciasCandidato, competenciasVaga)
-        // O construtor de DaoConfig não abre conexões. Todos os colaboradores usados
-        // por ServiceConfig são substituídos explicitamente, sem fallback de conexão.
         DaoConfig daos = Stub() {
             getConnectionFactory() >> factory
             getPaisDAO() >> pais

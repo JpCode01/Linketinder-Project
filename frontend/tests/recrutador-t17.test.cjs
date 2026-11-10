@@ -1,4 +1,3 @@
-// Jornada real de páginas/serviços/clientes com DOM e fetch controlados; sem banco/navegador.
 const { test, after } = require("node:test")
 const assert = require("node:assert/strict")
 const fs = require("node:fs")
@@ -80,8 +79,6 @@ function preencher() {
 }
 
 test("perfil próprio, consultas por autor e interessados anônimos em dois contextos de vaga", async () => {
-    // Perfis simulados de dois autores da mesma empresa e outro de empresa distinta.
-    // Confere roteamento frontend; não prova isolamento de consultas no PostgreSQL.
     for (const id of [7, 8, 9]) {
         preparar(undefined, id)
         await exibirPageRecrutador()
@@ -159,7 +156,6 @@ test("retribuição aguarda 204, preserva contexto candidato/vaga e atualiza ide
     for (const campo of ["Pessoa Candidata", "pessoa@teste", "cpf-c", "30", "SP", "RJ", "RH", "Empresa própria", "cnpj-e", "empresa@teste", "Descrição empresarial", "Vaga do match", "Descrição da vaga", "Administração", "Autora"])
         assert.ok(exibido.includes(campo), campo)
     assert.ok(!texto(elementos["candidate-grid"]).includes("pessoa@teste"))
-    // Recarregar permite repetir pelo mesmo contexto; unicidade persistida pertence ao backend.
     await exibirPageRecrutador()
     const repeticao = elementos["candidate-grid"].children[0].querySelector(".btn-like").click()
     confirmar(); await repeticao

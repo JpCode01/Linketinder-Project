@@ -1,7 +1,6 @@
 import { ApiError } from "../../api/clientes/ApiClient"
 import { SessaoResponseDTO } from "../../api/dto/login/SessaoResponseDTO"
 
-// Somente navegação: a autorização continua sendo validada pela sessão HTTP.
 export function obterSessaoDoPerfil(tipo: SessaoResponseDTO["tipo"]): SessaoResponseDTO | undefined {
     try {
         const sessao: unknown = JSON.parse(localStorage.getItem("sessao") ?? "null")
@@ -10,7 +9,6 @@ export function obterSessaoDoPerfil(tipo: SessaoResponseDTO["tipo"]): SessaoResp
             return { id: sessao.id, tipo }
         }
     } catch {
-        // Estado local inválido não impede voltar ao login.
     }
     voltarAoLogin()
     return undefined

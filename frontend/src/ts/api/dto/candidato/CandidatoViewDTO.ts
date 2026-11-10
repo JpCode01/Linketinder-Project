@@ -12,7 +12,6 @@ export interface CandidatoViewDTO {
     descricao: string
     pais: Pais
     idade: number
-    // JsonOutput serializa LocalDate como objeto, não como a data ISO de entrada.
     dataNascimento: {
         year: number
         monthValue: number

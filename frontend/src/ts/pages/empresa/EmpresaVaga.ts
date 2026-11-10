@@ -71,7 +71,6 @@ function capturarCompetenciasSelecionadas(): string[] {
 }
 
 export function configurarCriacaoVaga(
-    idEmpresa: number,
     vagaService: VagaService
 ): void {
     const botao = document.getElementById("criar-vaga")

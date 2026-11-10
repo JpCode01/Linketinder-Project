@@ -10,9 +10,7 @@ import com.jpcode.controller.match.MatchController
 import com.jpcode.controller.referencia.ReferenciaController
 import com.jpcode.controller.competencia.CompetenciaController
 import com.jpcode.dto.candidato.CandidatoAnonimoDTO
-import com.jpcode.dto.recrutador.RecrutadorViewDTO
 import com.jpcode.dto.vaga.*
-import com.jpcode.exception.conta.IdentificadorEmUsoException
 import com.jpcode.exception.vaga.VagaNaoEncontradaException
 import com.jpcode.model.core.*
 import com.jpcode.model.referencia.*
@@ -25,7 +23,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
 
-/** Transporte, configuração e sessão reais; controllers mockados, sem conexão JDBC. */
 class ContratoHttpTest extends Specification {
     CandidatoController candidatos = Mock()
     EmpresaController empresas = Mock()

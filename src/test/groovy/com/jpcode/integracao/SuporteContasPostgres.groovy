@@ -3,7 +3,6 @@ package com.jpcode.integracao
 import com.jpcode.database.ConnectionFactory
 import java.sql.Connection
 
-/** Schema próprio confirmado para testes que precisam de várias conexões/transações reais. */
 class SuporteContasPostgres implements AutoCloseable {
     final String schema
     final ConnectionFactory factory
@@ -23,7 +22,6 @@ class SuporteContasPostgres implements AutoCloseable {
     }
 
     Connection abrirConexao() {
-        // O validador é executado em CADA conexão, sem fallback e antes de qualquer escrita.
         Connection conexao = SuportePostgres.conectar()
         try {
             validarSchema()
@@ -42,7 +40,6 @@ class SuporteContasPostgres implements AutoCloseable {
     void close() {
         validarSchema()
         try (Connection conexao = SuportePostgres.conectar(); def comando = conexao.createStatement()) {
-            // Nome obtido da conexão que criou o schema; nunca aceita schema/banco externo.
             comando.execute("DROP SCHEMA ${schema} CASCADE".toString())
         }
     }

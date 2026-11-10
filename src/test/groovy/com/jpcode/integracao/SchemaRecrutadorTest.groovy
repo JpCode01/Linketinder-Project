@@ -7,7 +7,6 @@ import java.sql.SQLException
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
-/** T01–T04: schema e integridade; sem fluxo HTTP ou atomicidade da aplicação (T09). */
 class SchemaRecrutadorTest extends Specification {
 
     Connection conexao
@@ -100,7 +99,6 @@ class SchemaRecrutadorTest extends Specification {
         }
 
         when:
-        // Nome da tabela vem somente dos casos constantes abaixo.
         conexao.createStatement().withCloseable { it.executeUpdate("UPDATE ${tabela} SET ativo = NULL".toString()) }
 
         then:
@@ -436,7 +434,6 @@ class SchemaRecrutadorTest extends Specification {
         when:
         inserirRetribuicao(candidato, empresa, vagaA, ator == 'recrutador' ? autor : null)
         inserirMatch(candidato, empresa, vagaA)
-        // Repetição sequencial com o novo alvo; concorrência/atomicidade ficam para T09.
         ['candidatos_curtidos_empresa', 'match'].each { tabela ->
             conexao.prepareStatement("""INSERT INTO ${tabela} (id_candidato, id_empresa, id_vaga)
                                         VALUES (?, ?, ?) ON CONFLICT (id_candidato, id_vaga) DO NOTHING""".toString()).withCloseable { comando ->
@@ -546,7 +543,6 @@ class SchemaRecrutadorTest extends Specification {
         inserir('INSERT INTO match (id_candidato, id_empresa, id_vaga) VALUES (?, ?, ?) RETURNING id', [candidato, proprietaria, vaga])
     }
 
-    // Tabelas/colunas dinâmicas vêm exclusivamente dos casos constantes desta spec.
     private long inserirConta(String tabela, String identificador, boolean ativo = true, Map alteracoes = [:]) {
         Map campos
         if (tabela == 'candidatos') {
@@ -615,7 +611,6 @@ class SchemaRecrutadorTest extends Specification {
     }
 }
 
-/** Valida o bloqueio antes de qualquer conexão, mesmo sem PostgreSQL configurado. */
 class SegurancaSuportePostgresTest extends Specification {
 
     def 'bloqueia destino inseguro ou configuracao incompleta antes de conectar'() {

@@ -6,7 +6,4 @@ class CandidatoLoginException extends RuntimeException {
         super('Credenciais inválidas para candidato.')
     }
 
-    CandidatoLoginException(String email, String senha) {
-        this()
-    }
 }

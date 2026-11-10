@@ -25,15 +25,6 @@ class MatchServiceTest extends Specification {
         recrutadores.buscarPorId(1L) >> Optional.of(new Recrutador(id: 1L, idEmpresa: 1L, ativo: true))
     }
 
-    def "deve bloquear gravacao direta de match"() {
-        when:
-        service.salvar(1L, 2L, 3L)
-
-        then:
-        thrown(UnsupportedOperationException)
-        0 * matchRepository._
-    }
-
     def "deve buscar matches por empresa"() {
         given:
         List<MatchEncontradoDTO> matches = []

@@ -1,4 +1,3 @@
-// Páginas, serviços e clientes reais; DOM/fetch controlados, sem navegador ou banco.
 const { test, after } = require("node:test")
 const assert = require("node:assert/strict")
 const fs = require("node:fs")
@@ -170,7 +169,6 @@ test("vazio, carregamento, erro e recuperação de cada lista não preservam car
         assert.match(elementos[contador].textContent, /Carregando/)
         assert.equal(elementos[grid].children.length, 0)
         responder(json([], 200)); await concluir()
-        // Descoberta consulta também as curtidas depois da listagem.
         if (grid === "job-grid") responder(json([]))
         await pendente
         assert.ok(texto(elementos[grid]).includes(vazio))

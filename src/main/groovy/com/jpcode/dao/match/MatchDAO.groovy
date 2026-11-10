@@ -62,7 +62,6 @@ class MatchDAO implements MatchRepository {
         return consultarMatches('v.id_recrutador = ? AND r.ativo = true AND e.ativo = true', idRecrutador)
     }
 
-    // Filtros definidos exclusivamente pelos métodos de cada ator, nunca pela requisição.
     private List<MatchEncontradoDTO> consultarMatches(String filtro, Long idTitular) {
 
         String sql = """

@@ -39,18 +39,6 @@ class MatchController {
         return matchFacade.buscarIdsCandidatosRetribuidosRecrutador(idRecrutadorOperante, idVaga)
     }
 
-    void salvar(
-            Long idCandidato,
-            Long idEmpresa,
-            Long idVaga
-    ) {
-        matchService.salvar(
-                idCandidato,
-                idEmpresa,
-                idVaga
-        )
-    }
-
     List<MatchEncontradoDTO> verMatchesPorEmpresa(Long idEmpresa) {
         return matchService.verMatchesPorEmpresa(idEmpresa)
     }

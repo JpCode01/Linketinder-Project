@@ -6,7 +6,6 @@ import com.jpcode.exception.conta.IdentificadorEmUsoException
 import java.sql.Connection
 import java.sql.SQLException
 
-/** Protocolo comum a todos os escritores de contas. A conexão pertence a esta operação. */
 class ValidacaoContaDAO {
     private final ConnectionFactory connectionFactory
     private static final Map<String, List<String>> PERFIS = [
@@ -23,7 +22,6 @@ class ValidacaoContaDAO {
             conexao.transactionIsolation = Connection.TRANSACTION_READ_COMMITTED
             conexao.autoCommit = false
             try {
-                // Ordem única, inclusive em desativação; leituras comuns continuam permitidas.
                 conexao.createStatement().withCloseable { comando ->
                     comando.execute('LOCK TABLE candidatos, empresas, recrutadores IN SHARE ROW EXCLUSIVE MODE')
                 }

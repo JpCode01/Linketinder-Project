@@ -1,7 +1,6 @@
 import { ServiceConfig } from "../../config/ServiceConfig";
 import { CurtidaCandidatoService } from "../../services/CurtidaCandidatoService";
 import { CurtidaVagaService } from "../../services/CurtidaVagaService";
-import { EmpresaService } from "../../services/EmpresaService";
 import { RelatorioCompetenciasService } from "../../services/RelatorioCompetenciasService";
 import { VagaService } from "../../services/VagaService";
 
@@ -25,9 +24,6 @@ const empresaApiClient: EmpresaApiClient = new EmpresaApiClient()
 
 const matchService: MatchService =
     serviceConfig.criarMatchService()
-
-const empresaService: EmpresaService =
-    serviceConfig.criarEmpresaService()
 
 const vagaService: VagaService =
     serviceConfig.criarVagaService()
@@ -73,7 +69,6 @@ export async function exibirPageEmpresa(): Promise<void> {
         await carregarOpcoesCompetencias()
 
         configurarCriacaoVaga(
-            empresa.id,
             vagaService
         )
 

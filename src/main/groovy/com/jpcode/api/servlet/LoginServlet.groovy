@@ -8,7 +8,6 @@ import com.jpcode.exception.candidato.CandidatoLoginException
 import com.jpcode.exception.empresa.EmpresaLoginException
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
-import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
@@ -32,7 +31,6 @@ class LoginServlet extends JsonServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         response.contentType = 'application/json'
         response.characterEncoding = 'UTF-8'
-        // Uma tentativa de login não conserva a identidade de uma sessão anterior.
         sessaoHttp.invalidar(request)
         String tipo = request.servletPath?.tokenize('/')?.last()
         if (!(request.servletPath in ['/login/candidato', '/login/empresa', '/login/recrutador'])) {

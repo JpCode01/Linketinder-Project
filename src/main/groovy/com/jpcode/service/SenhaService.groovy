@@ -37,7 +37,6 @@ class SenhaService {
             return false
         }
         String[] partes = representacao.split('\\$', -1)
-        // Somente a versão e o custo aprovados; nunca derivar com parâmetros externos arbitrários.
         if (partes.length != 5 || partes[0] != 'v1' || partes[1] != ALGORITMO ||
                 partes[2] != Integer.toString(ITERACOES) ||
                 !(partes[3] ==~ /[A-Za-z0-9+\/]{22}==/) ||

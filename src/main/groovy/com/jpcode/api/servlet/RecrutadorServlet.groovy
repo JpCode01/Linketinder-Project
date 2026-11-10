@@ -40,7 +40,6 @@ class RecrutadorServlet extends JsonServlet {
                 def dto = new CadastrarRecrutadorDTO(nome: texto(dados, 'nome'), cpf: texto(dados, 'cpf'), email: texto(dados, 'email'),
                         dataNascimento: LocalDate.parse(texto(dados, 'dataNascimento')), descricao: texto(dados, 'descricao'),
                         senha: texto(dados, 'senha'), idAreaRecrutamento: id(dados.idAreaRecrutamento))
-                // Cadastro não devolve o perfil nem credenciais.
                 recrutadores.cadastrarRecrutador(atual.id, dto)
                 response.status = 201
             } else {

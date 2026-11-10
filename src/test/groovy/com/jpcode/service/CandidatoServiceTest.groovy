@@ -263,8 +263,6 @@ class CandidatoServiceTest extends Specification {
         then:
         CandidatoLoginException erro = thrown()
         erro.message == 'Credenciais inválidas para candidato.'
-        new CandidatoLoginException(candidato.email, candidato.senha).message == erro.message
-        new CandidatoLoginException(candidato.email, senha).message == erro.message
 
         where:
         ativo | senha

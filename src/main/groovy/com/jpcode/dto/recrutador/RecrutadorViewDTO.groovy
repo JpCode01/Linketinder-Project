@@ -4,7 +4,6 @@ import com.jpcode.model.core.Recrutador
 import com.jpcode.model.referencia.AreaRecrutamento
 import java.time.LocalDate
 
-/** Perfil próprio; nunca reutilizar na descoberta ou no match. */
 class RecrutadorViewDTO {
     Long id
     String nome

@@ -36,7 +36,6 @@ class ServiceConfig {
                 daoConfig.paisDAO,
                 daoConfig.estadoDAO,
                 daoConfig.empresaDAO,
-                daoConfig.candidatoCurtirDAO,
                 daoConfig.empresaCurtirDAO,
                 daoConfig.competenciasVagaDAO,
                 senhaService

@@ -59,6 +59,12 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 - Testes unitários dos serviços com Spock e geração de relatórios de cobertura com JaCoCo.
 - Orientações para execução e contribuição na documentação do projeto.
 
+### Removido
+
+- Repositórios locais frontend substituídos pela integração HTTP, suas factories, modelos e exceções sem consumidores; alias histórico de candidatos curtidos e instância/parâmetro sem uso na criação empresarial (T19).
+- Assinaturas obsoletas de curtida global e gravação direta de match, alias de persistência de vaga, injeção sem uso em `EmpresaService`, construtores legados de exceções de login e imports substituídos pelo suporte HTTP comum (T19). Preservados os consumidores atuais e as proteções do terminal.
+- Comentários dos fontes Groovy, TypeScript, CJS, HTML e CSS, incluindo testes, conforme o escopo de limpeza de T19; contratos, regras de negócio e schema preservados.
+
 ### Modificado
 
 - Login de recrutador encaminha à nova página; cards existentes de vagas, interessados anônimos e matches são reutilizados na jornada, mantendo consultas e operações específicas do recrutador (T17).

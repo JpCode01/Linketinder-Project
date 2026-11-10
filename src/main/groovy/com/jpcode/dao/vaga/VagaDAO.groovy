@@ -21,16 +21,10 @@ class VagaDAO implements VagaRepository {
         this.competenciasVagaDAO = competenciasVagaDAO
     }
 
-    Vaga salvar(Vaga vaga) {
-        return salvarComCompetencias(vaga, [])
-    }
-
     Vaga salvarComCompetencias(Vaga vaga, List<Long> idsCompetencias) {
         try (def connection = connectionFactory.getConnection()) {
             connection.autoCommit = false
             try {
-                // Ordem fixa: empresa, depois recrutador. FOR SHARE impede inativação
-                // ou troca do vínculo até o término da criação.
                 validarAtor(connection, 'empresas', vaga.idEmpresa, null)
                 if (vaga.idRecrutador != null) {
                     validarAtor(connection, 'recrutadores', vaga.idRecrutador, vaga.idEmpresa)
@@ -48,7 +42,6 @@ class VagaDAO implements VagaRepository {
     }
 
     private static void validarAtor(Connection connection, String tabela, Long id, Long idEmpresa) {
-        // tabela é escolhida somente pelas duas chamadas internas acima.
         String sql = "SELECT id FROM ${tabela} WHERE id = ? AND ativo = true" +
                 (idEmpresa == null ? '' : ' AND id_empresa = ?') + ' FOR SHARE'
         try (def statement = connection.prepareStatement(sql)) {
@@ -296,7 +289,6 @@ class VagaDAO implements VagaRepository {
         try (Connection conexao = connectionFactory.getConnection()) {
             conexao.autoCommit = false
             try {
-                // Serializa com a fachada antes de remover as dependências novas.
                 try (def comando = conexao.prepareStatement('SELECT id FROM vagas WHERE id = ? FOR UPDATE')) {
                     comando.setLong(1, id)
                     comando.executeQuery().close()

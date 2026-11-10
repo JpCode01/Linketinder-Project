@@ -14,7 +14,6 @@ import groovy.json.JsonSlurper
 import jakarta.servlet.http.*
 import spock.lang.Specification
 
-/** T10: sessão real de T07, controllers mockados e JSON bruto das servlets existentes. */
 class VisibilidadeServletTest extends Specification {
     CandidatoController candidatos = Mock()
     EmpresaController empresas = Mock()

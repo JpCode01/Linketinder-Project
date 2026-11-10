@@ -8,9 +8,7 @@ import com.jpcode.dto.empresa.EmpresaViewDTO
 import com.jpcode.exception.empresa.EmpresaNaoEncontradaPorIdException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
-import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
-import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 

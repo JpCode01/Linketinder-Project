@@ -5,7 +5,6 @@ import com.jpcode.controller.empresa.EmpresaController
 import com.jpcode.controller.recrutador.RecrutadorController
 import jakarta.servlet.http.HttpServletRequest
 
-/** Contexto mínimo do servidor; nunca lê identidade do payload ou de cabeçalhos. */
 class SessaoHttp {
     private static final String ATRIBUTO = 'atorAutenticado'
     private final CandidatoController candidatoController

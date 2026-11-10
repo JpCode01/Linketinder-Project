@@ -18,7 +18,6 @@ export class SeletorCompetencias {
         this.pesquisa.placeholder = "Digite parte do nome e selecione uma sugestão"
         this.pesquisa.oninput = (): void => this.renderizarSugestoes()
         this.pesquisa.onkeydown = (evento: KeyboardEvent): void => {
-            // Enter no texto não seleciona nem submete o formulário.
             if (evento.key === "Enter") evento.preventDefault()
         }
         label.appendChild(this.pesquisa)

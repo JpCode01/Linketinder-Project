@@ -13,7 +13,6 @@ export function configurarLogin(idBotao: string, estrategia: LoginStrategy): voi
         document.getElementById("erro-login")?.remove()
         document.getElementById("login-status")?.remove()
         botoes.forEach(item => item.disabled = true)
-        // O servidor invalida a sessão anterior ao receber uma tentativa de login.
         localStorage.removeItem("sessao")
         try {
             await estrategia.login(email.value, senha.value)

@@ -22,7 +22,6 @@ class RecrutadorService {
         this.senhaService = senhaService
     }
 
-    // idEmpresaOperante será fornecido pelo contexto empresarial HTTP, nunca pelo DTO.
     RecrutadorViewDTO cadastrarRecrutador(Long idEmpresaOperante, CadastrarRecrutadorDTO dados) {
         def empresa = empresaRepository.buscarPorId(idEmpresaOperante)
                 .orElseThrow(() -> new IllegalArgumentException('Empresa inexistente ou inativa.'))

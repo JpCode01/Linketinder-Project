@@ -21,7 +21,6 @@ import java.time.LocalDate
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
-/** T05: serviços e DAOs reais, somente no banco/schema isolado de SuportePostgres. */
 class SenhaPersistenciaTest extends Specification {
     SuporteContasPostgres banco
     CandidatoDAO candidatoDAO
@@ -41,7 +40,7 @@ class SenhaPersistenciaTest extends Specification {
         def competencia = new CompetenciaDAO(factory)
         candidatoService = new CandidatoService(pais, estado, competencia, competencia,
                 new CompetenciasCandidatoDAO(factory), candidatoDAO, senhaService)
-        empresaService = new EmpresaService(pais, estado, empresaDAO, null, null, null, senhaService)
+        empresaService = new EmpresaService(pais, estado, empresaDAO, null, null, senhaService)
     }
 
     def cleanup() {
@@ -71,7 +70,7 @@ class SenhaPersistenciaTest extends Specification {
                 candidatoService.buscarCandidato(conta.id) : empresaService.buscarEmpresa(conta.id))
 
         then:
-        atualizada.ativo // DTO falso não modifica o ciclo de vida.
+        atualizada.ativo
         atualizada.senha != anterior
         senhaService.verificar('senha nova', atualizada.senha)
         !senhaService.verificar('senha inicial', atualizada.senha)

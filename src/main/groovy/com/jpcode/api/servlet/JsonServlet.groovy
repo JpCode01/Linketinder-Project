@@ -8,7 +8,6 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import jakarta.servlet.http.*
 
-/** Contratos HTTP comuns; regras de domínio continuam nos serviços. */
 abstract class JsonServlet extends HttpServlet {
     protected List<String> metodosPermitidos() { ['GET'] }
 

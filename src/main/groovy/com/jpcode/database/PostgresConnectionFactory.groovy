@@ -42,7 +42,6 @@ class PostgresConnectionFactory implements ConnectionFactory {
                 valores[campo] = valor
             }
         }
-        // Uma variável definida, mesmo vazia, prevalece sobre o arquivo local.
         CAMPOS.each { campo ->
             if (ambiente.containsKey(campo)) valores[campo] = ambiente[campo]
         }

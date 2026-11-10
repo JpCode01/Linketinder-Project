@@ -9,8 +9,6 @@ import com.jpcode.exception.candidato.CandidatoNaoEncontradoPorIdException
 import com.jpcode.exception.referencia.EstadoNaoEncontradoException
 import com.jpcode.exception.referencia.PaisNaoEncontradoException
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
-import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 

@@ -18,7 +18,6 @@ export class ApiClient {
     }
 
     async postar(caminho: string, dados: unknown): Promise<void> {
-        // Cadastros e curtidas podem retornar 201/204 sem corpo.
         await this.enviar(caminho, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -53,7 +52,6 @@ export class ApiClient {
                     mensagem = corpo.erro
                 }
             } catch {
-                // HTML, corpo vazio ou JSON malformado: preservar status e erro genérico.
             }
             throw new ApiError(resposta.status, mensagem)
         }

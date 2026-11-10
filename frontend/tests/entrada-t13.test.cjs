@@ -1,4 +1,3 @@
-// Executa páginas/estratégias reais com DOM e fetch controlados; sem navegador ou banco.
 const { test, after } = require("node:test")
 const assert = require("node:assert/strict")
 const fs = require("node:fs")
@@ -236,7 +235,7 @@ test("sessão ausente/malformada ou perfil divergente volta ao login; refresh ma
         armazenamento.set("sessao", JSON.stringify({ id: 5, tipo }))
         assert.deepEqual(obterSessaoDoPerfil(tipo), { id: 5, tipo })
         assert.deepEqual(obterSessaoDoPerfil(tipo), { id: 5, tipo })
-        assert.equal(chamadas.length, 0) // O estado local não autentica no servidor.
+        assert.equal(chamadas.length, 0)
     }
 })
 

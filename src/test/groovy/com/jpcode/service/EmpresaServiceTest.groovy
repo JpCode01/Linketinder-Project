@@ -24,7 +24,6 @@ class EmpresaServiceTest extends Specification {
 
     UsuarioRepository<Empresa, EmpresaComReferenciasDTO, EmpresaViewListDTO> empresaRepository = Mock()
 
-    CandidatoCurtidasConsultaRepository candidatoCurtidasConsultaRepository = Mock()
     RetribuicaoRepository empresaCurtirRepository = Mock()
     CompetenciaRepository competenciasVagaRepository = Mock()
 
@@ -35,7 +34,6 @@ class EmpresaServiceTest extends Specification {
                 paisRepository,
                 estadoRepository,
                 empresaRepository,
-                candidatoCurtidasConsultaRepository,
                 empresaCurtirRepository,
                 competenciasVagaRepository
         )
@@ -169,14 +167,6 @@ class EmpresaServiceTest extends Specification {
         service.buscarCandidatosQueCurtiram(1L)
         then:
         thrown(UnsupportedOperationException)
-        0 * candidatoCurtidasConsultaRepository._
-    }
-
-    def "curtida global nao grava retribuicao"() {
-        when:
-        service.curtirCandidato(1L, 2L)
-        then:
-        thrown(UnsupportedOperationException)
         0 * empresaCurtirRepository._
     }
 
@@ -267,8 +257,6 @@ class EmpresaServiceTest extends Specification {
         then:
         EmpresaLoginException erro = thrown()
         erro.message == 'Credenciais inválidas para empresa.'
-        new EmpresaLoginException(empresa.email, empresa.senha).message == erro.message
-        new EmpresaLoginException(empresa.email, senha).message == erro.message
 
         where:
         ativo | senha

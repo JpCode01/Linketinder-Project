@@ -1,5 +1,3 @@
-// Sem servidor/banco: executa os clientes e consumidores reais com fetch e DOM controlados.
-// Rodar: node --test tests/transporte-t12.test.cjs (no diretório frontend).
 const { test, after } = require("node:test")
 const assert = require("node:assert/strict")
 const fs = require("node:fs")
@@ -136,7 +134,6 @@ test("estratégias persistem somente sessão confirmada e falhas não simulam su
     }
 })
 
-// DOM mínimo para verificar os consumidores existentes; não representa navegador real.
 class Elemento {
     children = []; textContent = ""; value = ""; disabled = false; dataset = {}; eventos = {}
     focus() {}
@@ -202,7 +199,6 @@ test("interessados continuam anônimos e retribuição não se propaga entre vag
     assert.equal(botoes[1].disabled, false)
     await botoes[1].eventos.click()
     assert.deepEqual(chamadas.filter(c => c.metodo === "POST").map(c => c.corpo), [{ idCandidato: 7, idVaga: 10 }, { idCandidato: 7, idVaga: 11 }])
-    assert.equal(carregar("pages/empresa/EmpresaCandidatoCurtido").exibirCandidatosCurtidos, carregar("pages/empresa/EmpresaMatch").exibirMatchesEmpresa)
 })
 
 test("catálogo RH/administração preenche ambos os formulários sem IDs fabricados e envia nomes", async () => {
@@ -218,7 +214,7 @@ test("catálogo RH/administração preenche ambos os formulários sem IDs fabric
     elementos["job-location"].value = "Remoto"
     elementos["job-description"].value = "Descrição"
     global.window = { alert: () => {} }
-    pagina.configurarCriacaoVaga(8, config.criarVagaService())
+    pagina.configurarCriacaoVaga(config.criarVagaService())
     await elementos["criar-vaga"].onclick()
     assert.deepEqual(chamadas.at(-1).corpo, { nome: "Analista", descricao: "Descrição", local: "Remoto", competencias: nomes })
 

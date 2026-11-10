@@ -17,7 +17,6 @@ import spock.lang.Specification
 import java.sql.Connection
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
-/** T10: DAOs reais; todas as conexões e a limpeza usam o banco dedicado validado. */
 class ConsultaMatchTest extends Specification {
     SuporteContasPostgres banco
     MatchDAO matches

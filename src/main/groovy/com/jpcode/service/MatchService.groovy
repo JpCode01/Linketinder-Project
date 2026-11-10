@@ -21,10 +21,6 @@ class MatchService {
         this.recrutadorRepository = recrutadorRepository
     }
 
-    void salvar(Long idCandidato, Long idEmpresa, Long idVaga) {
-        throw new UnsupportedOperationException('Match exige retribuição transacional pela MatchFacade.')
-    }
-
     void salvarNaTransacao(Connection conexao, Long idCandidato, Long idEmpresa, Long idVaga) {
         matchRepository.salvar(conexao, idCandidato, idEmpresa, idVaga)
     }

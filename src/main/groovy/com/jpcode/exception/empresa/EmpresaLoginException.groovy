@@ -6,7 +6,4 @@ class EmpresaLoginException extends RuntimeException {
         super('Credenciais inválidas para empresa.')
     }
 
-    EmpresaLoginException(String email, String senha) {
-        this()
-    }
 }

@@ -18,7 +18,6 @@ import java.sql.SQLException
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue
 
-/** T08: transações reais em banco dedicado, com schema próprio por caso. */
 class VagaAutoriaTest extends Specification {
     SuporteContasPostgres banco
     VagaDAO dao
